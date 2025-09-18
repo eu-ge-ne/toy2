@@ -1,6 +1,7 @@
 package vt
 
 import (
+	"io"
 	"os"
 
 	"golang.org/x/term"
@@ -14,7 +15,7 @@ func Init() func() {
 		panic(err)
 	}
 
-	Sync.Write([]byte("\x1b[?1049h"))
+	io.WriteString(Sync, "\x1b[?1049h")
 	Sync.Write(
 		key.SetFlags(
 			key.FLAG_DISAMBIGUATE+key.FLAG_ALTERNATES+key.FLAG_ALLKEYS+key.FLAG_TEXT,
@@ -24,7 +25,7 @@ func Init() func() {
 
 	return func() {
 		Sync.Write(key.SetFlags(0, key.MODE_ALL))
-		Sync.Write([]byte("\x1b[?1049l"))
+		io.WriteString(Sync, "\x1b[?1049l")
 		Sync.Write(ShowCursor)
 
 		term.Restore(int(os.Stdin.Fd()), state)
