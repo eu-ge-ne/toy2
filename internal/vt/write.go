@@ -5,11 +5,11 @@ import (
 	"unicode/utf8"
 )
 
-func WriteSpaces(w int) []byte {
-	return fmt.Appendf(nil, " \x1b[%db", w-1)
+func WriteSpaces(out out, w int) {
+	out.Write(fmt.Appendf(nil, " \x1b[%db", w-1))
 }
 
-func WriteText(span *int, text string) []byte {
+func WriteText(out out, span *int, text string) {
 	l := utf8.RuneCountInString(text)
 
 	if l > *span {
@@ -20,10 +20,10 @@ func WriteText(span *int, text string) []byte {
 
 	*span -= l
 
-	return []byte(text)
+	out.Write([]byte(text))
 }
 
-func WriteTextCenter(span *int, text string) []byte {
+func WriteTextCenter(out out, span *int, text string) {
 	l := utf8.RuneCountInString(text)
 
 	if l > *span {
@@ -38,5 +38,5 @@ func WriteTextCenter(span *int, text string) []byte {
 
 	*span -= l
 
-	return fmt.Appendf(nil, "%*s%s%*s", a, " ", text, b, " ")
+	out.Write(fmt.Appendf(nil, "%*s%s%*s", a, " ", text, b, " "))
 }

@@ -216,10 +216,8 @@ func (ed *Editor) renderLine(ln int, row int) int {
 						fmt.Appendf(nil, "%*d ", ed.indexWidth-1, ln+1),
 					)
 				} else {
-					vt.Buf.Write(
-						ed.colors.background,
-						vt.WriteSpaces(ed.indexWidth),
-					)
+					vt.Buf.Write(ed.colors.background)
+					vt.WriteSpaces(vt.Buf, ed.indexWidth)
 				}
 			}
 

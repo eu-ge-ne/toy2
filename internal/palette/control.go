@@ -111,13 +111,8 @@ func (p *Palette) renderOptions() {
 		}
 
 		vt.SetCursor(vt.Buf, y, p.area.X+2)
-		vt.Buf.Write(
-			vt.WriteText(&span, option.description),
-		)
-
-		vt.Buf.Write(
-			vt.WriteText(&span, fmt.Sprintf("%*s", span, option.shortcuts)),
-		)
+		vt.WriteText(vt.Buf, &span, option.description)
+		vt.WriteText(vt.Buf, &span, fmt.Sprintf("%*s", span, option.shortcuts))
 
 		i += 1
 		y += 1

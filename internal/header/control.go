@@ -27,9 +27,9 @@ func (h *Header) Render() {
 	)
 	vt.ClearArea(vt.Buf, h.area.Y, h.area.X, h.area.W, h.area.H)
 	vt.SetCursor(vt.Buf, h.area.Y, h.area.X)
+	vt.Buf.Write(h.colorFilePath)
+	vt.WriteTextCenter(vt.Buf, &span, h.filePath)
 	vt.Buf.Write(
-		h.colorFilePath,
-		vt.WriteTextCenter(&span, h.filePath),
 		vt.RestoreCursor,
 		vt.ShowCursor,
 	)
