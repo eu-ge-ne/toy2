@@ -30,5 +30,9 @@ func (o *syncOut) Esu() {
 }
 
 func (o *syncOut) Write(p []byte) (n int, err error) {
-	return os.Stdout.Write(p)
+	n, err = os.Stdout.Write(p)
+	if err != nil {
+		panic(err)
+	}
+	return
 }
