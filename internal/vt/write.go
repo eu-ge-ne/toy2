@@ -7,7 +7,7 @@ import (
 )
 
 func WriteSpaces(out io.Writer, w int) {
-	out.Write(fmt.Appendf(nil, " \x1b[%db", w-1))
+	fmt.Fprintf(out, " \x1b[%db", w-1)
 }
 
 func WriteText(out io.Writer, span *int, text string) {
@@ -21,7 +21,7 @@ func WriteText(out io.Writer, span *int, text string) {
 
 	*span -= l
 
-	out.Write([]byte(text))
+	io.WriteString(out, text)
 }
 
 func WriteTextCenter(out io.Writer, span *int, text string) {
@@ -39,5 +39,5 @@ func WriteTextCenter(out io.Writer, span *int, text string) {
 
 	*span -= l
 
-	out.Write(fmt.Appendf(nil, "%*s%s%*s", a, " ", text, b, " "))
+	fmt.Fprintf(out, "%*s%s%*s", a, " ", text, b, " ")
 }
