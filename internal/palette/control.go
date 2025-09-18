@@ -20,10 +20,8 @@ func (p *Palette) Render() {
 
 	vt.Sync.Bsu()
 
-	vt.Buf.Write(
-		vt.HideCursor,
-		p.colorBackground,
-	)
+	vt.Buf.Write(vt.HideCursor)
+	vt.Buf.Write(p.colorBackground)
 	vt.ClearArea(vt.Buf, p.area.Y, p.area.X, p.area.W, p.area.H)
 
 	if len(p.filteredOptions) == 0 {
@@ -77,10 +75,8 @@ func (p *Palette) scroll() {
 
 func (p *Palette) renderEmpty() {
 	vt.SetCursor(vt.Buf, p.area.Y+2, p.area.X+2)
-	vt.Buf.Write(
-		p.colorOption,
-		[]byte("No matching commands"),
-	)
+	vt.Buf.Write(p.colorOption)
+	vt.Buf.Write([]byte("No matching commands"))
 }
 
 func (p *Palette) renderOptions() {

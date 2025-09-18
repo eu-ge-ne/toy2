@@ -29,15 +29,13 @@ func (o *syncOut) Esu() {
 	}
 }
 
-func (o *syncOut) Write(chunks ...[]byte) {
-	for _, chunk := range chunks {
-		for i := 0; i < len(chunk); {
-			n, err := os.Stdout.Write(chunk[i:])
-			if err != nil {
-				panic(err)
-			}
-
-			i += n
+func (o *syncOut) Write(p []byte) {
+	for i := 0; i < len(p); {
+		n, err := os.Stdout.Write(p[i:])
+		if err != nil {
+			panic(err)
 		}
+
+		i += n
 	}
 }

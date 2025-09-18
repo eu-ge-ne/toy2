@@ -7,18 +7,16 @@ type bufOut struct {
 	i   int
 }
 
-func (o *bufOut) Write(chunks ...[]byte) {
-	for _, chunk := range chunks {
-		j := o.i + len(chunk)
+func (o *bufOut) Write(p []byte) {
+	j := o.i + len(p)
 
-		if j > len(o.buf) {
-			o.buf = make([]byte, j)
-		}
-
-		copy(o.buf[o.i:], chunk)
-
-		o.i = j
+	if j > len(o.buf) {
+		o.buf = make([]byte, j)
 	}
+
+	copy(o.buf[o.i:], p)
+
+	o.i = j
 }
 
 func (o *bufOut) Flush() {

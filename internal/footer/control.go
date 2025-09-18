@@ -15,22 +15,15 @@ func (f *Footer) Layout(a ui.Area) {
 func (f *Footer) Render() {
 	vt.Sync.Bsu()
 
-	vt.Buf.Write(
-		vt.HideCursor,
-		vt.SaveCursor,
-		f.colorBackground,
-	)
+	vt.Buf.Write(vt.HideCursor)
+	vt.Buf.Write(vt.SaveCursor)
+	vt.Buf.Write(f.colorBackground)
 	vt.ClearArea(vt.Buf, f.area.Y, f.area.X, f.area.W, f.area.H)
 	vt.SetCursor(vt.Buf, f.area.Y, f.area.X)
-	vt.Buf.Write(
-		f.colorText,
-		fmt.Appendf(nil, "%*s", f.area.W, f.cursorStatus),
-	)
-
-	vt.Buf.Write(
-		vt.RestoreCursor,
-		vt.ShowCursor,
-	)
+	vt.Buf.Write(f.colorText)
+	vt.Buf.Write(fmt.Appendf(nil, "%*s", f.area.W, f.cursorStatus))
+	vt.Buf.Write(vt.RestoreCursor)
+	vt.Buf.Write(vt.ShowCursor)
 
 	vt.Buf.Flush()
 

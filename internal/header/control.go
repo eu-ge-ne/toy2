@@ -20,19 +20,15 @@ func (h *Header) Render() {
 
 	span := h.area.W
 
-	vt.Buf.Write(
-		vt.HideCursor,
-		vt.SaveCursor,
-		h.colorBackground,
-	)
+	vt.Buf.Write(vt.HideCursor)
+	vt.Buf.Write(vt.SaveCursor)
+	vt.Buf.Write(h.colorBackground)
 	vt.ClearArea(vt.Buf, h.area.Y, h.area.X, h.area.W, h.area.H)
 	vt.SetCursor(vt.Buf, h.area.Y, h.area.X)
 	vt.Buf.Write(h.colorFilePath)
 	vt.WriteTextCenter(vt.Buf, &span, h.filePath)
-	vt.Buf.Write(
-		vt.RestoreCursor,
-		vt.ShowCursor,
-	)
+	vt.Buf.Write(vt.RestoreCursor)
+	vt.Buf.Write(vt.ShowCursor)
 
 	vt.Buf.Flush()
 

@@ -31,11 +31,9 @@ func (ed *Editor) Render() {
 
 	vt.Sync.Bsu()
 
-	vt.Buf.Write(
-		vt.HideCursor,
-		vt.SaveCursor,
-		ed.colors.background,
-	)
+	vt.Buf.Write(vt.HideCursor)
+	vt.Buf.Write(vt.SaveCursor)
+	vt.Buf.Write(ed.colors.background)
 	vt.ClearArea(vt.Buf, ed.area.Y, ed.area.X, ed.area.W, ed.area.H)
 
 	ed.determineLayout()
@@ -52,10 +50,8 @@ func (ed *Editor) Render() {
 			vt.ShowCursor,
 		)
 	} else {
-		vt.Buf.Write(
-			vt.RestoreCursor,
-			vt.ShowCursor,
-		)
+		vt.Buf.Write(vt.RestoreCursor)
+		vt.Buf.Write(vt.ShowCursor)
 	}
 
 	vt.Buf.Flush()
@@ -211,10 +207,8 @@ func (ed *Editor) renderLine(ln int, row int) int {
 
 			if ed.indexWidth > 0 {
 				if i == 0 {
-					vt.Buf.Write(
-						ed.colors.index,
-						fmt.Appendf(nil, "%*d ", ed.indexWidth-1, ln+1),
-					)
+					vt.Buf.Write(ed.colors.index)
+					vt.Buf.Write(fmt.Appendf(nil, "%*d ", ed.indexWidth-1, ln+1))
 				} else {
 					vt.Buf.Write(ed.colors.background)
 					vt.WriteSpaces(vt.Buf, ed.indexWidth)

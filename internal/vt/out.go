@@ -1,5 +1,5 @@
 package vt
 
 type out interface {
-	Write(chunks ...[]byte)
+	Write(p []byte)
 }

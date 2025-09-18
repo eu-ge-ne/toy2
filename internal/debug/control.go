@@ -26,25 +26,17 @@ func (d *Debug) Render() {
 
 	vt.Sync.Bsu()
 
-	vt.Buf.Write(
-		vt.HideCursor,
-		vt.SaveCursor,
-		d.colorBackground,
-	)
+	vt.Buf.Write(vt.HideCursor)
+	vt.Buf.Write(vt.SaveCursor)
+	vt.Buf.Write(d.colorBackground)
 	vt.ClearArea(vt.Buf, d.area.Y, d.area.X, d.area.W, d.area.H)
-	vt.Buf.Write(
-		d.colorText,
-	)
+	vt.Buf.Write(d.colorText)
 	vt.SetCursor(vt.Buf, d.area.Y+1, d.area.X+1)
-	vt.Buf.Write(
-		fmt.Appendf(nil, "Input    : %v", d.inputTime),
-	)
+	vt.Buf.Write(fmt.Appendf(nil, "Input    : %v", d.inputTime))
 	vt.SetCursor(vt.Buf, d.area.Y+2, d.area.X+1)
-	vt.Buf.Write(
-		fmt.Appendf(nil, "Render   : %v", d.renderTime),
-		vt.RestoreCursor,
-		vt.ShowCursor,
-	)
+	vt.Buf.Write(fmt.Appendf(nil, "Render   : %v", d.renderTime))
+	vt.Buf.Write(vt.RestoreCursor)
+	vt.Buf.Write(vt.ShowCursor)
 
 	vt.Buf.Flush()
 
