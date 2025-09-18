@@ -34,7 +34,6 @@ func Read() iter.Seq[key.Key] {
 				} else {
 					next_esc_i += 1
 				}
-				//yield bytes.subarray(i, next_esc_i);
 				i = next_esc_i
 				continue
 			}
