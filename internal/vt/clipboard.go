@@ -6,5 +6,5 @@ import (
 )
 
 func copyToClipboard(text string) {
-	write(osc(fmt.Sprintf("52;c;%s\x1b\\", base64.StdEncoding.EncodeToString([]byte(text)))))
+	Sync.Write(osc(fmt.Sprintf("52;c;%s\x1b\\", base64.StdEncoding.EncodeToString([]byte(text)))))
 }

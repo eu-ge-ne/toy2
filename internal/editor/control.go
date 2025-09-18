@@ -29,9 +29,9 @@ func (ed *Editor) Layout(a ui.Area) {
 func (ed *Editor) Render() {
 	t0 := time.Now()
 
-	vt.Bsu()
+	vt.Sync.Bsu()
 
-	vt.WriteBuf(
+	vt.Buf.Write(
 		vt.HideCursor,
 		vt.SaveCursor,
 		ed.colors.background,
@@ -47,20 +47,20 @@ func (ed *Editor) Render() {
 	}
 
 	if ed.enabled {
-		vt.WriteBuf(
+		vt.Buf.Write(
 			vt.SetCursor(ed.cursorY, ed.cursorX),
 			vt.ShowCursor,
 		)
 	} else {
-		vt.WriteBuf(
+		vt.Buf.Write(
 			vt.RestoreCursor,
 			vt.ShowCursor,
 		)
 	}
 
-	vt.FlushBuf()
+	vt.Buf.Flush()
 
-	vt.Esu()
+	vt.Sync.Esu()
 
 	if ed.OnCursor != nil {
 		ed.OnCursor(ed.cursor.Ln, ed.cursor.Col, ed.Buffer.LineCount())
@@ -180,7 +180,7 @@ func (ed *Editor) renderLines() {
 		if ln < ed.Buffer.LineCount() {
 			row = ed.renderLine(ln, row)
 		} else {
-			vt.WriteBuf(
+			vt.Buf.Write(
 				vt.SetCursor(row, ed.area.X),
 				ed.colors.void,
 				vt.ClearLine(ed.area.W),
@@ -207,18 +207,18 @@ func (ed *Editor) renderLine(ln int, row int) int {
 				}
 			}
 
-			vt.WriteBuf(
+			vt.Buf.Write(
 				vt.SetCursor(row, ed.area.X),
 			)
 
 			if ed.indexWidth > 0 {
 				if i == 0 {
-					vt.WriteBuf(
+					vt.Buf.Write(
 						ed.colors.index,
 						fmt.Appendf(nil, "%*d ", ed.indexWidth-1, ln+1),
 					)
 				} else {
-					vt.WriteBuf(
+					vt.Buf.Write(
 						ed.colors.background,
 						vt.WriteSpaces(ed.indexWidth),
 					)
@@ -235,10 +235,10 @@ func (ed *Editor) renderLine(ln int, row int) int {
 		color := createCharColor(ed.cursor.IsSelected(ln, i), cell.g.IsVisible, ed.whitespaceEnabled)
 		if color != currentColor {
 			currentColor = color
-			vt.WriteBuf(ed.colors.char[color])
+			vt.Buf.Write(ed.colors.char[color])
 		}
 
-		vt.WriteBuf(cell.g.Bytes)
+		vt.Buf.Write(cell.g.Bytes)
 
 		availableW -= cell.g.Width
 	}

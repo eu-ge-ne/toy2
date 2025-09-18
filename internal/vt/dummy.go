@@ -1,5 +1,5 @@
 package vt
 
 func dummyReq() {
-	write(cprReq)
+	Sync.Write(cprReq)
 }

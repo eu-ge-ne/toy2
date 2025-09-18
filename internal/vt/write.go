@@ -2,20 +2,8 @@ package vt
 
 import (
 	"fmt"
-	"os"
 	"unicode/utf8"
 )
-
-func write(b []byte) {
-	for i := 0; i < len(b); {
-		n, err := os.Stdout.Write(b[i:])
-		if err != nil {
-			panic(err)
-		}
-
-		i += n
-	}
-}
 
 func WriteSpaces(w int) []byte {
 	return fmt.Appendf(nil, " \x1b[%db", w-1)

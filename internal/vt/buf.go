@@ -1,25 +1,29 @@
 package vt
 
-var wBuf = make([]byte, 1024*64)
-var i int = 0
+var Buf = &bufOut{buf: make([]byte, 1024*64)}
 
-func WriteBuf(chunks ...[]byte) {
+type bufOut struct {
+	buf []byte
+	i   int
+}
+
+func (o *bufOut) Write(chunks ...[]byte) {
 	for _, chunk := range chunks {
-		j := i + len(chunk)
+		j := o.i + len(chunk)
 
-		if j > len(wBuf) {
-			wBuf = make([]byte, j)
+		if j > len(o.buf) {
+			o.buf = make([]byte, j)
 		}
 
-		copy(wBuf[i:], chunk)
+		copy(o.buf[o.i:], chunk)
 
-		i = j
+		o.i = j
 	}
 }
 
-func FlushBuf() {
-	j := i
-	i = 0
+func (o *bufOut) Flush() {
+	j := o.i
+	o.i = 0
 
-	write(wBuf[:j])
+	Sync.Write(o.buf[:j])
 }

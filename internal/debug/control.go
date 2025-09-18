@@ -24,9 +24,9 @@ func (d *Debug) Render() {
 		return
 	}
 
-	vt.Bsu()
+	vt.Sync.Bsu()
 
-	vt.WriteBuf(
+	vt.Buf.Write(
 		vt.HideCursor,
 		vt.SaveCursor,
 		d.colorBackground,
@@ -40,7 +40,7 @@ func (d *Debug) Render() {
 		vt.ShowCursor,
 	)
 
-	vt.FlushBuf()
+	vt.Buf.Flush()
 
-	vt.Esu()
+	vt.Sync.Esu()
 }

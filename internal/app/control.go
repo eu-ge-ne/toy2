@@ -30,7 +30,7 @@ func (app *App) Layout(a ui.Area) {
 }
 
 func (app *App) Render() {
-	vt.Bsu()
+	vt.Sync.Bsu()
 
 	app.header.Render()
 	app.footer.Render()
@@ -38,5 +38,5 @@ func (app *App) Render() {
 	app.debug.Render()
 	app.palette.Render()
 
-	vt.Esu()
+	vt.Sync.Esu()
 }

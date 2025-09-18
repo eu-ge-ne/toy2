@@ -13,9 +13,9 @@ func (f *Footer) Layout(a ui.Area) {
 }
 
 func (f *Footer) Render() {
-	vt.Bsu()
+	vt.Sync.Bsu()
 
-	vt.WriteBuf(
+	vt.Buf.Write(
 		vt.HideCursor,
 		vt.SaveCursor,
 		f.colorBackground,
@@ -25,12 +25,12 @@ func (f *Footer) Render() {
 		fmt.Appendf(nil, "%*s", f.area.W, f.cursorStatus),
 	)
 
-	vt.WriteBuf(
+	vt.Buf.Write(
 		vt.RestoreCursor,
 		vt.ShowCursor,
 	)
 
-	vt.FlushBuf()
+	vt.Buf.Flush()
 
-	vt.Esu()
+	vt.Sync.Esu()
 }

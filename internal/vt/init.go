@@ -14,8 +14,8 @@ func Init() func() {
 		panic(err)
 	}
 
-	write(csi("?1049h"))
-	write(
+	Sync.Write(csi("?1049h"))
+	Sync.Write(
 		key.SetFlags(
 			key.FLAG_DISAMBIGUATE+key.FLAG_ALTERNATES+key.FLAG_ALLKEYS+key.FLAG_TEXT,
 			key.MODE_ALL,
@@ -23,9 +23,9 @@ func Init() func() {
 	)
 
 	return func() {
-		write(key.SetFlags(0, key.MODE_ALL))
-		write(csi("?1049l"))
-		write(ShowCursor)
+		Sync.Write(key.SetFlags(0, key.MODE_ALL))
+		Sync.Write(csi("?1049l"))
+		Sync.Write(ShowCursor)
 
 		term.Restore(int(os.Stdin.Fd()), state)
 	}

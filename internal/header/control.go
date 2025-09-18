@@ -16,11 +16,11 @@ func (h *Header) Layout(a ui.Area) {
 }
 
 func (h *Header) Render() {
-	vt.Bsu()
+	vt.Sync.Bsu()
 
 	span := h.area.W
 
-	vt.WriteBuf(
+	vt.Buf.Write(
 		vt.HideCursor,
 		vt.SaveCursor,
 		h.colorBackground,
@@ -32,7 +32,7 @@ func (h *Header) Render() {
 		vt.ShowCursor,
 	)
 
-	vt.FlushBuf()
+	vt.Buf.Flush()
 
-	vt.Esu()
+	vt.Sync.Esu()
 }

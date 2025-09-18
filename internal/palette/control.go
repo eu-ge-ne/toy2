@@ -18,9 +18,9 @@ func (p *Palette) Render() {
 	p.resize()
 	p.scroll()
 
-	vt.Bsu()
+	vt.Sync.Bsu()
 
-	vt.WriteBuf(
+	vt.Buf.Write(
 		vt.HideCursor,
 		p.colorBackground,
 		vt.ClearArea(p.area.Y, p.area.X, p.area.W, p.area.H),
@@ -34,9 +34,9 @@ func (p *Palette) Render() {
 
 	p.editor.Render()
 
-	vt.FlushBuf()
+	vt.Buf.Flush()
 
-	vt.Esu()
+	vt.Sync.Esu()
 }
 
 func (p *Palette) resize() {
@@ -76,7 +76,7 @@ func (p *Palette) scroll() {
 }
 
 func (p *Palette) renderEmpty() {
-	vt.WriteBuf(
+	vt.Buf.Write(
 		vt.SetCursor(p.area.Y+2, p.area.X+2),
 		p.colorOption,
 		[]byte("No matching commands"),
@@ -105,17 +105,17 @@ func (p *Palette) renderOptions() {
 		span := p.area.W - 4
 
 		if index == p.selectedIndex {
-			vt.WriteBuf(p.colorSelectedOption)
+			vt.Buf.Write(p.colorSelectedOption)
 		} else {
-			vt.WriteBuf(p.colorOption)
+			vt.Buf.Write(p.colorOption)
 		}
 
-		vt.WriteBuf(
+		vt.Buf.Write(
 			vt.SetCursor(y, p.area.X+2),
 			vt.WriteText(&span, option.description),
 		)
 
-		vt.WriteBuf(
+		vt.Buf.Write(
 			vt.WriteText(&span, fmt.Sprintf("%*s", span, option.shortcuts)),
 		)
 

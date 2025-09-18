@@ -25,9 +25,9 @@ var re = regexp.MustCompile(`\x1b\[\d+;(\d+)R`)
 func MeasureCursor(y, x int, b []byte) int {
 	buf := make([]byte, 1024)
 
-	write(SetCursor(y, x))
-	write(b)
-	write(cprReq)
+	Sync.Write(SetCursor(y, x))
+	Sync.Write(b)
+	Sync.Write(cprReq)
 
 	for i := 0; i < 4; i += 1 {
 		n, err := os.Stdin.Read(buf)
