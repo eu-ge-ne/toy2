@@ -47,8 +47,8 @@ func (ed *Editor) Render() {
 	}
 
 	if ed.enabled {
+		vt.SetCursor(vt.Buf, ed.cursorY, ed.cursorX)
 		vt.Buf.Write(
-			vt.SetCursor(ed.cursorY, ed.cursorX),
 			vt.ShowCursor,
 		)
 	} else {
@@ -180,8 +180,8 @@ func (ed *Editor) renderLines() {
 		if ln < ed.Buffer.LineCount() {
 			row = ed.renderLine(ln, row)
 		} else {
+			vt.SetCursor(vt.Buf, row, ed.area.X)
 			vt.Buf.Write(
-				vt.SetCursor(row, ed.area.X),
 				ed.colors.void,
 			)
 			vt.ClearLine(vt.Buf, ed.area.W)
@@ -207,9 +207,7 @@ func (ed *Editor) renderLine(ln int, row int) int {
 				}
 			}
 
-			vt.Buf.Write(
-				vt.SetCursor(row, ed.area.X),
-			)
+			vt.SetCursor(vt.Buf, row, ed.area.X)
 
 			if ed.indexWidth > 0 {
 				if i == 0 {

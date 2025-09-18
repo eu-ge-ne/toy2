@@ -1,7 +1,7 @@
 package vt
 
 func ClearArea(out out, y, x, w, h int) {
-	out.Write(SetCursor(y, x))
+	SetCursor(out, y, x)
 
 	for i := h; i > 0; i -= 1 {
 		ECH(out, w)

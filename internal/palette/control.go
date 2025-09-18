@@ -76,8 +76,8 @@ func (p *Palette) scroll() {
 }
 
 func (p *Palette) renderEmpty() {
+	vt.SetCursor(vt.Buf, p.area.Y+2, p.area.X+2)
 	vt.Buf.Write(
-		vt.SetCursor(p.area.Y+2, p.area.X+2),
 		p.colorOption,
 		[]byte("No matching commands"),
 	)
@@ -110,8 +110,8 @@ func (p *Palette) renderOptions() {
 			vt.Buf.Write(p.colorOption)
 		}
 
+		vt.SetCursor(vt.Buf, y, p.area.X+2)
 		vt.Buf.Write(
-			vt.SetCursor(y, p.area.X+2),
 			vt.WriteText(&span, option.description),
 		)
 

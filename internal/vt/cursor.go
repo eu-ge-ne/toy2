@@ -15,8 +15,8 @@ var ShowCursor = csi("?25h")
 
 var CursorDown = csi("B")
 
-func SetCursor(y int, x int) []byte {
-	return fmt.Appendf(nil, "\x1b[%d;%dH", y+1, x+1)
+func SetCursor(out out, y int, x int) {
+	out.Write(fmt.Appendf(nil, "\x1b[%d;%dH", y+1, x+1))
 }
 
 var cprReq = csi("6n")
@@ -25,7 +25,7 @@ var re = regexp.MustCompile(`\x1b\[\d+;(\d+)R`)
 func MeasureCursor(y, x int, b []byte) int {
 	buf := make([]byte, 1024)
 
-	Sync.Write(SetCursor(y, x))
+	SetCursor(Sync, y, x)
 	Sync.Write(b)
 	Sync.Write(cprReq)
 
