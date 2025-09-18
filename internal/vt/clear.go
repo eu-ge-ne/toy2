@@ -1,16 +1,14 @@
 package vt
 
-func ClearArea(y, x, w, h int) []byte {
-	b := SetCursor(y, x)
+func ClearArea(out out, y, x, w, h int) {
+	out.Write(SetCursor(y, x))
 
 	for i := h; i > 0; i -= 1 {
-		b = append(b, ECH(w)...)
-		b = append(b, CursorDown...)
+		ECH(out, w)
+		out.Write(CursorDown)
 	}
-
-	return b
 }
 
-func ClearLine(w int) []byte {
-	return ECH(w)
+func ClearLine(out out, w int) {
+	ECH(out, w)
 }

@@ -19,7 +19,9 @@ func (f *Footer) Render() {
 		vt.HideCursor,
 		vt.SaveCursor,
 		f.colorBackground,
-		vt.ClearArea(f.area.Y, f.area.X, f.area.W, f.area.H),
+	)
+	vt.ClearArea(vt.Buf, f.area.Y, f.area.X, f.area.W, f.area.H)
+	vt.Buf.Write(
 		vt.SetCursor(f.area.Y, f.area.X),
 		f.colorText,
 		fmt.Appendf(nil, "%*s", f.area.W, f.cursorStatus),

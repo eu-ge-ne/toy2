@@ -1,7 +1,9 @@
 package vt
 
-import "fmt"
+import (
+	"fmt"
+)
 
-func ECH(n int) []byte {
-	return fmt.Appendf(nil, "\x1b[%dX", n)
+func ECH(out out, n int) {
+	out.Write(fmt.Appendf(nil, "\x1b[%dX", n))
 }

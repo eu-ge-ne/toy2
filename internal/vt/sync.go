@@ -4,8 +4,8 @@ import (
 	"os"
 )
 
-var bsuBytes = csi("?2026h")
-var esuBytes = csi("?2026l")
+var bsu = []byte("\x1b[?2026h")
+var esu = []byte("\x1b[?2026l")
 
 var Sync = &syncOut{}
 
@@ -15,7 +15,7 @@ type syncOut struct {
 
 func (o *syncOut) Bsu() {
 	if o.c == 0 {
-		o.Write(bsuBytes)
+		o.Write(bsu)
 	}
 
 	o.c += 1
@@ -25,7 +25,7 @@ func (o *syncOut) Esu() {
 	o.c -= 1
 
 	if o.c == 0 {
-		o.Write(esuBytes)
+		o.Write(esu)
 	}
 }
 

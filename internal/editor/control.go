@@ -35,8 +35,8 @@ func (ed *Editor) Render() {
 		vt.HideCursor,
 		vt.SaveCursor,
 		ed.colors.background,
-		vt.ClearArea(ed.area.Y, ed.area.X, ed.area.W, ed.area.H),
 	)
+	vt.ClearArea(vt.Buf, ed.area.Y, ed.area.X, ed.area.W, ed.area.H)
 
 	ed.determineLayout()
 
@@ -183,8 +183,8 @@ func (ed *Editor) renderLines() {
 			vt.Buf.Write(
 				vt.SetCursor(row, ed.area.X),
 				ed.colors.void,
-				vt.ClearLine(ed.area.W),
 			)
+			vt.ClearLine(vt.Buf, ed.area.W)
 		}
 
 		row += 1
