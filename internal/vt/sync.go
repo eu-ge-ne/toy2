@@ -29,13 +29,6 @@ func (o *syncOut) Esu() {
 	}
 }
 
-func (o *syncOut) Write(p []byte) {
-	for i := 0; i < len(p); {
-		n, err := os.Stdout.Write(p[i:])
-		if err != nil {
-			panic(err)
-		}
-
-		i += n
-	}
+func (o *syncOut) Write(p []byte) (n int, err error) {
+	return os.Stdout.Write(p)
 }

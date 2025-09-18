@@ -7,7 +7,7 @@ type bufOut struct {
 	i   int
 }
 
-func (o *bufOut) Write(p []byte) {
+func (o *bufOut) Write(p []byte) (n int, err error) {
 	j := o.i + len(p)
 
 	if j > len(o.buf) {
@@ -17,6 +17,8 @@ func (o *bufOut) Write(p []byte) {
 	copy(o.buf[o.i:], p)
 
 	o.i = j
+
+	return len(p), nil
 }
 
 func (o *bufOut) Flush() {
