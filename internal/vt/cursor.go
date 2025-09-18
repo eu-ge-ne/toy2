@@ -2,8 +2,8 @@ package vt
 
 import (
 	"fmt"
-	"os"
 	"io"
+	"os"
 	"regexp"
 	"strconv"
 )
@@ -17,7 +17,7 @@ var ShowCursor = csi("?25h")
 var CursorDown = csi("B")
 
 func SetCursor(out io.Writer, y int, x int) {
-	out.Write(fmt.Appendf(nil, "\x1b[%d;%dH", y+1, x+1))
+	fmt.Fprintf(out, "\x1b[%d;%dH", y+1, x+1)
 }
 
 var cprReq = csi("6n")
