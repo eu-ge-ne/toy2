@@ -177,9 +177,7 @@ func (ed *Editor) renderLines() {
 			row = ed.renderLine(ln, row)
 		} else {
 			vt.SetCursor(vt.Buf, row, ed.area.X)
-			vt.Buf.Write(
-				ed.colors.void,
-			)
+			vt.Buf.Write(ed.colors.void)
 			vt.ClearLine(vt.Buf, ed.area.W)
 		}
 
@@ -208,7 +206,7 @@ func (ed *Editor) renderLine(ln int, row int) int {
 			if ed.indexWidth > 0 {
 				if i == 0 {
 					vt.Buf.Write(ed.colors.index)
-					vt.Buf.Write(fmt.Appendf(nil, "%*d ", ed.indexWidth-1, ln+1))
+					fmt.Fprintf(vt.Buf, "%*d ", ed.indexWidth-1, ln+1)
 				} else {
 					vt.Buf.Write(ed.colors.background)
 					vt.WriteSpaces(vt.Buf, ed.indexWidth)
