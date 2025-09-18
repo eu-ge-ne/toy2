@@ -6,5 +6,5 @@ import (
 )
 
 func ECH(out io.Writer, n int) {
-	out.Write(fmt.Appendf(nil, "\x1b[%dX", n))
+	fmt.Fprintf(out, "\x1b[%dX", n)
 }
