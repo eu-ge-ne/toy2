@@ -58,7 +58,12 @@ func (ed *Editor) Render() {
 }
 
 func (ed *Editor) determineLayout() {
-	ed.indexWidth = int(math.Log10(float64(ed.Buffer.LineCount()))) + 3
+	if ed.IndexEnabled && ed.Buffer.LineCount() > 0 {
+		ed.indexWidth = int(math.Log10(float64(ed.Buffer.LineCount()))) + 3
+	} else {
+		ed.indexWidth = 0
+	}
+
 	ed.textWidth = ed.area.W - ed.indexWidth
 
 	if ed.wrapEnabled {
