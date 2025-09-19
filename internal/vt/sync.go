@@ -13,6 +13,14 @@ type syncOut struct {
 	c int
 }
 
+func (o *syncOut) Write(p []byte) (n int, err error) {
+	n, err = os.Stdout.Write(p)
+	if err != nil {
+		panic(err)
+	}
+	return
+}
+
 func (o *syncOut) Bsu() {
 	if o.c == 0 {
 		o.Write(bsu)
@@ -27,12 +35,4 @@ func (o *syncOut) Esu() {
 	if o.c == 0 {
 		o.Write(esu)
 	}
-}
-
-func (o *syncOut) Write(p []byte) (n int, err error) {
-	n, err = os.Stdout.Write(p)
-	if err != nil {
-		panic(err)
-	}
-	return
 }
