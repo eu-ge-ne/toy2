@@ -12,49 +12,49 @@ func (Neutral) DangerBg() []byte {
 }
 
 func (Neutral) MainBg() []byte {
-	return vt.CharBg(neutral[900])
+	return vt.CharBg(neutral_900)
 }
 
 func (Neutral) MainFg() []byte {
-	return vt.CharFg(neutral[900])
+	return vt.CharFg(neutral_900)
 }
 
 func (Neutral) Light2Bg() []byte {
-	return vt.CharBg(neutral[500])
+	return vt.CharBg(neutral_500)
 }
 
 func (Neutral) Light2Fg() []byte {
-	return vt.CharFg(neutral[100])
+	return vt.CharFg(neutral_100)
 }
 
 func (Neutral) Light1Bg() []byte {
-	return vt.CharBg(neutral[700])
+	return vt.CharBg(neutral_700)
 }
 
 func (Neutral) Light1Fg() []byte {
-	return vt.CharFg(neutral[200])
+	return vt.CharFg(neutral_200)
 }
 
 func (Neutral) Light0Bg() []byte {
-	return vt.CharBg(neutral[800])
+	return vt.CharBg(neutral_800)
 }
 
 func (Neutral) Light0Fg() []byte {
-	return vt.CharFg(neutral[300])
+	return vt.CharFg(neutral_300)
 }
 
 func (Neutral) Dark0Bg() []byte {
-	return vt.CharBg(neutral[950])
+	return vt.CharBg(neutral_950)
 }
 
 func (Neutral) Dark0Fg() []byte {
-	return vt.CharFg(neutral[400])
+	return vt.CharFg(neutral_400)
 }
 
 func (Neutral) Dark1Fg() []byte {
-	return vt.CharFg(neutral[600])
+	return vt.CharFg(neutral_600)
 }
 
 func (Neutral) Dark2Fg() []byte {
-	return vt.CharFg(neutral[700])
+	return vt.CharFg(neutral_700)
 }

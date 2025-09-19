@@ -12,49 +12,49 @@ func (Gray) DangerBg() []byte {
 }
 
 func (Gray) MainBg() []byte {
-	return vt.CharBg(gray[900])
+	return vt.CharBg(gray_900)
 }
 
 func (Gray) MainFg() []byte {
-	return vt.CharFg(gray[900])
+	return vt.CharFg(gray_900)
 }
 
 func (Gray) Light2Bg() []byte {
-	return vt.CharBg(gray[500])
+	return vt.CharBg(gray_500)
 }
 
 func (Gray) Light2Fg() []byte {
-	return vt.CharFg(gray[100])
+	return vt.CharFg(gray_100)
 }
 
 func (Gray) Light1Bg() []byte {
-	return vt.CharBg(gray[700])
+	return vt.CharBg(gray_700)
 }
 
 func (Gray) Light1Fg() []byte {
-	return vt.CharFg(gray[200])
+	return vt.CharFg(gray_200)
 }
 
 func (Gray) Light0Bg() []byte {
-	return vt.CharBg(gray[800])
+	return vt.CharBg(gray_800)
 }
 
 func (Gray) Light0Fg() []byte {
-	return vt.CharFg(gray[300])
+	return vt.CharFg(gray_300)
 }
 
 func (Gray) Dark0Bg() []byte {
-	return vt.CharBg(gray[950])
+	return vt.CharBg(gray_950)
 }
 
 func (Gray) Dark0Fg() []byte {
-	return vt.CharFg(gray[400])
+	return vt.CharFg(gray_400)
 }
 
 func (Gray) Dark1Fg() []byte {
-	return vt.CharFg(gray[600])
+	return vt.CharFg(gray_600)
 }
 
 func (Gray) Dark2Fg() []byte {
-	return vt.CharFg(gray[700])
+	return vt.CharFg(gray_700)
 }
