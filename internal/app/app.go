@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"runtime/pprof"
 	"slices"
+	"strings"
 	"syscall"
 	"unicode/utf8"
 
@@ -50,6 +51,9 @@ func New() *App {
 			options = append(options, opt)
 		}
 	}
+	slices.SortFunc(options, func(a, b *palette.Option) int {
+		return strings.Compare(strings.ToLower(a.Description), strings.ToLower(b.Description))
+	})
 
 	app.header = header.New()
 	app.editor = editor.New(true)

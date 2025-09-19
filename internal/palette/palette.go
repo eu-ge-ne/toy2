@@ -79,7 +79,7 @@ func (p *Palette) filter() {
 
 	p.filteredOptions = []*Option{}
 	for _, o := range p.options {
-		d := strings.ToUpper(o.description)
+		d := strings.ToUpper(o.Description)
 		i := strings.Index(d, text)
 		if i >= 0 {
 			p.filteredOptions = append(p.filteredOptions, o)
