@@ -8,8 +8,8 @@ import (
 	"strconv"
 )
 
-var SaveCursor = esc("7")
-var RestoreCursor = esc("8")
+var SaveCursor = []byte("\x1b7")
+var RestoreCursor = []byte("\x1b8")
 
 var HideCursor = []byte("\x1b[?25l")
 var ShowCursor = []byte("\x1b[?25h")
@@ -23,6 +23,7 @@ func SetCursor(out io.Writer, y int, x int) {
 var cprReq = []byte("\x1b[6n")
 var re = regexp.MustCompile(`\x1b\[\d+;(\d+)R`)
 
+// TODO
 func MeasureCursor(y, x int, b []byte) int {
 	buf := make([]byte, 1024)
 
