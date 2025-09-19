@@ -27,7 +27,7 @@ func (c *SlateThemeCommand) Match(key key.Key) bool {
 }
 
 func (c *SlateThemeCommand) Run() {
-	c.app.SetColors(theme.Slate{})
+	c.app.setColors(theme.Slate{})
 
 	c.app.Render()
 }

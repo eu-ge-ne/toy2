@@ -46,7 +46,7 @@ func (d *Palette) SetColors(t theme.Tokens) {
 
 func (p *Palette) Open(done chan<- *Option) {
 	p.enabled = true
-	p.editor.SetEnabled(true)
+	p.editor.Enabled = true
 
 	p.editor.Buffer.Reset("")
 	p.editor.Reset(false)
@@ -57,7 +57,7 @@ func (p *Palette) Open(done chan<- *Option) {
 	result := p.processInput()
 
 	p.enabled = false
-	p.editor.SetEnabled(false)
+	p.editor.Enabled = false
 
 	done <- result
 }

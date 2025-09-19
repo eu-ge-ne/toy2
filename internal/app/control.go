@@ -24,7 +24,11 @@ func (app *App) Layout(a ui.Area) {
 
 	app.header.Layout(app.area)
 	app.footer.Layout(app.area)
-	app.editor.Layout(ui.Area{Y: a.Y + 1, X: a.X, W: a.W, H: a.H - 2})
+	if app.zenEnabled {
+		app.editor.Layout(app.area)
+	} else {
+		app.editor.Layout(ui.Area{Y: a.Y + 1, X: a.X, W: a.W, H: a.H - 2})
+	}
 	app.debug.Layout(app.editor.Area())
 	app.palette.Layout(app.editor.Area())
 }

@@ -27,7 +27,7 @@ func (c *GrayThemeCommand) Match(key key.Key) bool {
 }
 
 func (c *GrayThemeCommand) Run() {
-	c.app.SetColors(theme.Gray{})
+	c.app.setColors(theme.Gray{})
 
 	c.app.Render()
 }

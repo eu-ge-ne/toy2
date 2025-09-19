@@ -10,14 +10,6 @@ import (
 	"github.com/eu-ge-ne/toy2/internal/vt"
 )
 
-func (ed *Editor) IsEnabled() bool {
-	return ed.enabled
-}
-
-func (ed *Editor) SetEnabled(enabled bool) {
-	ed.enabled = enabled
-}
-
 func (ed *Editor) Area() ui.Area {
 	return ed.area
 }
@@ -44,7 +36,7 @@ func (ed *Editor) Render() {
 		ed.renderLines()
 	}
 
-	if ed.enabled {
+	if ed.Enabled {
 		vt.SetCursor(vt.Buf, ed.cursorY, ed.cursorX)
 		vt.Buf.Write(vt.ShowCursor)
 	} else {
@@ -66,7 +58,12 @@ func (ed *Editor) Render() {
 }
 
 func (ed *Editor) determineLayout() {
-	ed.indexWidth = int(math.Log10(float64(ed.Buffer.LineCount()))) + 3
+	if ed.IndexEnabled && ed.Buffer.LineCount() > 0 {
+		ed.indexWidth = int(math.Log10(float64(ed.Buffer.LineCount()))) + 3
+	} else {
+		ed.indexWidth = 0
+	}
+
 	ed.textWidth = ed.area.W - ed.indexWidth
 
 	if ed.wrapEnabled {

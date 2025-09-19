@@ -13,6 +13,10 @@ func (f *Footer) Layout(a ui.Area) {
 }
 
 func (f *Footer) Render() {
+	if !f.Enabled {
+		return
+	}
+
 	vt.Sync.Bsu()
 
 	vt.Buf.Write(vt.HideCursor)

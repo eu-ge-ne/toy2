@@ -12,9 +12,9 @@ import (
 
 type Editor struct {
 	area    ui.Area
-	enabled bool
+	Enabled bool
 
-	indexEnabled      bool
+	IndexEnabled      bool
 	whitespaceEnabled bool
 	wrapEnabled       bool
 
@@ -69,7 +69,6 @@ func New(multiLine bool) *Editor {
 		&EnterHandler{editor: &editor},
 	)
 
-	editor.indexEnabled = true
 	editor.whitespaceEnabled = true
 	editor.wrapEnabled = true
 

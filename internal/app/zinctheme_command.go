@@ -27,7 +27,7 @@ func (c *ZincThemeCommand) Match(key key.Key) bool {
 }
 
 func (c *ZincThemeCommand) Run() {
-	c.app.SetColors(theme.Zinc{})
+	c.app.setColors(theme.Zinc{})
 
 	c.app.Render()
 }

@@ -27,7 +27,7 @@ func (c *Base16ThemeCommand) Match(key key.Key) bool {
 }
 
 func (c *Base16ThemeCommand) Run() {
-	c.app.SetColors(theme.Base16{})
+	c.app.setColors(theme.Base16{})
 
 	c.app.Render()
 }
