@@ -2,6 +2,7 @@ package palette
 
 import (
 	"fmt"
+	"io"
 
 	"github.com/eu-ge-ne/toy2/internal/ui"
 	"github.com/eu-ge-ne/toy2/internal/vt"
@@ -76,7 +77,7 @@ func (p *Palette) scroll() {
 func (p *Palette) renderEmpty() {
 	vt.SetCursor(vt.Buf, p.area.Y+2, p.area.X+2)
 	vt.Buf.Write(p.colorOption)
-	vt.Buf.Write([]byte("No matching commands"))
+	io.WriteString(vt.Buf, "No matching commands")
 }
 
 func (p *Palette) renderOptions() {
