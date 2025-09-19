@@ -11,16 +11,16 @@ import (
 var SaveCursor = esc("7")
 var RestoreCursor = esc("8")
 
-var HideCursor = csi("?25l")
-var ShowCursor = csi("?25h")
+var HideCursor = []byte("\x1b[?25l")
+var ShowCursor = []byte("\x1b[?25h")
 
-var CursorDown = csi("B")
+var CursorDown = []byte("\x1b[B")
 
 func SetCursor(out io.Writer, y int, x int) {
 	fmt.Fprintf(out, "\x1b[%d;%dH", y+1, x+1)
 }
 
-var cprReq = csi("6n")
+var cprReq = []byte("\x1b[6n")
 var re = regexp.MustCompile(`\x1b\[\d+;(\d+)R`)
 
 func MeasureCursor(y, x int, b []byte) int {
