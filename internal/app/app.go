@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"runtime/pprof"
 	"slices"
+	"strings"
 	"syscall"
 	"unicode/utf8"
 
@@ -38,6 +39,7 @@ func New() *App {
 		NewBase16ThemeCommand(&app),
 		NewDebugCommand(&app),
 		NewExitCommand(&app),
+		NewGrayThemeCommand(&app),
 		NewNeutralThemeCommand(&app),
 		NewPaletteCommand(&app),
 	}
@@ -49,6 +51,9 @@ func New() *App {
 			options = append(options, opt)
 		}
 	}
+	slices.SortFunc(options, func(a, b *palette.Option) int {
+		return strings.Compare(strings.ToLower(a.Description), strings.ToLower(b.Description))
+	})
 
 	app.header = header.New()
 	app.editor = editor.New(true)
@@ -91,6 +96,18 @@ func (app *App) Run() {
 	}
 
 	app.processInput()
+}
+
+func (app *App) SetColors(t theme.Tokens) {
+	app.header.SetColors(t)
+	app.footer.SetColors(t)
+	app.editor.SetColors(t)
+	app.debug.SetColors(t)
+	app.palette.SetColors(t)
+
+	//set_alert_colors(tokens)
+	//set_ask_colors(tokens)
+	//set_save_as_colors(tokens)
 }
 
 func (app *App) exit() {
@@ -170,18 +187,6 @@ func (app *App) processInput() {
 
 func (app *App) setFilePath(filePath string) {
 	app.header.SetFilePath(filePath)
-}
-
-func (app *App) SetColors(t theme.Tokens) {
-	app.header.SetColors(t)
-	app.footer.SetColors(t)
-	app.editor.SetColors(t)
-	app.debug.SetColors(t)
-	app.palette.SetColors(t)
-
-	//set_alert_colors(tokens)
-	//set_ask_colors(tokens)
-	//set_save_as_colors(tokens)
 }
 
 func (app *App) listenSigwinch() {

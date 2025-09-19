@@ -8,7 +8,7 @@ import (
 
 type Option struct {
 	Id          string
-	description string
+	Description string
 	shortcuts   string
 }
 
@@ -35,7 +35,7 @@ func NewOption(id string, description string, keys []key.Key) *Option {
 
 	return &Option{
 		Id:          id,
-		description: description,
+		Description: description,
 		shortcuts:   strings.Join(shortcuts, " "),
 	}
 }
