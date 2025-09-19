@@ -46,9 +46,7 @@ func (ed *Editor) Render() {
 
 	if ed.enabled {
 		vt.SetCursor(vt.Buf, ed.cursorY, ed.cursorX)
-		vt.Buf.Write(
-			vt.ShowCursor,
-		)
+		vt.Buf.Write(vt.ShowCursor)
 	} else {
 		vt.Buf.Write(vt.RestoreCursor)
 		vt.Buf.Write(vt.ShowCursor)
