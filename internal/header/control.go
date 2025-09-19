@@ -16,6 +16,10 @@ func (h *Header) Layout(a ui.Area) {
 }
 
 func (h *Header) Render() {
+	if !h.Enabled {
+		return
+	}
+
 	vt.Sync.Bsu()
 
 	span := h.area.W

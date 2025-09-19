@@ -27,7 +27,7 @@ func (c *StoneThemeCommand) Match(key key.Key) bool {
 }
 
 func (c *StoneThemeCommand) Run() {
-	c.app.SetColors(theme.Stone{})
+	c.app.setColors(theme.Stone{})
 
 	c.app.Render()
 }

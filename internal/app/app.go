@@ -22,14 +22,15 @@ import (
 )
 
 type App struct {
-	area      ui.Area
-	header    *header.Header
-	editor    *editor.Editor
-	footer    *footer.Footer
-	debug     *debug.Debug
-	palette   *palette.Palette
-	commands  []Command
-	restoreVt func()
+	area       ui.Area
+	header     *header.Header
+	editor     *editor.Editor
+	footer     *footer.Footer
+	debug      *debug.Debug
+	palette    *palette.Palette
+	commands   []Command
+	restoreVt  func()
+	zenEnabled bool
 }
 
 func New() *App {
@@ -44,6 +45,7 @@ func New() *App {
 		NewPaletteCommand(&app),
 		NewSlateThemeCommand(&app),
 		NewStoneThemeCommand(&app),
+		NewZenCommand(&app),
 		NewZincThemeCommand(&app),
 	}
 
@@ -64,7 +66,7 @@ func New() *App {
 	app.debug = debug.New()
 	app.palette = palette.New(&app, options)
 
-	app.editor.SetEnabled(true)
+	app.editor.Enabled = true
 	app.editor.OnCursor = app.footer.SetCursorStatus
 	app.editor.OnKeyHandled = app.debug.SetInputTime
 	app.editor.OnRender = app.debug.SetRenderTime
@@ -88,8 +90,8 @@ func (app *App) Run() {
 
 	app.restoreVt = vt.Init()
 
-	app.SetColors(theme.Neutral{})
-
+	app.setColors(theme.Neutral{})
+	app.enableZen(false)
 	app.refresh()
 
 	go app.listenSigwinch()
@@ -101,7 +103,7 @@ func (app *App) Run() {
 	app.processInput()
 }
 
-func (app *App) SetColors(t theme.Tokens) {
+func (app *App) setColors(t theme.Tokens) {
 	app.header.SetColors(t)
 	app.footer.SetColors(t)
 	app.editor.SetColors(t)
@@ -111,6 +113,14 @@ func (app *App) SetColors(t theme.Tokens) {
 	//set_alert_colors(tokens)
 	//set_ask_colors(tokens)
 	//set_save_as_colors(tokens)
+}
+
+func (app *App) enableZen(enabled bool) {
+	app.zenEnabled = enabled
+
+	app.header.Enabled = !enabled
+	app.footer.Enabled = !enabled
+	app.editor.IndexEnabled = !enabled
 }
 
 func (app *App) exit() {
@@ -179,7 +189,7 @@ func (app *App) processInput() {
 				continue
 			}
 
-			if app.editor.IsEnabled() {
+			if app.editor.Enabled {
 				if app.editor.HandleKey(key) {
 					app.editor.Render()
 				}

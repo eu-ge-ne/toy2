@@ -8,6 +8,7 @@ import (
 type Header struct {
 	area     ui.Area
 	filePath string
+	Enabled  bool
 
 	colorBackground  []byte
 	colorFilePath    []byte
