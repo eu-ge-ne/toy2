@@ -44,6 +44,7 @@ func New() *App {
 		NewPaletteCommand(&app),
 		NewSlateThemeCommand(&app),
 		NewStoneThemeCommand(&app),
+		NewZincThemeCommand(&app),
 	}
 
 	options := []*palette.Option{}
