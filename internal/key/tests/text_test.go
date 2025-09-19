@@ -1,0 +1,104 @@
+package key_test
+
+import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+
+	"github.com/eu-ge-ne/toy2/internal/key"
+)
+
+func Test_a(t *testing.T) {
+	k, n, ok := key.Parse([]byte("\x1b[97;;97u"))
+	assert.True(t, ok)
+	assert.Equal(t, 9, n)
+	assert.Equal(t, key.Key{
+		Name:    "a",
+		KeyCode: 97,
+		Text:    "a",
+	}, k)
+
+	k, n, ok = key.Parse([]byte("\x1b[97;3u"))
+	assert.True(t, ok)
+	assert.Equal(t, 7, n)
+	assert.Equal(t, key.Key{
+		Name:    "a",
+		KeyCode: 97,
+		Alt:     true,
+	}, k)
+
+	k, n, ok = key.Parse([]byte("\x1b[97;5u"))
+	assert.True(t, ok)
+	assert.Equal(t, 7, n)
+	assert.Equal(t, key.Key{
+		Name:    "a",
+		KeyCode: 97,
+		Ctrl:    true,
+	}, k)
+
+	k, n, ok = key.Parse([]byte("\x1b[97;9u"))
+	assert.True(t, ok)
+	assert.Equal(t, 7, n)
+	assert.Equal(t, key.Key{
+		Name:    "a",
+		KeyCode: 97,
+		Super:   true,
+	}, k)
+
+	k, n, ok = key.Parse([]byte("\x1b[97;65u"))
+	assert.True(t, ok)
+	assert.Equal(t, 8, n)
+	assert.Equal(t, key.Key{
+		Name:     "a",
+		KeyCode:  97,
+		CapsLock: true,
+	}, k)
+
+	k, n, ok = key.Parse([]byte("\x1b[97;129u"))
+	assert.True(t, ok)
+	assert.Equal(t, 9, n)
+	assert.Equal(t, key.Key{
+		Name:    "a",
+		KeyCode: 97,
+		NumLock: true,
+	}, k)
+
+	k, n, ok = key.Parse([]byte("\x1b[97;1:1u"))
+	assert.True(t, ok)
+	assert.Equal(t, 9, n)
+	assert.Equal(t, key.Key{
+		Name:    "a",
+		KeyCode: 97,
+	}, k)
+
+	k, n, ok = key.Parse([]byte("\x1b[97;1:2u"))
+	assert.True(t, ok)
+	assert.Equal(t, 9, n)
+	assert.Equal(t, key.Key{
+		Name:    "a",
+		KeyCode: 97,
+		Event:   key.EventRepeat,
+	}, k)
+
+	k, n, ok = key.Parse([]byte("\x1b[97;1:3u"))
+	assert.True(t, ok)
+	assert.Equal(t, 9, n)
+	assert.Equal(t, key.Key{
+		Name:    "a",
+		KeyCode: 97,
+		Event:   key.EventRelease,
+	}, k)
+}
+
+func Test_A(t *testing.T) {
+	k, n, ok := key.Parse([]byte("\x1b[97:65;2;65u"))
+	assert.True(t, ok)
+	assert.Equal(t, 13, n)
+	assert.Equal(t, key.Key{
+		Name:      "a",
+		KeyCode:   97,
+		ShiftCode: 65,
+		Text:      "A",
+		Shift:     true,
+	}, k)
+}
