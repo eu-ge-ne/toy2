@@ -31,12 +31,12 @@ func (ed *Editor) HandleKey(key key.Key) bool {
 }
 
 func (ed *Editor) insert(text string) {
-	if ed.cursor.Selecting {
-		ed.Buffer.SegDelete2(ed.cursor.FromLn, ed.cursor.FromCol, ed.cursor.ToLn, ed.cursor.ToCol)
-		ed.cursor.Set(ed.cursor.FromLn, ed.cursor.FromCol, false)
+	if ed.Cursor.Selecting {
+		ed.Buffer.SegDelete2(ed.Cursor.FromLn, ed.Cursor.FromCol, ed.Cursor.ToLn, ed.Cursor.ToCol)
+		ed.Cursor.Set(ed.Cursor.FromLn, ed.Cursor.FromCol, false)
 	}
 
-	ed.Buffer.SegInsert2(ed.cursor.Ln, ed.cursor.Col, text)
+	ed.Buffer.SegInsert2(ed.Cursor.Ln, ed.Cursor.Col, text)
 
 	eolCount := 0
 	lastEolIndex := 0
@@ -53,18 +53,18 @@ func (ed *Editor) insert(text string) {
 	}
 
 	if eolCount == 0 {
-		ed.cursor.Forward(uniseg.GraphemeClusterCount(text))
+		ed.Cursor.Forward(uniseg.GraphemeClusterCount(text))
 	} else {
 		col := uniseg.GraphemeClusterCount(text) - lastEolIndex - 1
 
-		ed.cursor.Set(ed.cursor.Ln+eolCount, col, false)
+		ed.Cursor.Set(ed.Cursor.Ln+eolCount, col, false)
 	}
 }
 
 func (ed *Editor) backspace() {
-	if ed.cursor.Ln > 0 && ed.cursor.Col == 0 {
+	if ed.Cursor.Ln > 0 && ed.Cursor.Col == 0 {
 		l := 0
-		for range ed.Buffer.SegLine(ed.cursor.Ln) {
+		for range ed.Buffer.SegLine(ed.Cursor.Ln) {
 			l += 1
 			if l == 2 {
 				break
@@ -72,24 +72,26 @@ func (ed *Editor) backspace() {
 		}
 
 		if l == 1 {
-			ed.Buffer.SegDelete2(ed.cursor.Ln, ed.cursor.Col, ed.cursor.Ln, ed.cursor.Col+1)
-			ed.cursor.Left(false)
+			ed.Buffer.SegDelete2(ed.Cursor.Ln, ed.Cursor.Col, ed.Cursor.Ln, ed.Cursor.Col+1)
+			ed.Cursor.Left(false)
 		} else {
-			ed.cursor.Left(false)
-			ed.Buffer.SegDelete2(ed.cursor.Ln, ed.cursor.Col, ed.cursor.Ln, ed.cursor.Col+1)
+			ed.Cursor.Left(false)
+			ed.Buffer.SegDelete2(ed.Cursor.Ln, ed.Cursor.Col, ed.Cursor.Ln, ed.Cursor.Col+1)
 		}
 	} else {
-		ed.Buffer.SegDelete2(ed.cursor.Ln, ed.cursor.Col-1, ed.cursor.Ln, ed.cursor.Col)
-		ed.cursor.Left(false)
+		ed.Buffer.SegDelete2(ed.Cursor.Ln, ed.Cursor.Col-1, ed.Cursor.Ln, ed.Cursor.Col)
+		ed.Cursor.Left(false)
 	}
 }
 
 func (ed *Editor) deleteChar() {
-	ed.Buffer.SegDelete2(ed.cursor.Ln, ed.cursor.Col, ed.cursor.Ln, ed.cursor.Col+1)
+	ed.Buffer.SegDelete2(ed.Cursor.Ln, ed.Cursor.Col, ed.Cursor.Ln, ed.Cursor.Col+1)
 }
 
 func (ed *Editor) deleteSelection() {
-	ed.Buffer.SegDelete2(ed.cursor.FromLn, ed.cursor.FromCol, ed.cursor.Ln, ed.cursor.Col+1)
+	c := ed.Cursor
 
-	ed.cursor.Set(ed.cursor.FromLn, ed.cursor.FromCol, false)
+	ed.Buffer.SegDelete2(c.FromLn, c.FromCol, c.Ln, c.Col+1)
+
+	ed.Cursor.Set(c.FromLn, c.FromCol, false)
 }

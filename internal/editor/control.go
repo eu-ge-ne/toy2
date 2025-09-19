@@ -49,7 +49,7 @@ func (ed *Editor) Render() {
 	vt.Sync.Esu()
 
 	if ed.OnCursor != nil {
-		ed.OnCursor(ed.cursor.Ln, ed.cursor.Col, ed.Buffer.LineCount())
+		ed.OnCursor(ed.Cursor.Ln, ed.Cursor.Col, ed.Buffer.LineCount())
 	}
 
 	if ed.OnRender != nil {
@@ -66,7 +66,7 @@ func (ed *Editor) determineLayout() {
 
 	ed.textWidth = ed.area.W - ed.indexWidth
 
-	if ed.wrapEnabled {
+	if ed.WrapEnabled {
 		ed.wrapWidth = ed.textWidth
 	} else {
 		ed.wrapWidth = math.MaxInt
@@ -80,21 +80,21 @@ func (ed *Editor) determineLayout() {
 }
 
 func (ed *Editor) scrollV() {
-	deltaLn := ed.cursor.Ln - ed.scrollLn
+	deltaLn := ed.Cursor.Ln - ed.scrollLn
 
 	// Above?
 	if deltaLn <= 0 {
-		ed.scrollLn = ed.cursor.Ln
+		ed.scrollLn = ed.Cursor.Ln
 		return
 	}
 
 	// Below?
 
 	if deltaLn > ed.area.H {
-		ed.scrollLn = ed.cursor.Ln - ed.area.H
+		ed.scrollLn = ed.Cursor.Ln - ed.area.H
 	}
 
-	xs := make([]int, ed.cursor.Ln+1-ed.scrollLn)
+	xs := make([]int, ed.Cursor.Ln+1-ed.scrollLn)
 	for i := 0; i < len(xs); i += 1 {
 		xs[i] = 1
 		for j, cell := range ed.cells(ed.scrollLn+i, false) {
@@ -121,7 +121,7 @@ func (ed *Editor) scrollV() {
 
 func (ed *Editor) scrollH() {
 	var cell *cell = nil
-	for _, c := range ed.sliceCells(ed.cursor.Ln, true, ed.cursor.Col, math.MaxInt) {
+	for _, c := range ed.sliceCells(ed.Cursor.Ln, true, ed.Cursor.Col, math.MaxInt) {
 		cell = &c
 		break
 	}
@@ -146,7 +146,7 @@ func (ed *Editor) scrollH() {
 	// After?
 
 	xs := make([]int, deltaCol)
-	for i, c := range ed.sliceCells(ed.cursor.Ln, true, ed.cursor.Col-deltaCol, ed.cursor.Col) {
+	for i, c := range ed.sliceCells(ed.Cursor.Ln, true, ed.Cursor.Col-deltaCol, ed.Cursor.Col) {
 		xs[i] = c.g.Width
 	}
 
@@ -215,7 +215,7 @@ func (ed *Editor) renderLine(ln int, row int) int {
 			continue
 		}
 
-		color := createCharColor(ed.cursor.IsSelected(ln, i), cell.g.IsVisible, ed.WhitespaceEnabled)
+		color := createCharColor(ed.Cursor.IsSelected(ln, i), cell.g.IsVisible, ed.WhitespaceEnabled)
 		if color != currentColor {
 			currentColor = color
 			vt.Buf.Write(ed.colors.char[color])

@@ -17,5 +17,5 @@ func (h *UpHandler) Handle(key key.Key) bool {
 		return false
 	}
 
-	return h.editor.cursor.Up(1, key.Shift)
+	return h.editor.Cursor.Up(1, key.Shift)
 }

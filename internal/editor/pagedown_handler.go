@@ -17,5 +17,5 @@ func (h *PageDownHandler) Handle(key key.Key) bool {
 		return false
 	}
 
-	return h.editor.cursor.Down(h.editor.area.H, key.Shift)
+	return h.editor.Cursor.Down(h.editor.area.H, key.Shift)
 }

@@ -17,5 +17,5 @@ func (h *DownHandler) Handle(key key.Key) bool {
 		return false
 	}
 
-	return h.editor.cursor.Down(1, key.Shift)
+	return h.editor.Cursor.Down(1, key.Shift)
 }

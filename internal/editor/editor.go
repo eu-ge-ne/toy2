@@ -16,7 +16,7 @@ type Editor struct {
 
 	IndexEnabled      bool
 	WhitespaceEnabled bool
-	wrapEnabled       bool
+	WrapEnabled       bool
 
 	indexWidth int
 	textWidth  int
@@ -30,7 +30,7 @@ type Editor struct {
 
 	multiLine    bool
 	Buffer       *textbuf.TextBuf
-	cursor       *cursor.Cursor
+	Cursor       *cursor.Cursor
 	handlers     []Handler
 	OnKeyHandled func(time.Duration)
 	OnRender     func(time.Duration)
@@ -53,7 +53,7 @@ func New(multiLine bool) *Editor {
 	editor := Editor{
 		multiLine: multiLine,
 		Buffer:    buffer,
-		cursor:    cursor,
+		Cursor:    cursor,
 	}
 
 	editor.handlers = append(editor.handlers,
@@ -69,17 +69,15 @@ func New(multiLine bool) *Editor {
 		&EnterHandler{editor: &editor},
 	)
 
-	editor.wrapEnabled = true
-
 	return &editor
 }
 
 func (ed *Editor) Reset(resetCursor bool) {
 	if resetCursor {
 		if ed.multiLine {
-			ed.cursor.Set(0, 0, false)
+			ed.Cursor.Set(0, 0, false)
 		} else {
-			ed.cursor.Set(math.MaxInt, math.MaxInt, false)
+			ed.Cursor.Set(math.MaxInt, math.MaxInt, false)
 		}
 	}
 }
