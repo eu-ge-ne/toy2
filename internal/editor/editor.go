@@ -15,7 +15,7 @@ type Editor struct {
 	Enabled bool
 
 	IndexEnabled      bool
-	whitespaceEnabled bool
+	WhitespaceEnabled bool
 	wrapEnabled       bool
 
 	indexWidth int
@@ -69,7 +69,6 @@ func New(multiLine bool) *Editor {
 		&EnterHandler{editor: &editor},
 	)
 
-	editor.whitespaceEnabled = true
 	editor.wrapEnabled = true
 
 	return &editor

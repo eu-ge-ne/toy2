@@ -215,7 +215,7 @@ func (ed *Editor) renderLine(ln int, row int) int {
 			continue
 		}
 
-		color := createCharColor(ed.cursor.IsSelected(ln, i), cell.g.IsVisible, ed.whitespaceEnabled)
+		color := createCharColor(ed.cursor.IsSelected(ln, i), cell.g.IsVisible, ed.WhitespaceEnabled)
 		if color != currentColor {
 			currentColor = color
 			vt.Buf.Write(ed.colors.char[color])
