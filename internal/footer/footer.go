@@ -10,7 +10,7 @@ import (
 type Footer struct {
 	area         ui.Area
 	cursorStatus string
-	Enabled bool
+	Enabled      bool
 
 	colorBackground []byte
 	colorText       []byte
