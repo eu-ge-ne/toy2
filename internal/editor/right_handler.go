@@ -15,12 +15,12 @@ func (h *RightHandler) Match(key key.Key) bool {
 }
 
 func (h *RightHandler) Handle(key key.Key) bool {
-	if h.editor.cursor.Move(0, 1, key.Shift) {
+	if h.editor.Cursor.Move(0, 1, key.Shift) {
 		return true
 	}
 
-	if h.editor.cursor.Ln < h.editor.Buffer.LineCount()-1 {
-		return h.editor.cursor.Move(1, math.MinInt, key.Shift)
+	if h.editor.Cursor.Ln < h.editor.Buffer.LineCount()-1 {
+		return h.editor.Cursor.Move(1, math.MinInt, key.Shift)
 	}
 
 	return false

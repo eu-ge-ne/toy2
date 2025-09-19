@@ -46,6 +46,7 @@ func New() *App {
 		NewSlateThemeCommand(&app),
 		NewStoneThemeCommand(&app),
 		NewWhitespaceCommand(&app),
+		NewWrapCommand(&app),
 		NewZenCommand(&app),
 		NewZincThemeCommand(&app),
 	}
@@ -94,6 +95,7 @@ func (app *App) Run() {
 	app.setColors(theme.Neutral{})
 	app.enableZen(false)
 	app.editor.WhitespaceEnabled = true
+	app.editor.WrapEnabled = true
 	app.refresh()
 
 	go app.listenSigwinch()

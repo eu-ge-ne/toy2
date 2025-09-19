@@ -13,7 +13,7 @@ func (h *BackspaceHandler) Match(key key.Key) bool {
 }
 
 func (h *BackspaceHandler) Handle(key key.Key) bool {
-	if h.editor.cursor.Selecting {
+	if h.editor.Cursor.Selecting {
 		h.editor.deleteSelection()
 	} else {
 		h.editor.backspace()
