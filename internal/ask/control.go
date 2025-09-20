@@ -27,9 +27,24 @@ func (ask *Ask) Render() {
 
 	vt.Buf.Write(vt.HideCursor)
 	vt.Buf.Write(ask.colorBackground)
-	vt.ClearArea(vt.Buf, ask.area.Y, ask.area.X, ask.area.W, ask.area.H)
+	vt.ClearArea(vt.Buf, ask.area)
 
-	// TODO
+	runes := []rune(ask.text)
+
+	for y := ask.area.Y + 1; y < ask.area.Y+ask.area.H-3; y += 1 {
+		if len(runes) == 0 {
+			break
+		}
+
+		span := ask.area.W - 2
+		i := min(span, len(runes))
+		line := runes[:i]
+		runes = runes[i:]
+
+		vt.SetCursor(vt.Buf, y, ask.area.X+1)
+		vt.Buf.Write(ask.colorText)
+		vt.WriteTextCenter(vt.Buf, &span, string(line))
+	}
 
 	vt.SetCursor(vt.Buf, ask.area.Y+ask.area.H-2, ask.area.X)
 	span := ask.area.W
