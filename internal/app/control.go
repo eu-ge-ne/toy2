@@ -27,10 +27,16 @@ func (app *App) Layout(a ui.Area) {
 	if app.zenEnabled {
 		app.editor.Layout(app.area)
 	} else {
-		app.editor.Layout(ui.Area{Y: a.Y + 1, X: a.X, W: a.W, H: a.H - 2})
+		app.editor.Layout(ui.Area{
+			Y: a.Y + 1,
+			X: a.X,
+			W: a.W,
+			H: a.H - 2,
+		})
 	}
 	app.debug.Layout(app.editor.Area())
 	app.palette.Layout(app.editor.Area())
+	app.ask.Layout(app.editor.Area())
 }
 
 func (app *App) Render() {
@@ -41,6 +47,7 @@ func (app *App) Render() {
 	app.editor.Render()
 	app.debug.Render()
 	app.palette.Render()
+	app.ask.Render()
 
 	vt.Sync.Esu()
 }

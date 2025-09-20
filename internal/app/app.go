@@ -11,6 +11,7 @@ import (
 	"syscall"
 	"unicode/utf8"
 
+	"github.com/eu-ge-ne/toy2/internal/ask"
 	"github.com/eu-ge-ne/toy2/internal/debug"
 	"github.com/eu-ge-ne/toy2/internal/editor"
 	"github.com/eu-ge-ne/toy2/internal/footer"
@@ -23,10 +24,11 @@ import (
 
 type App struct {
 	area       ui.Area
+	ask        *ask.Ask
+	debug      *debug.Debug
 	header     *header.Header
 	editor     *editor.Editor
 	footer     *footer.Footer
-	debug      *debug.Debug
 	palette    *palette.Palette
 	commands   []Command
 	restoreVt  func()
@@ -62,6 +64,7 @@ func New() *App {
 		return strings.Compare(strings.ToLower(a.Description), strings.ToLower(b.Description))
 	})
 
+	app.ask = ask.New()
 	app.header = header.New()
 	app.editor = editor.New(true)
 	app.footer = footer.New()
@@ -108,14 +111,14 @@ func (app *App) Run() {
 }
 
 func (app *App) setColors(t theme.Tokens) {
+	app.ask.SetColors(t)
+	app.debug.SetColors(t)
 	app.header.SetColors(t)
 	app.footer.SetColors(t)
 	app.editor.SetColors(t)
-	app.debug.SetColors(t)
 	app.palette.SetColors(t)
 
 	//set_alert_colors(tokens)
-	//set_ask_colors(tokens)
 	//set_save_as_colors(tokens)
 }
 

@@ -9,7 +9,12 @@ import (
 )
 
 func (f *Footer) Layout(a ui.Area) {
-	f.area = ui.Area{Y: a.Y + a.H - 1, X: a.X, W: a.W, H: std.Clamp(1, 0, a.H)}
+	f.area = ui.Area{
+		Y: a.Y + a.H - 1,
+		X: a.X,
+		W: a.W,
+		H: std.Clamp(1, 0, a.H),
+	}
 }
 
 func (f *Footer) Render() {
@@ -22,7 +27,7 @@ func (f *Footer) Render() {
 	vt.Buf.Write(vt.HideCursor)
 	vt.Buf.Write(vt.SaveCursor)
 	vt.Buf.Write(f.colorBackground)
-	vt.ClearArea(vt.Buf, f.area.Y, f.area.X, f.area.W, f.area.H)
+	vt.ClearArea(vt.Buf, f.area)
 	vt.SetCursor(vt.Buf, f.area.Y, f.area.X)
 	vt.Buf.Write(f.colorText)
 	fmt.Fprintf(vt.Buf, "%*s", f.area.W, f.cursorStatus)

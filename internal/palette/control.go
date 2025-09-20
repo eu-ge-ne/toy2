@@ -23,7 +23,7 @@ func (p *Palette) Render() {
 
 	vt.Buf.Write(vt.HideCursor)
 	vt.Buf.Write(p.colorBackground)
-	vt.ClearArea(vt.Buf, p.area.Y, p.area.X, p.area.W, p.area.H)
+	vt.ClearArea(vt.Buf, p.area)
 
 	if len(p.filteredOptions) == 0 {
 		p.renderEmpty()

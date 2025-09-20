@@ -26,5 +26,11 @@ func (c *ExitCommand) Match(key key.Key) bool {
 }
 
 func (c *ExitCommand) Run() {
+	done := make(chan bool)
+
+	go c.app.ask.Open("Save changes?", done)
+
+	<-done
+
 	c.app.exit()
 }

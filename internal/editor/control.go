@@ -26,7 +26,7 @@ func (ed *Editor) Render() {
 	vt.Buf.Write(vt.HideCursor)
 	vt.Buf.Write(vt.SaveCursor)
 	vt.Buf.Write(ed.colors.background)
-	vt.ClearArea(vt.Buf, ed.area.Y, ed.area.X, ed.area.W, ed.area.H)
+	vt.ClearArea(vt.Buf, ed.area)
 
 	ed.determineLayout()
 

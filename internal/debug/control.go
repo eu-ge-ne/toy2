@@ -16,7 +16,12 @@ func (d *Debug) Layout(a ui.Area) {
 	w := std.Clamp(30, 0, a.W)
 	h := std.Clamp(7, 0, a.H)
 
-	d.area = ui.Area{Y: a.Y + a.H - h, X: a.X + a.W - w, W: w, H: h}
+	d.area = ui.Area{
+		Y: a.Y + a.H - h,
+		X: a.X + a.W - w,
+		W: w,
+		H: h,
+	}
 }
 
 func (d *Debug) Render() {
@@ -29,7 +34,7 @@ func (d *Debug) Render() {
 	vt.Buf.Write(vt.HideCursor)
 	vt.Buf.Write(vt.SaveCursor)
 	vt.Buf.Write(d.colorBackground)
-	vt.ClearArea(vt.Buf, d.area.Y, d.area.X, d.area.W, d.area.H)
+	vt.ClearArea(vt.Buf, d.area)
 	vt.Buf.Write(d.colorText)
 	vt.SetCursor(vt.Buf, d.area.Y+1, d.area.X+1)
 	fmt.Fprintf(vt.Buf, "Input    : %v", d.inputTime)
