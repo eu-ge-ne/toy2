@@ -11,6 +11,7 @@ import (
 	"syscall"
 	"unicode/utf8"
 
+	"github.com/eu-ge-ne/toy2/internal/alert"
 	"github.com/eu-ge-ne/toy2/internal/ask"
 	"github.com/eu-ge-ne/toy2/internal/debug"
 	"github.com/eu-ge-ne/toy2/internal/editor"
@@ -25,6 +26,7 @@ import (
 type App struct {
 	area       ui.Area
 	ask        *ask.Ask
+	alert      *alert.Alert
 	debug      *debug.Debug
 	header     *header.Header
 	editor     *editor.Editor
@@ -65,6 +67,7 @@ func New() *App {
 	})
 
 	app.ask = ask.New()
+	app.alert = alert.New()
 	app.header = header.New()
 	app.editor = editor.New(true)
 	app.footer = footer.New()
@@ -112,13 +115,13 @@ func (app *App) Run() {
 
 func (app *App) setColors(t theme.Tokens) {
 	app.ask.SetColors(t)
+	app.alert.SetColors(t)
 	app.debug.SetColors(t)
 	app.header.SetColors(t)
 	app.footer.SetColors(t)
 	app.editor.SetColors(t)
 	app.palette.SetColors(t)
 
-	//set_alert_colors(tokens)
 	//set_save_as_colors(tokens)
 }
 
@@ -139,49 +142,23 @@ func (app *App) exit() {
 func (app *App) openFile(filePath string) {
 	err := app.load(filePath)
 
+	if os.IsNotExist(err) {
+		app.setFilePath(filePath)
+		return
+	}
+
 	if err != nil {
-		panic(err)
+		done := make(chan struct{})
+		go app.alert.Open(err.Error(), done)
+		<-done
+
+		app.exit()
 	}
 
 	app.editor.Reset(true)
 	app.editor.Render()
 
 	app.setFilePath(filePath)
-}
-
-func (app *App) load(path string) error {
-	f, err := os.Open(path)
-	if err != nil {
-		return err
-	}
-
-	defer f.Close()
-
-	buf := make([]byte, 1024*1024*64)
-
-	for {
-		bytesRead, err := f.Read(buf)
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			panic(err)
-		}
-
-		if bytesRead == 0 {
-			break
-		}
-
-		chunk := buf[:bytesRead]
-
-		if !utf8.Valid(chunk) {
-			panic("invalid utf8 chunk")
-		}
-
-		app.editor.Buffer.Append(string(chunk))
-	}
-
-	return nil
 }
 
 func (app *App) processInput() {
@@ -229,4 +206,35 @@ func (app *App) refresh() {
 
 	app.Layout(ui.Area{X: 0, Y: 0, W: w, H: h})
 	app.Render()
+}
+
+func (app *App) load(path string) error {
+	f, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+
+	defer f.Close()
+
+	buf := make([]byte, 1024*1024*64)
+
+	for {
+		bytesRead, err := f.Read(buf)
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+
+		chunk := buf[:bytesRead]
+
+		if !utf8.Valid(chunk) {
+			panic("invalid utf8 chunk")
+		}
+
+		app.editor.Buffer.Append(string(chunk))
+	}
+
+	return nil
 }
