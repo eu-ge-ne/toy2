@@ -9,7 +9,12 @@ import (
 )
 
 func (f *Footer) Layout(a ui.Area) {
-	f.area = ui.Area{Y: a.Y + a.H - 1, X: a.X, W: a.W, H: std.Clamp(1, 0, a.H)}
+	f.area = ui.Area{
+		Y: a.Y + a.H - 1,
+		X: a.X,
+		W: a.W,
+		H: std.Clamp(1, 0, a.H),
+	}
 }
 
 func (f *Footer) Render() {

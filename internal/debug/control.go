@@ -16,7 +16,12 @@ func (d *Debug) Layout(a ui.Area) {
 	w := std.Clamp(30, 0, a.W)
 	h := std.Clamp(7, 0, a.H)
 
-	d.area = ui.Area{Y: a.Y + a.H - h, X: a.X + a.W - w, W: w, H: h}
+	d.area = ui.Area{
+		Y: a.Y + a.H - h,
+		X: a.X + a.W - w,
+		W: w,
+		H: h,
+	}
 }
 
 func (d *Debug) Render() {
