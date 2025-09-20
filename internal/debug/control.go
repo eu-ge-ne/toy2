@@ -34,7 +34,7 @@ func (d *Debug) Render() {
 	vt.Buf.Write(vt.HideCursor)
 	vt.Buf.Write(vt.SaveCursor)
 	vt.Buf.Write(d.colorBackground)
-	vt.ClearArea(vt.Buf, d.area.Y, d.area.X, d.area.W, d.area.H)
+	vt.ClearArea(vt.Buf, d.area)
 	vt.Buf.Write(d.colorText)
 	vt.SetCursor(vt.Buf, d.area.Y+1, d.area.X+1)
 	fmt.Fprintf(vt.Buf, "Input    : %v", d.inputTime)
