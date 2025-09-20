@@ -37,6 +37,7 @@ func (app *App) Layout(a ui.Area) {
 	app.debug.Layout(app.editor.Area())
 	app.palette.Layout(app.editor.Area())
 	app.ask.Layout(app.editor.Area())
+	app.alert.Layout(app.editor.Area())
 }
 
 func (app *App) Render() {
@@ -48,6 +49,7 @@ func (app *App) Render() {
 	app.debug.Render()
 	app.palette.Render()
 	app.ask.Render()
+	app.alert.Render()
 
 	vt.Sync.Esu()
 }
