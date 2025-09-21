@@ -2,19 +2,18 @@ package app
 
 import (
 	"flag"
-	"io"
 	"os"
 	"os/signal"
 	"runtime/pprof"
 	"slices"
 	"strings"
 	"syscall"
-	"unicode/utf8"
 
 	"github.com/eu-ge-ne/toy2/internal/alert"
 	"github.com/eu-ge-ne/toy2/internal/ask"
 	"github.com/eu-ge-ne/toy2/internal/debug"
 	"github.com/eu-ge-ne/toy2/internal/editor"
+	"github.com/eu-ge-ne/toy2/internal/file"
 	"github.com/eu-ge-ne/toy2/internal/footer"
 	"github.com/eu-ge-ne/toy2/internal/header"
 	"github.com/eu-ge-ne/toy2/internal/palette"
@@ -189,7 +188,8 @@ func (app *App) exit() {
 }
 
 func (app *App) tryOpenFile() {
-	err := app.load()
+	err := file.Load(app.filePath, app.editor.Buffer)
+
 	if os.IsNotExist(err) {
 		return
 	}
@@ -265,35 +265,4 @@ func (app *App) refresh() {
 
 	app.layout(ui.Area{X: 0, Y: 0, W: w, H: h})
 	app.Render()
-}
-
-func (app *App) load() error {
-	f, err := os.Open(app.filePath)
-	if err != nil {
-		return err
-	}
-
-	defer f.Close()
-
-	buf := make([]byte, 1024*1024*64)
-
-	for {
-		bytesRead, err := f.Read(buf)
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return err
-		}
-
-		chunk := buf[:bytesRead]
-
-		if !utf8.Valid(chunk) {
-			panic("invalid utf8 chunk")
-		}
-
-		app.editor.Buffer.Append(string(chunk))
-	}
-
-	return nil
 }
