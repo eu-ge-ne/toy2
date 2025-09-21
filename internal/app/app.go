@@ -37,6 +37,7 @@ type App struct {
 	commands   []Command
 	restoreVt  func()
 	zenEnabled bool
+	filePath   string
 }
 
 func New() *App {
@@ -189,6 +190,8 @@ func (app *App) processInput() {
 }
 
 func (app *App) setFilePath(filePath string) {
+	app.filePath = filePath
+
 	app.header.SetFilePath(filePath)
 }
 
