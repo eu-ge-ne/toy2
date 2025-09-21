@@ -2,14 +2,12 @@ package app
 
 import (
 	"flag"
-	"io"
 	"os"
 	"os/signal"
 	"runtime/pprof"
 	"slices"
 	"strings"
 	"syscall"
-	"unicode/utf8"
 
 	"github.com/eu-ge-ne/toy2/internal/alert"
 	"github.com/eu-ge-ne/toy2/internal/ask"
@@ -215,37 +213,6 @@ func (app *App) refresh() {
 
 	app.Layout(ui.Area{X: 0, Y: 0, W: w, H: h})
 	app.Render()
-}
-
-func (app *App) load(path string) error {
-	f, err := os.Open(path)
-	if err != nil {
-		return err
-	}
-
-	defer f.Close()
-
-	buf := make([]byte, 1024*1024*64)
-
-	for {
-		bytesRead, err := f.Read(buf)
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return err
-		}
-
-		chunk := buf[:bytesRead]
-
-		if !utf8.Valid(chunk) {
-			panic("invalid utf8 chunk")
-		}
-
-		app.editor.Buffer.Append(string(chunk))
-	}
-
-	return nil
 }
 
 func (app *App) save() bool {
