@@ -6,8 +6,8 @@ import (
 	"unicode/utf8"
 )
 
-func (app *App) load(filePath string) error {
-	f, err := os.Open(filePath)
+func (app *App) load() error {
+	f, err := os.Open(app.filePath)
 	if err != nil {
 		return err
 	}

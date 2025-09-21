@@ -113,7 +113,8 @@ func (app *App) Run() {
 	go app.listenSigwinch()
 
 	if flag.NArg() > 0 {
-		app.openFile(flag.Arg(0))
+		app.setFilePath(flag.Arg(0))
+		app.tryOpenFile()
 	}
 
 	app.processInput()
@@ -144,11 +145,9 @@ func (app *App) exit() {
 	os.Exit(0)
 }
 
-func (app *App) openFile(filePath string) {
-	err := app.load(filePath)
-
+func (app *App) tryOpenFile() {
+	err := app.load()
 	if os.IsNotExist(err) {
-		app.setFilePath(filePath)
 		return
 	}
 
@@ -162,8 +161,6 @@ func (app *App) openFile(filePath string) {
 
 	app.editor.Reset(true)
 	app.editor.Render()
-
-	app.setFilePath(filePath)
 }
 
 func (app *App) processInput() {
