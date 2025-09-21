@@ -221,9 +221,9 @@ func (app *App) trySaveFile() {
 			return
 		}
 
-		done := make(chan struct{})
-		go app.alert.Open(err.Error(), done)
-		<-done
+		alertClosed := make(chan struct{})
+		go app.alert.Open(err.Error(), alertClosed)
+		<-alertClosed
 	}
 
 	app.saveFileAs()
@@ -248,7 +248,6 @@ func (app *App) saveFileAs() {
 
 		alertClosed := make(chan struct{})
 		go app.alert.Open(err.Error(), alertClosed)
-
 		<-alertClosed
 	}
 }
