@@ -236,27 +236,6 @@ func (app *App) saveFileAs() {
 	}
 }
 
-func (app *App) processInput() {
-	for {
-		for key := range vt.Read() {
-			i := slices.IndexFunc(app.commands, func(c Command) bool {
-				return c.Match(key)
-			})
-
-			if i >= 0 {
-				app.commands[i].Run()
-				continue
-			}
-
-			if app.editor.Enabled {
-				if app.editor.HandleKey(key) {
-					app.editor.Render()
-				}
-			}
-		}
-	}
-}
-
 func (app *App) setFilePath(filePath string) {
 	app.filePath = filePath
 
@@ -283,4 +262,25 @@ func (app *App) refresh() {
 
 	app.layout(ui.Area{X: 0, Y: 0, W: w, H: h})
 	app.Render()
+}
+
+func (app *App) processInput() {
+	for {
+		for key := range vt.Read() {
+			i := slices.IndexFunc(app.commands, func(c Command) bool {
+				return c.Match(key)
+			})
+
+			if i >= 0 {
+				app.commands[i].Run()
+				continue
+			}
+
+			if app.editor.Enabled {
+				if app.editor.HandleKey(key) {
+					app.editor.Render()
+				}
+			}
+		}
+	}
 }
