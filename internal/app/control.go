@@ -5,16 +5,6 @@ import (
 	"github.com/eu-ge-ne/toy2/internal/vt"
 )
 
-func (*App) IsEnabled() bool {
-	return true
-}
-
-func (*App) ToggleEnabled() {
-}
-
-func (*App) SetEnabled(bool) {
-}
-
 func (app *App) Area() ui.Area {
 	return app.area
 }
