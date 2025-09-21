@@ -2,12 +2,14 @@ package app
 
 import (
 	"flag"
+	"io"
 	"os"
 	"os/signal"
 	"runtime/pprof"
 	"slices"
 	"strings"
 	"syscall"
+	"unicode/utf8"
 
 	"github.com/eu-ge-ne/toy2/internal/alert"
 	"github.com/eu-ge-ne/toy2/internal/ask"
@@ -37,6 +39,8 @@ type App struct {
 	zenEnabled bool
 	filePath   string
 }
+
+var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 
 func New() *App {
 	app := App{}
@@ -85,8 +89,6 @@ func New() *App {
 	return &app
 }
 
-var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
-
 func (app *App) Run() {
 	flag.Parse()
 
@@ -118,6 +120,47 @@ func (app *App) Run() {
 	}
 
 	app.processInput()
+}
+
+func (app *App) Area() ui.Area {
+	return app.area
+}
+
+func (app *App) Render() {
+	vt.Sync.Bsu()
+
+	app.header.Render()
+	app.footer.Render()
+	app.editor.Render()
+	app.debug.Render()
+	app.palette.Render()
+	app.ask.Render()
+	app.alert.Render()
+	app.saveas.Render()
+
+	vt.Sync.Esu()
+}
+
+func (app *App) layout(a ui.Area) {
+	app.area = a
+
+	app.header.Layout(app.area)
+	app.footer.Layout(app.area)
+	if app.zenEnabled {
+		app.editor.Layout(app.area)
+	} else {
+		app.editor.Layout(ui.Area{
+			Y: a.Y + 1,
+			X: a.X,
+			W: a.W,
+			H: a.H - 2,
+		})
+	}
+	app.debug.Layout(app.editor.Area())
+	app.palette.Layout(app.editor.Area())
+	app.ask.Layout(app.editor.Area())
+	app.alert.Layout(app.editor.Area())
+	app.saveas.Layout(app.editor.Area())
 }
 
 func (app *App) setColors(t theme.Tokens) {
@@ -208,10 +251,37 @@ func (app *App) refresh() {
 		panic(err)
 	}
 
-	app.Layout(ui.Area{X: 0, Y: 0, W: w, H: h})
+	app.layout(ui.Area{X: 0, Y: 0, W: w, H: h})
 	app.Render()
 }
 
-func (app *App) save() bool {
-	return true
+func (app *App) load() error {
+	f, err := os.Open(app.filePath)
+	if err != nil {
+		return err
+	}
+
+	defer f.Close()
+
+	buf := make([]byte, 1024*1024*64)
+
+	for {
+		bytesRead, err := f.Read(buf)
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+
+		chunk := buf[:bytesRead]
+
+		if !utf8.Valid(chunk) {
+			panic("invalid utf8 chunk")
+		}
+
+		app.editor.Buffer.Append(string(chunk))
+	}
+
+	return nil
 }
