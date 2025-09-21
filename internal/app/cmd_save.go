@@ -26,11 +26,13 @@ func (c *SaveCommand) Match(key key.Key) bool {
 }
 
 func (c *SaveCommand) Run() {
-	done := make(chan bool)
+	c.app.editor.Enabled = false
 
-	go c.app.ask.Open("Save changes?", done)
+	if c.app.save() {
+		c.app.editor.Reset(false)
+	}
 
-	<-done
+	c.app.editor.Enabled = true
 
-	c.app.exit()
+	c.app.editor.Render()
 }

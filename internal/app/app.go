@@ -244,3 +244,7 @@ func (app *App) load(path string) error {
 
 	return nil
 }
+
+func (app *App) save() bool {
+	return true
+}
