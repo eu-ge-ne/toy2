@@ -206,6 +206,18 @@ func (app *App) tryOpenFile() {
 	app.editor.Render()
 }
 
+func (app *App) trySaveFile() {
+	app.editor.Enabled = false
+
+	//if c.app.trySaveFile() {
+	//	c.app.editor.Reset(false)
+	//}
+
+	app.editor.Enabled = true
+
+	app.editor.Render()
+}
+
 func (app *App) processInput() {
 	for {
 		for key := range vt.Read() {
