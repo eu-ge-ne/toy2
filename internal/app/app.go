@@ -41,18 +41,19 @@ func New() *App {
 	app := App{}
 
 	app.commands = []Command{
-		NewBase16ThemeCommand(&app),
 		NewDebugCommand(&app),
 		NewExitCommand(&app),
+		NewPaletteCommand(&app),
+		NewSaveCommand(&app),
+		NewBase16ThemeCommand(&app),
 		NewGrayThemeCommand(&app),
 		NewNeutralThemeCommand(&app),
-		NewPaletteCommand(&app),
 		NewSlateThemeCommand(&app),
 		NewStoneThemeCommand(&app),
+		NewZincThemeCommand(&app),
 		NewWhitespaceCommand(&app),
 		NewWrapCommand(&app),
 		NewZenCommand(&app),
-		NewZincThemeCommand(&app),
 	}
 
 	options := []*palette.Option{}
