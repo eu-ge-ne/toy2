@@ -227,7 +227,13 @@ func (app *App) trySaveFile() {
 		<-done
 	}
 
-	// SaveAs
+	app.saveFileAs()
+}
+
+func (app *App) saveFileAs() {
+	for {
+
+	}
 }
 
 func (app *App) processInput() {
