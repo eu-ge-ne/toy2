@@ -38,3 +38,7 @@ func Load(filePath string, textBuf *textbuf.TextBuf) error {
 
 	return nil
 }
+
+func Save(filePath string, textBuf *textbuf.TextBuf) error {
+	return nil
+}

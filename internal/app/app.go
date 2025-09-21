@@ -209,13 +209,25 @@ func (app *App) tryOpenFile() {
 func (app *App) trySaveFile() {
 	app.editor.Enabled = false
 
-	//if c.app.trySaveFile() {
-	//	c.app.editor.Reset(false)
-	//}
+	defer func() {
+		app.editor.Enabled = true
+		app.editor.Render()
+	}()
 
-	app.editor.Enabled = true
+	if len(app.filePath) > 0 {
+		err := file.Save(app.filePath, app.editor.Buffer)
 
-	app.editor.Render()
+		if err == nil {
+			app.editor.Reset(false)
+			return
+		}
+
+		done := make(chan struct{})
+		go app.alert.Open(err.Error(), done)
+		<-done
+	}
+
+	// SaveAs
 }
 
 func (app *App) processInput() {
