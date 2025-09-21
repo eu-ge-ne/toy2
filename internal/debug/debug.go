@@ -12,7 +12,7 @@ import (
 
 type Debug struct {
 	area    ui.Area
-	enabled bool
+	Enabled bool
 
 	inputTime  time.Duration
 	renderTime time.Duration
@@ -22,7 +22,7 @@ type Debug struct {
 }
 
 func New() *Debug {
-	return &Debug{enabled: true}
+	return &Debug{}
 }
 
 func (d *Debug) SetColors(t theme.Tokens) {
@@ -43,7 +43,7 @@ func (d *Debug) Layout(a ui.Area) {
 }
 
 func (d *Debug) Render() {
-	if !d.enabled {
+	if !d.Enabled {
 		return
 	}
 
@@ -66,14 +66,10 @@ func (d *Debug) Render() {
 	vt.Sync.Esu()
 }
 
-func (d *Debug) ToggleEnabled() {
-	d.enabled = !d.enabled
-}
-
 func (d *Debug) SetInputTime(elapsed time.Duration) {
 	d.inputTime = elapsed
 
-	if d.enabled {
+	if d.Enabled {
 		d.Render()
 	}
 }
@@ -81,7 +77,7 @@ func (d *Debug) SetInputTime(elapsed time.Duration) {
 func (d *Debug) SetRenderTime(elapsed time.Duration) {
 	d.renderTime = elapsed
 
-	if d.enabled {
+	if d.Enabled {
 		d.Render()
 	}
 }

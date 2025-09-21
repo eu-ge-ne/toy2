@@ -106,6 +106,9 @@ func (app *App) Run() {
 	app.enableZen(false)
 	app.editor.WhitespaceEnabled = true
 	app.editor.WrapEnabled = true
+
+	app.debug.Enabled = true
+
 	app.refresh()
 
 	go app.listenSigwinch()
