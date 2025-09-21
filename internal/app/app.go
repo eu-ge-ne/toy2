@@ -216,7 +216,6 @@ func (app *App) trySaveFile() {
 
 	if len(app.filePath) > 0 {
 		err := file.Save(app.filePath, app.editor.Buffer)
-
 		if err == nil {
 			app.editor.Reset(false)
 			return
@@ -232,7 +231,25 @@ func (app *App) trySaveFile() {
 
 func (app *App) saveFileAs() {
 	for {
+		saveasResult := make(chan string)
+		go app.saveas.Open(app.filePath, saveasResult)
 
+		filePath := <-saveasResult
+		if len(filePath) == 0 {
+			return
+		}
+
+		err := file.Save(filePath, app.editor.Buffer)
+		if err == nil {
+			app.setFilePath(filePath)
+			app.editor.Reset(false)
+			return
+		}
+
+		alertClosed := make(chan struct{})
+		go app.alert.Open(err.Error(), alertClosed)
+
+		<-alertClosed
 	}
 }
 
