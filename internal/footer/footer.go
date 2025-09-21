@@ -20,6 +20,11 @@ func New() *Footer {
 	return &Footer{}
 }
 
+func (f *Footer) SetColors(t theme.Tokens) {
+	f.colorBackground = t.Dark0Bg()
+	f.colorText = append(t.Dark0Bg(), t.Dark0Fg()...)
+}
+
 func (f *Footer) SetCursorStatus(ln0, col0, lnCount int) {
 	ln := ln0 + 1
 	col := col0 + 1
@@ -32,9 +37,4 @@ func (f *Footer) SetCursorStatus(ln0, col0, lnCount int) {
 	f.cursorStatus = fmt.Sprintf("%d %d  %d%% ", ln, col, pct)
 
 	f.Render()
-}
-
-func (f *Footer) SetColors(t theme.Tokens) {
-	f.colorBackground = t.Dark0Bg()
-	f.colorText = append(t.Dark0Bg(), t.Dark0Fg()...)
 }
