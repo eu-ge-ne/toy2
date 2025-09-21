@@ -38,6 +38,7 @@ func (app *App) Layout(a ui.Area) {
 	app.palette.Layout(app.editor.Area())
 	app.ask.Layout(app.editor.Area())
 	app.alert.Layout(app.editor.Area())
+	app.saveas.Layout(app.editor.Area())
 }
 
 func (app *App) Render() {
@@ -50,6 +51,7 @@ func (app *App) Render() {
 	app.palette.Render()
 	app.ask.Render()
 	app.alert.Render()
+	app.saveas.Render()
 
 	vt.Sync.Esu()
 }

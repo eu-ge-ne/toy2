@@ -18,6 +18,7 @@ import (
 	"github.com/eu-ge-ne/toy2/internal/footer"
 	"github.com/eu-ge-ne/toy2/internal/header"
 	"github.com/eu-ge-ne/toy2/internal/palette"
+	"github.com/eu-ge-ne/toy2/internal/saveas"
 	"github.com/eu-ge-ne/toy2/internal/theme"
 	"github.com/eu-ge-ne/toy2/internal/ui"
 	"github.com/eu-ge-ne/toy2/internal/vt"
@@ -25,13 +26,14 @@ import (
 
 type App struct {
 	area       ui.Area
-	ask        *ask.Ask
 	alert      *alert.Alert
+	ask        *ask.Ask
 	debug      *debug.Debug
-	header     *header.Header
 	editor     *editor.Editor
 	footer     *footer.Footer
+	header     *header.Header
 	palette    *palette.Palette
+	saveas     *saveas.SaveAs
 	commands   []Command
 	restoreVt  func()
 	zenEnabled bool
@@ -74,6 +76,7 @@ func New() *App {
 	app.footer = footer.New()
 	app.debug = debug.New()
 	app.palette = palette.New(&app, options)
+	app.saveas = saveas.New()
 
 	app.editor.Enabled = true
 	app.editor.OnCursor = app.footer.SetCursorStatus
@@ -122,8 +125,7 @@ func (app *App) setColors(t theme.Tokens) {
 	app.footer.SetColors(t)
 	app.editor.SetColors(t)
 	app.palette.SetColors(t)
-
-	//set_save_as_colors(tokens)
+	app.saveas.SetColors(t)
 }
 
 func (app *App) enableZen(enabled bool) {
