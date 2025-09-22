@@ -26,11 +26,15 @@ func (c *ExitCommand) Match(key key.Key) bool {
 }
 
 func (c *ExitCommand) Run() {
-	done := make(chan bool)
+	c.app.editor.Enabled = false
 
-	go c.app.ask.Open("Save changes?", done)
+	askResult := make(chan bool)
+	go c.app.ask.Open("Save changes?", askResult)
+	save := <-askResult
 
-	<-done
+	if save {
+		c.app.save()
+	}
 
 	c.app.exit()
 }
