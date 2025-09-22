@@ -1,7 +1,6 @@
 package file
 
 import (
-	"errors"
 	"io"
 	"os"
 	"unicode/utf8"
@@ -41,12 +40,19 @@ func Load(filePath string, textBuf *textbuf.TextBuf) error {
 }
 
 func Save(filePath string, textBuf *textbuf.TextBuf) error {
-	f, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE, 0644)
+	f, err := os.OpenFile(filePath, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
 	}
 
 	defer f.Close()
 
-	return errors.New("TODO")
+	for text := range textBuf.ReadToEnd(0) {
+		_, err := f.WriteString(text)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
