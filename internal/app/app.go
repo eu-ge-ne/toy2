@@ -114,9 +114,11 @@ func (app *App) Run() {
 	go app.listenSigwinch()
 
 	if flag.NArg() > 0 {
-		app.setFilePath(flag.Arg(0))
-		app.tryOpenFile()
+		app.open(flag.Arg(0))
 	}
+
+	app.editor.Reset(true)
+	app.editor.Render()
 
 	app.processInput()
 }
@@ -187,25 +189,6 @@ func (app *App) exit() {
 	os.Exit(0)
 }
 
-func (app *App) tryOpenFile() {
-	err := file.Load(app.filePath, app.editor.Buffer)
-
-	if os.IsNotExist(err) {
-		return
-	}
-
-	if err != nil {
-		done := make(chan struct{})
-		go app.alert.Open(err.Error(), done)
-		<-done
-
-		app.exit()
-	}
-
-	app.editor.Reset(true)
-	app.editor.Render()
-}
-
 func (app *App) trySaveFile() {
 	app.editor.Enabled = false
 
@@ -252,12 +235,6 @@ func (app *App) saveFileAs() {
 	}
 }
 
-func (app *App) setFilePath(filePath string) {
-	app.filePath = filePath
-
-	app.header.SetFilePath(filePath)
-}
-
 func (app *App) listenSigwinch() {
 	c := make(chan os.Signal, 1)
 
@@ -299,4 +276,28 @@ func (app *App) processInput() {
 			}
 		}
 	}
+}
+
+func (app *App) open(filePath string) {
+	err := file.Load(filePath, app.editor.Buffer)
+
+	if os.IsNotExist(err) {
+		return
+	}
+
+	if err != nil {
+		done := make(chan struct{})
+		go app.alert.Open(err.Error(), done)
+		<-done
+
+		app.exit()
+	}
+
+	app.setFilePath(filePath)
+}
+
+func (app *App) setFilePath(filePath string) {
+	app.filePath = filePath
+
+	app.header.SetFilePath(filePath)
 }
