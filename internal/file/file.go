@@ -41,5 +41,12 @@ func Load(filePath string, textBuf *textbuf.TextBuf) error {
 }
 
 func Save(filePath string, textBuf *textbuf.TextBuf) error {
+	f, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE, 0644)
+	if err != nil {
+		return err
+	}
+
+	defer f.Close()
+
 	return errors.New("TODO")
 }
