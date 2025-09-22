@@ -72,16 +72,6 @@ func New(multiLine bool) *Editor {
 	return &editor
 }
 
-func (ed *Editor) Reset(resetCursor bool) {
-	if resetCursor {
-		if ed.multiLine {
-			ed.Cursor.Set(0, 0, false)
-		} else {
-			ed.Cursor.Set(math.MaxInt, math.MaxInt, false)
-		}
-	}
-}
-
 func (ed *Editor) SetColors(t theme.Tokens) {
 	ed.colors = colors{
 		background: t.MainBg(),
@@ -95,5 +85,23 @@ func (ed *Editor) SetColors(t theme.Tokens) {
 			charColorWhitespaceSelected: append(t.Light2Bg(), t.Dark1Fg()...),
 			charColorEmptySelected:      append(t.Light2Bg(), t.Dark1Fg()...),
 		},
+	}
+}
+
+func (ed *Editor) Area() ui.Area {
+	return ed.area
+}
+
+func (ed *Editor) Layout(a ui.Area) {
+	ed.area = a
+}
+
+func (ed *Editor) Reset(resetCursor bool) {
+	if resetCursor {
+		if ed.multiLine {
+			ed.Cursor.Set(0, 0, false)
+		} else {
+			ed.Cursor.Set(math.MaxInt, math.MaxInt, false)
+		}
 	}
 }

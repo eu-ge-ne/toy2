@@ -26,7 +26,7 @@ func (d *DebugCommand) Match(key key.Key) bool {
 }
 
 func (d *DebugCommand) Run() {
-	d.app.debug.ToggleEnabled()
+	d.app.debug.Enabled = !d.app.debug.Enabled
 
 	d.app.editor.Render()
 }

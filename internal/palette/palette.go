@@ -44,6 +44,8 @@ func (d *Palette) SetColors(t theme.Tokens) {
 	d.editor.SetColors(t)
 }
 
+func (*Palette) Layout(ui.Area) {}
+
 func (p *Palette) Open(done chan<- *Option) {
 	p.enabled = true
 	p.editor.Enabled = true

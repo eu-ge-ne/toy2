@@ -2,22 +2,22 @@ package app
 
 import (
 	"flag"
-	"io"
 	"os"
 	"os/signal"
 	"runtime/pprof"
 	"slices"
 	"strings"
 	"syscall"
-	"unicode/utf8"
 
 	"github.com/eu-ge-ne/toy2/internal/alert"
 	"github.com/eu-ge-ne/toy2/internal/ask"
 	"github.com/eu-ge-ne/toy2/internal/debug"
 	"github.com/eu-ge-ne/toy2/internal/editor"
+	"github.com/eu-ge-ne/toy2/internal/file"
 	"github.com/eu-ge-ne/toy2/internal/footer"
 	"github.com/eu-ge-ne/toy2/internal/header"
 	"github.com/eu-ge-ne/toy2/internal/palette"
+	"github.com/eu-ge-ne/toy2/internal/saveas"
 	"github.com/eu-ge-ne/toy2/internal/theme"
 	"github.com/eu-ge-ne/toy2/internal/ui"
 	"github.com/eu-ge-ne/toy2/internal/vt"
@@ -25,34 +25,39 @@ import (
 
 type App struct {
 	area       ui.Area
-	ask        *ask.Ask
 	alert      *alert.Alert
+	ask        *ask.Ask
 	debug      *debug.Debug
-	header     *header.Header
 	editor     *editor.Editor
 	footer     *footer.Footer
+	header     *header.Header
 	palette    *palette.Palette
+	saveas     *saveas.SaveAs
 	commands   []Command
 	restoreVt  func()
 	zenEnabled bool
+	filePath   string
 }
+
+var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 
 func New() *App {
 	app := App{}
 
 	app.commands = []Command{
-		NewBase16ThemeCommand(&app),
 		NewDebugCommand(&app),
 		NewExitCommand(&app),
+		NewPaletteCommand(&app),
+		NewSaveCommand(&app),
+		NewBase16ThemeCommand(&app),
 		NewGrayThemeCommand(&app),
 		NewNeutralThemeCommand(&app),
-		NewPaletteCommand(&app),
 		NewSlateThemeCommand(&app),
 		NewStoneThemeCommand(&app),
+		NewZincThemeCommand(&app),
 		NewWhitespaceCommand(&app),
 		NewWrapCommand(&app),
 		NewZenCommand(&app),
-		NewZincThemeCommand(&app),
 	}
 
 	options := []*palette.Option{}
@@ -73,6 +78,7 @@ func New() *App {
 	app.footer = footer.New()
 	app.debug = debug.New()
 	app.palette = palette.New(&app, options)
+	app.saveas = saveas.New()
 
 	app.editor.Enabled = true
 	app.editor.OnCursor = app.footer.SetCursorStatus
@@ -81,8 +87,6 @@ func New() *App {
 
 	return &app
 }
-
-var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 
 func (app *App) Run() {
 	flag.Parse()
@@ -102,15 +106,62 @@ func (app *App) Run() {
 	app.enableZen(false)
 	app.editor.WhitespaceEnabled = true
 	app.editor.WrapEnabled = true
+
+	app.debug.Enabled = true
+
 	app.refresh()
 
 	go app.listenSigwinch()
 
 	if flag.NArg() > 0 {
-		app.openFile(flag.Arg(0))
+		app.open(flag.Arg(0))
 	}
 
+	app.editor.Reset(true)
+	app.editor.Render()
+
 	app.processInput()
+}
+
+func (app *App) Area() ui.Area {
+	return app.area
+}
+
+func (app *App) Render() {
+	vt.Sync.Bsu()
+
+	app.header.Render()
+	app.footer.Render()
+	app.editor.Render()
+	app.debug.Render()
+	app.palette.Render()
+	app.ask.Render()
+	app.alert.Render()
+	app.saveas.Render()
+
+	vt.Sync.Esu()
+}
+
+func (app *App) layout(a ui.Area) {
+	app.area = a
+
+	app.header.Layout(app.area)
+	app.footer.Layout(app.area)
+	if app.zenEnabled {
+		app.editor.Layout(app.area)
+	} else {
+		app.editor.Layout(ui.Area{
+			Y: a.Y + 1,
+			X: a.X,
+			W: a.W,
+			H: a.H - 2,
+		})
+	}
+	app.debug.Layout(app.editor.Area())
+	app.palette.Layout(app.editor.Area())
+	app.ask.Layout(app.editor.Area())
+	app.alert.Layout(app.editor.Area())
+	app.saveas.Layout(app.editor.Area())
 }
 
 func (app *App) setColors(t theme.Tokens) {
@@ -121,8 +172,7 @@ func (app *App) setColors(t theme.Tokens) {
 	app.footer.SetColors(t)
 	app.editor.SetColors(t)
 	app.palette.SetColors(t)
-
-	//set_save_as_colors(tokens)
+	app.saveas.SetColors(t)
 }
 
 func (app *App) enableZen(enabled bool) {
@@ -139,26 +189,26 @@ func (app *App) exit() {
 	os.Exit(0)
 }
 
-func (app *App) openFile(filePath string) {
-	err := app.load(filePath)
+func (app *App) listenSigwinch() {
+	c := make(chan os.Signal, 1)
 
-	if os.IsNotExist(err) {
-		app.setFilePath(filePath)
-		return
+	signal.Notify(c, syscall.SIGWINCH)
+
+	for {
+		<-c
+
+		app.refresh()
 	}
+}
 
+func (app *App) refresh() {
+	w, h, err := vt.GetSize()
 	if err != nil {
-		done := make(chan struct{})
-		go app.alert.Open(err.Error(), done)
-		<-done
-
-		app.exit()
+		panic(err)
 	}
 
-	app.editor.Reset(true)
-	app.editor.Render()
-
-	app.setFilePath(filePath)
+	app.layout(ui.Area{X: 0, Y: 0, W: w, H: h})
+	app.Render()
 }
 
 func (app *App) processInput() {
@@ -182,59 +232,69 @@ func (app *App) processInput() {
 	}
 }
 
+func (app *App) open(filePath string) {
+	err := file.Load(filePath, app.editor.Buffer)
+
+	if os.IsNotExist(err) {
+		return
+	}
+
+	if err != nil {
+		done := make(chan struct{})
+		go app.alert.Open(err.Error(), done)
+		<-done
+
+		app.exit()
+	}
+
+	app.setFilePath(filePath)
+}
+
+func (app *App) save() bool {
+	if len(app.filePath) != 0 {
+		return app.saveFile()
+	} else {
+		return app.saveFileAs()
+	}
+}
+
+func (app *App) saveFile() bool {
+	err := file.Save(app.filePath, app.editor.Buffer)
+	if err == nil {
+		return true
+	}
+
+	done := make(chan struct{})
+	go app.alert.Open(err.Error(), done)
+	<-done
+
+	return app.saveFileAs()
+}
+
+func (app *App) saveFileAs() bool {
+	for {
+		filePathResult := make(chan string)
+		go app.saveas.Open(app.filePath, filePathResult)
+
+		filePath := <-filePathResult
+		if len(filePath) == 0 {
+			return false
+		}
+
+		err := file.Save(filePath, app.editor.Buffer)
+		if err == nil {
+			app.setFilePath(filePath)
+			return true
+		}
+
+		done := make(chan struct{})
+		go app.alert.Open(err.Error(), done)
+		<-done
+	}
+}
+
 func (app *App) setFilePath(filePath string) {
+	app.filePath = filePath
+
 	app.header.SetFilePath(filePath)
-}
-
-func (app *App) listenSigwinch() {
-	c := make(chan os.Signal, 1)
-
-	signal.Notify(c, syscall.SIGWINCH)
-
-	for {
-		<-c
-
-		app.refresh()
-	}
-}
-
-func (app *App) refresh() {
-	w, h, err := vt.GetSize()
-	if err != nil {
-		panic(err)
-	}
-
-	app.Layout(ui.Area{X: 0, Y: 0, W: w, H: h})
-	app.Render()
-}
-
-func (app *App) load(path string) error {
-	f, err := os.Open(path)
-	if err != nil {
-		return err
-	}
-
-	defer f.Close()
-
-	buf := make([]byte, 1024*1024*64)
-
-	for {
-		bytesRead, err := f.Read(buf)
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return err
-		}
-
-		chunk := buf[:bytesRead]
-
-		if !utf8.Valid(chunk) {
-			panic("invalid utf8 chunk")
-		}
-
-		app.editor.Buffer.Append(string(chunk))
-	}
-
-	return nil
 }

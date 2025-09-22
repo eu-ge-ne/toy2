@@ -6,17 +6,8 @@ import (
 	"time"
 
 	"github.com/eu-ge-ne/toy2/internal/std"
-	"github.com/eu-ge-ne/toy2/internal/ui"
 	"github.com/eu-ge-ne/toy2/internal/vt"
 )
-
-func (ed *Editor) Area() ui.Area {
-	return ed.area
-}
-
-func (ed *Editor) Layout(a ui.Area) {
-	ed.area = a
-}
 
 func (ed *Editor) Render() {
 	t0 := time.Now()

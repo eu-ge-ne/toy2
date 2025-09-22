@@ -8,9 +8,6 @@ import (
 	"github.com/eu-ge-ne/toy2/internal/vt"
 )
 
-func (*Palette) Layout(ui.Area) {
-}
-
 func (p *Palette) Render() {
 	if !p.enabled {
 		return
