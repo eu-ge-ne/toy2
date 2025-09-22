@@ -1,6 +1,7 @@
 package file
 
 import (
+	"errors"
 	"io"
 	"os"
 	"unicode/utf8"
@@ -40,5 +41,5 @@ func Load(filePath string, textBuf *textbuf.TextBuf) error {
 }
 
 func Save(filePath string, textBuf *textbuf.TextBuf) error {
-	return nil
+	return errors.New("TODO")
 }
