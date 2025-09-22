@@ -189,52 +189,6 @@ func (app *App) exit() {
 	os.Exit(0)
 }
 
-func (app *App) trySaveFile() {
-	app.editor.Enabled = false
-
-	defer func() {
-		app.editor.Enabled = true
-		app.editor.Render()
-	}()
-
-	if len(app.filePath) > 0 {
-		err := file.Save(app.filePath, app.editor.Buffer)
-		if err == nil {
-			app.editor.Reset(false)
-			return
-		}
-
-		alertClosed := make(chan struct{})
-		go app.alert.Open(err.Error(), alertClosed)
-		<-alertClosed
-	}
-
-	app.saveFileAs()
-}
-
-func (app *App) saveFileAs() {
-	for {
-		saveasResult := make(chan string)
-		go app.saveas.Open(app.filePath, saveasResult)
-
-		filePath := <-saveasResult
-		if len(filePath) == 0 {
-			return
-		}
-
-		err := file.Save(filePath, app.editor.Buffer)
-		if err == nil {
-			app.setFilePath(filePath)
-			app.editor.Reset(false)
-			return
-		}
-
-		alertClosed := make(chan struct{})
-		go app.alert.Open(err.Error(), alertClosed)
-		<-alertClosed
-	}
-}
-
 func (app *App) listenSigwinch() {
 	c := make(chan os.Signal, 1)
 
@@ -294,6 +248,49 @@ func (app *App) open(filePath string) {
 	}
 
 	app.setFilePath(filePath)
+}
+
+func (app *App) save() bool {
+	if len(app.filePath) != 0 {
+		return app.saveFile()
+	} else {
+		return app.saveFileAs()
+	}
+}
+
+func (app *App) saveFile() bool {
+	err := file.Save(app.filePath, app.editor.Buffer)
+	if err == nil {
+		return true
+	}
+
+	done := make(chan struct{})
+	go app.alert.Open(err.Error(), done)
+	<-done
+
+	return app.saveFileAs()
+}
+
+func (app *App) saveFileAs() bool {
+	for {
+		filePathResult := make(chan string)
+		go app.saveas.Open(app.filePath, filePathResult)
+
+		filePath := <-filePathResult
+		if len(filePath) == 0 {
+			return false
+		}
+
+		err := file.Save(filePath, app.editor.Buffer)
+		if err == nil {
+			app.setFilePath(filePath)
+			return true
+		}
+
+		done := make(chan struct{})
+		go app.alert.Open(err.Error(), done)
+		<-done
+	}
 }
 
 func (app *App) setFilePath(filePath string) {

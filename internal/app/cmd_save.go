@@ -26,5 +26,13 @@ func (c *SaveCommand) Match(key key.Key) bool {
 }
 
 func (c *SaveCommand) Run() {
-	c.app.trySaveFile()
+	c.app.editor.Enabled = false
+
+	if c.app.save() {
+		c.app.editor.Reset(false)
+	}
+
+	c.app.editor.Enabled = true
+
+	c.app.editor.Render()
 }
