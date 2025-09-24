@@ -19,7 +19,7 @@ func (buf *TextBuf) Insert(i int, text string) {
 	p := node.NIL
 	x := buf.tree.Root
 
-	for !x.Nil {
+	for x != node.NIL {
 		if i <= x.Left.TotalLen {
 			insertCase = InsertLeft
 			p = x

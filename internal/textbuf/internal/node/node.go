@@ -46,7 +46,7 @@ func Create(bufIndex int, start int, len int, eols_start int, eols_len int) Node
 }
 
 func (x *Node) Find(index int) (*Node, int) {
-	for !x.Nil {
+	for x != NIL {
 		if index < x.Left.TotalLen {
 			x = x.Left
 			continue
@@ -66,7 +66,7 @@ func (x *Node) Find(index int) (*Node, int) {
 }
 
 func Bubble(x *Node) {
-	for !x.Nil {
+	for x != NIL {
 		x.TotalLen = x.Left.TotalLen + x.Len + x.Right.TotalLen
 		x.TotalEolsLen = x.Left.TotalEolsLen + x.EolsLen + x.Right.TotalEolsLen
 
@@ -75,7 +75,7 @@ func Bubble(x *Node) {
 }
 
 func Minimum(x *Node) *Node {
-	for !x.Left.Nil {
+	for x.Left != NIL {
 		x = x.Left
 	}
 
@@ -83,7 +83,7 @@ func Minimum(x *Node) *Node {
 }
 
 func Maximum(x *Node) *Node {
-	for !x.Right.Nil {
+	for x.Right != NIL {
 		x = x.Right
 	}
 
@@ -91,13 +91,13 @@ func Maximum(x *Node) *Node {
 }
 
 func Successor(x *Node) *Node {
-	if !x.Right.Nil {
+	if x.Right != NIL {
 		return Minimum(x.Right)
 	}
 
 	y := x.P
 
-	for !y.Nil && x == y.Right {
+	for y != NIL && x == y.Right {
 		x = y
 		y = y.P
 	}
@@ -105,10 +105,10 @@ func Successor(x *Node) *Node {
 	return y
 }
 
-func (x Node) Validate() {
+func (x *Node) Validate() {
 	// 1. Every node is either red or black.
 	// 2. The root is black.
-	if x.P.Nil {
+	if x.P == NIL {
 		if x.Red {
 			panic("2")
 		}
@@ -117,18 +117,18 @@ func (x Node) Validate() {
 	x.validate()
 
 	// 5. For each node, all simple paths from the node to descendant leaves contain the same number of black nodes.
-	leafs := map[Node]bool{}
+	leafs := map[*Node]bool{}
 	collectLeafs(x, leafs)
 
 	heights := []int{}
 	for node := range leafs {
 		height := 0
 		x := node
-		for !x.P.Nil {
+		for x.P != NIL {
 			if !x.Red {
 				height += 1
 			}
-			x = *x.P
+			x = x.P
 		}
 		heights = append(heights, height)
 	}
@@ -141,9 +141,9 @@ func (x Node) Validate() {
 
 }
 
-func (x Node) validate() {
+func (x *Node) validate() {
 	// 3. Every leaf (NIL) is black.
-	if x.Nil {
+	if x == NIL {
 		if x.Red {
 			panic("3")
 		}
@@ -165,13 +165,13 @@ func (x Node) validate() {
 	}
 }
 
-func collectLeafs(x Node, leaf_parents map[Node]bool) {
-	if !x.Nil {
-		if x.Left.Nil || x.Right.Nil {
+func collectLeafs(x *Node, leaf_parents map[*Node]bool) {
+	if x != NIL {
+		if x.Left == NIL || x.Right == NIL {
 			leaf_parents[x] = true
 		}
 
-		collectLeafs(*x.Left, leaf_parents)
-		collectLeafs(*x.Right, leaf_parents)
+		collectLeafs(x.Left, leaf_parents)
+		collectLeafs(x.Right, leaf_parents)
 	}
 }

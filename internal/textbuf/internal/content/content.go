@@ -37,7 +37,7 @@ func (c *Content) Split(x *node.Node, index int, gap int) node.Node {
 
 func (c *Content) Read(x *node.Node, offset int, n int) iter.Seq[string] {
 	return func(yield func(string) bool) {
-		for !x.Nil && (n > 0) {
+		for x != node.NIL && (n > 0) {
 			count := min(x.Len-offset, n)
 
 			if !yield(c.Buffers[x.BufIndex].Read(x.Start+offset, x.Start+offset+count)) {

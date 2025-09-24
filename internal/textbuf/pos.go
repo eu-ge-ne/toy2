@@ -1,5 +1,9 @@
 package textbuf
 
+import (
+	"github.com/eu-ge-ne/toy2/internal/textbuf/internal/node"
+)
+
 func (buf TextBuf) posToIndex(ln, col int) (int, bool) {
 	i, ok := buf.findLineStart(ln)
 
@@ -19,7 +23,7 @@ func (buf TextBuf) findLineStart(ln int) (int, bool) {
 	x := buf.tree.Root
 	i := 0
 
-	for !x.Nil {
+	for x != node.NIL {
 		if eolIndex < x.Left.TotalEolsLen {
 			x = x.Left
 			continue

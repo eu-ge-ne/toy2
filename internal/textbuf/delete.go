@@ -46,7 +46,7 @@ func (buf *TextBuf) Delete(start int, end int) {
 			buf.tree.InsertAfter(lastNode, &y)
 		}
 
-		for !x.Nil && (i < count) {
+		for x != node.NIL && (i < count) {
 			i += x.Len
 
 			next := node.Successor(x)
