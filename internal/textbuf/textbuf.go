@@ -37,6 +37,14 @@ func (tb *TextBuf) LineCount() int {
 	}
 }
 
+func (tb *TextBuf) Save() *node.Node {
+	return tb.tree.Root.Clone(node.NIL)
+}
+
+func (tb *TextBuf) Restore(n *node.Node) {
+	tb.tree.Root = n.Clone(node.NIL)
+}
+
 func (tb *TextBuf) Reset(text string) {
 	tb.DeleteToEnd(0)
 
