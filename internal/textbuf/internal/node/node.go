@@ -26,19 +26,19 @@ type Node struct {
 	EolsLen      int
 }
 
-func Create(bufIndex int, start int, len int, eols_start int, eols_len int) *Node {
+func Create(bufIndex int, start int, len int, eolsStart int, eolsLen int) *Node {
 	return &Node{
 		Red:          true,
 		P:            NIL,
 		Left:         NIL,
 		Right:        NIL,
 		TotalLen:     len,
-		TotalEolsLen: eols_len,
+		TotalEolsLen: eolsLen,
 		BufIndex:     bufIndex,
 		Start:        start,
 		Len:          len,
-		EolsStart:    eols_start,
-		EolsLen:      eols_len,
+		EolsStart:    eolsStart,
+		EolsLen:      eolsLen,
 	}
 }
 
