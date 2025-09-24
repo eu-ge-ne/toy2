@@ -42,83 +42,83 @@ func Create(bufIndex int, start int, len int, eols_start int, eols_len int) Node
 	}
 }
 
-func (x *Node) Find(index int) (*Node, int) {
-	for x != NIL {
-		if index < x.Left.TotalLen {
-			x = x.Left
+func (nd *Node) Find(index int) (*Node, int) {
+	for nd != NIL {
+		if index < nd.Left.TotalLen {
+			nd = nd.Left
 			continue
 		}
 
-		index -= x.Left.TotalLen
+		index -= nd.Left.TotalLen
 
-		if index < x.Len {
-			return x, index
+		if index < nd.Len {
+			return nd, index
 		}
 
-		index -= x.Len
-		x = x.Right
+		index -= nd.Len
+		nd = nd.Right
 	}
 
 	return nil, 0
 }
 
-func Bubble(x *Node) {
-	for x != NIL {
-		x.TotalLen = x.Left.TotalLen + x.Len + x.Right.TotalLen
-		x.TotalEolsLen = x.Left.TotalEolsLen + x.EolsLen + x.Right.TotalEolsLen
+func Bubble(nd *Node) {
+	for nd != NIL {
+		nd.TotalLen = nd.Left.TotalLen + nd.Len + nd.Right.TotalLen
+		nd.TotalEolsLen = nd.Left.TotalEolsLen + nd.EolsLen + nd.Right.TotalEolsLen
 
-		x = x.P
+		nd = nd.P
 	}
 }
 
-func Minimum(x *Node) *Node {
-	for x.Left != NIL {
-		x = x.Left
+func Minimum(nd *Node) *Node {
+	for nd.Left != NIL {
+		nd = nd.Left
 	}
 
-	return x
+	return nd
 }
 
-func Maximum(x *Node) *Node {
-	for x.Right != NIL {
-		x = x.Right
+func Maximum(nd *Node) *Node {
+	for nd.Right != NIL {
+		nd = nd.Right
 	}
 
-	return x
+	return nd
 }
 
-func Successor(x *Node) *Node {
-	if x.Right != NIL {
-		return Minimum(x.Right)
+func Successor(nd *Node) *Node {
+	if nd.Right != NIL {
+		return Minimum(nd.Right)
 	}
 
-	y := x.P
+	y := nd.P
 
-	for y != NIL && x == y.Right {
-		x = y
+	for y != NIL && nd == y.Right {
+		nd = y
 		y = y.P
 	}
 
 	return y
 }
 
-func (x *Node) Validate() {
+func (nd *Node) Validate() {
 	// 1. Every node is either red or black.
 	// 2. The root is black.
-	if x.P == NIL {
-		if x.Red {
+	if nd.P == NIL {
+		if nd.Red {
 			panic("2")
 		}
 	}
 
-	x.validate()
+	nd.validate()
 
 	// 5. For each node, all simple paths from the node to descendant leaves contain the same number of black nodes.
-	leafs := map[*Node]bool{}
-	collectLeafs(x, leafs)
+	parents := map[*Node]bool{}
+	collectLeafs(nd, parents)
 
 	heights := []int{}
-	for node := range leafs {
+	for node := range parents {
 		height := 0
 		x := node
 		for x.P != NIL {
@@ -138,37 +138,37 @@ func (x *Node) Validate() {
 
 }
 
-func (x *Node) validate() {
+func (nd *Node) validate() {
 	// 3. Every leaf (NIL) is black.
-	if x == NIL {
-		if x.Red {
+	if nd == NIL {
+		if nd.Red {
 			panic("3")
 		}
 	} else {
 		// 4. If a node is red, then both its children are black.
-		if x.Red {
-			if x.Left.Red || x.Right.Red {
+		if nd.Red {
+			if nd.Left.Red || nd.Right.Red {
 				panic("4")
 			}
 		}
 
-		x.Left.validate()
-		x.Right.validate()
+		nd.Left.validate()
+		nd.Right.validate()
 
 		// 6. len > 0
-		if x.Len <= 0 {
+		if nd.Len <= 0 {
 			panic("6")
 		}
 	}
 }
 
-func collectLeafs(x *Node, leaf_parents map[*Node]bool) {
-	if x != NIL {
-		if x.Left == NIL || x.Right == NIL {
-			leaf_parents[x] = true
+func collectLeafs(nd *Node, parents map[*Node]bool) {
+	if nd != NIL {
+		if nd.Left == NIL || nd.Right == NIL {
+			parents[nd] = true
 		}
 
-		collectLeafs(x.Left, leaf_parents)
-		collectLeafs(x.Right, leaf_parents)
+		collectLeafs(nd.Left, parents)
+		collectLeafs(nd.Right, parents)
 	}
 }
