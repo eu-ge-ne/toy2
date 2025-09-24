@@ -30,6 +30,19 @@ func TestCreate(t *testing.T) {
 	assert.Equal(t, true, node.Red)
 }
 
+func TestClone(t *testing.T) {
+	parent := Create(0, 0, 10, 0, 1)
+	child := Create(1, 0, 20, 0, 2)
+
+	parent.Right = child
+	child.P = parent
+
+	clone := parent.Clone(NIL)
+
+	assert.Equal(t, clone, parent)
+	assert.Equal(t, clone.Right, child)
+}
+
 func TestBubble(t *testing.T) {
 	parent := Create(0, 0, 0, 0, 0)
 	child := Create(0, 0, 0, 0, 0)

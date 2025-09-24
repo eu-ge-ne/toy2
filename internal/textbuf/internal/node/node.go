@@ -42,6 +42,29 @@ func Create(bufIndex int, start int, len int, eolsStart int, eolsLen int) *Node 
 	}
 }
 
+func (nd *Node) Clone(p *Node) *Node {
+	if nd == NIL {
+		return NIL
+	}
+
+	r := &Node{
+		Red:          nd.Red,
+		P:            p,
+		TotalLen:     nd.TotalLen,
+		TotalEolsLen: nd.TotalEolsLen,
+		BufIndex:     nd.BufIndex,
+		Start:        nd.Start,
+		Len:          nd.Len,
+		EolsStart:    nd.EolsStart,
+		EolsLen:      nd.EolsLen,
+	}
+
+	r.Left = nd.Left.Clone(r)
+	r.Right = nd.Right.Clone(r)
+
+	return r
+}
+
 func (nd *Node) Find(index int) (*Node, int) {
 	for nd != NIL {
 		if index < nd.Left.TotalLen {
