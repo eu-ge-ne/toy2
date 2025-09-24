@@ -53,16 +53,16 @@ func (tb *TextBuf) Insert(i int, text string) {
 
 	switch insertCase {
 	case InsertRoot:
-		tb.tree.Root = &child
+		tb.tree.Root = child
 		tb.tree.Root.Red = false
 	case InsertLeft:
-		tb.tree.InsertLeft(p, &child)
+		tb.tree.InsertLeft(p, child)
 	case InsertRight:
-		tb.tree.InsertRight(p, &child)
+		tb.tree.InsertRight(p, child)
 	case InsertSplit:
 		y := tb.content.Split(p, i, 0)
-		tb.tree.InsertAfter(p, &y)
-		tb.tree.InsertBefore(&y, &child)
+		tb.tree.InsertAfter(p, y)
+		tb.tree.InsertBefore(y, child)
 	}
 }
 
