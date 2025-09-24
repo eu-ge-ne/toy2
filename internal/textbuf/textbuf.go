@@ -18,8 +18,7 @@ func New(text string) *TextBuf {
 	}
 
 	if len(text) > 0 {
-		root := buf.content.Create(text)
-		buf.tree.Root = &root
+		buf.tree.Root = buf.content.Create(text)
 		buf.tree.Root.Red = false
 	}
 
