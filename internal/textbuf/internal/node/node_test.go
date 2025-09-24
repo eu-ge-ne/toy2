@@ -8,7 +8,6 @@ import (
 
 func TestNIL(t *testing.T) {
 	expected := &Node{
-		Nil:          true,
 		Red:          false,
 		P:            NIL,
 		Left:         NIL,

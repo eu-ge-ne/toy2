@@ -4,7 +4,6 @@ var NIL *Node
 
 func init() {
 	NIL = &Node{
-		Nil: true,
 		Red: false,
 	}
 
@@ -14,7 +13,6 @@ func init() {
 }
 
 type Node struct {
-	Nil          bool
 	Red          bool
 	P            *Node
 	Left         *Node
@@ -30,7 +28,6 @@ type Node struct {
 
 func Create(bufIndex int, start int, len int, eols_start int, eols_len int) Node {
 	return Node{
-		Nil:          false,
 		Red:          true,
 		P:            NIL,
 		Left:         NIL,
