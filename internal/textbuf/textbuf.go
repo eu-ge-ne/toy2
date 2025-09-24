@@ -26,26 +26,26 @@ func New(text string) *TextBuf {
 	return &buf
 }
 
-func (buf *TextBuf) Count() int {
-	return buf.tree.Root.TotalLen
+func (tb *TextBuf) Count() int {
+	return tb.tree.Root.TotalLen
 }
 
-func (buf *TextBuf) LineCount() int {
-	if buf.tree.Root.TotalLen == 0 {
+func (tb *TextBuf) LineCount() int {
+	if tb.tree.Root.TotalLen == 0 {
 		return 0
 	} else {
-		return buf.tree.Root.TotalEolsLen + 1
+		return tb.tree.Root.TotalEolsLen + 1
 	}
 }
 
-func (buf *TextBuf) Reset(text string) {
-	buf.DeleteToEnd(0)
+func (tb *TextBuf) Reset(text string) {
+	tb.DeleteToEnd(0)
 
 	if len(text) > 0 {
-		buf.Insert(0, text)
+		tb.Insert(0, text)
 	}
 }
 
-func (buf *TextBuf) Validate() {
-	buf.tree.Root.Validate()
+func (tb *TextBuf) Validate() {
+	tb.tree.Root.Validate()
 }

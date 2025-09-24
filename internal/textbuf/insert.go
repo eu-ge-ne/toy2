@@ -2,8 +2,8 @@ package textbuf
 
 import "github.com/eu-ge-ne/toy2/internal/textbuf/internal/node"
 
-func (buf *TextBuf) Insert(i int, text string) {
-	if i > buf.Count() {
+func (tb *TextBuf) Insert(i int, text string) {
+	if i > tb.Count() {
 		return
 	}
 
@@ -17,7 +17,7 @@ func (buf *TextBuf) Insert(i int, text string) {
 
 	insertCase := InsertRoot
 	p := node.NIL
-	x := buf.tree.Root
+	x := tb.tree.Root
 
 	for x != node.NIL {
 		if i <= x.Left.TotalLen {
@@ -43,38 +43,38 @@ func (buf *TextBuf) Insert(i int, text string) {
 		x = x.Right
 	}
 
-	if (insertCase == InsertRight) && buf.content.Growable(p) {
-		buf.content.Grow(p, text)
+	if (insertCase == InsertRight) && tb.content.Growable(p) {
+		tb.content.Grow(p, text)
 		node.Bubble(p)
 		return
 	}
 
-	child := buf.content.Create(text)
+	child := tb.content.Create(text)
 
 	switch insertCase {
 	case InsertRoot:
-		buf.tree.Root = &child
-		buf.tree.Root.Red = false
+		tb.tree.Root = &child
+		tb.tree.Root.Red = false
 	case InsertLeft:
-		buf.tree.InsertLeft(p, &child)
+		tb.tree.InsertLeft(p, &child)
 	case InsertRight:
-		buf.tree.InsertRight(p, &child)
+		tb.tree.InsertRight(p, &child)
 	case InsertSplit:
-		y := buf.content.Split(p, i, 0)
-		buf.tree.InsertAfter(p, &y)
-		buf.tree.InsertBefore(&y, &child)
+		y := tb.content.Split(p, i, 0)
+		tb.tree.InsertAfter(p, &y)
+		tb.tree.InsertBefore(&y, &child)
 	}
 }
 
-func (buf *TextBuf) Insert2(ln, col int, text string) {
-	i, ok := buf.posToIndex(ln, col)
+func (tb *TextBuf) Insert2(ln, col int, text string) {
+	i, ok := tb.posToIndex(ln, col)
 	if !ok {
 		return
 	}
 
-	buf.Insert(i, text)
+	tb.Insert(i, text)
 }
 
-func (buf *TextBuf) Append(text string) {
-	buf.Insert(buf.Count(), text)
+func (tb *TextBuf) Append(text string) {
+	tb.Insert(tb.Count(), text)
 }
