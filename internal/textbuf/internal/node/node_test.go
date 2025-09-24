@@ -34,16 +34,16 @@ func TestBubble(t *testing.T) {
 	parent := Create(0, 0, 0, 0, 0)
 	child := Create(0, 0, 0, 0, 0)
 
-	parent.Right = &child
-	child.P = &parent
+	parent.Right = child
+	child.P = parent
 
-	Bubble(&child)
+	Bubble(child)
 
 	assert.Equal(t, 0, parent.TotalLen)
 
 	child.Len = 10
 
-	Bubble(&child)
+	Bubble(child)
 
 	assert.Equal(t, 10, parent.TotalLen)
 }
@@ -52,8 +52,8 @@ func TestMinimum(t *testing.T) {
 	parent := Create(0, 0, 0, 0, 0)
 	child := Create(0, 0, 0, 0, 0)
 
-	parent.Left = &child
-	child.P = &parent
+	parent.Left = child
+	child.P = parent
 
-	assert.Equal(t, child, *Minimum(&parent))
+	assert.Equal(t, child, Minimum(parent))
 }

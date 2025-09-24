@@ -26,8 +26,8 @@ type Node struct {
 	EolsLen      int
 }
 
-func Create(bufIndex int, start int, len int, eols_start int, eols_len int) Node {
-	return Node{
+func Create(bufIndex int, start int, len int, eols_start int, eols_len int) *Node {
+	return &Node{
 		Red:          true,
 		P:            NIL,
 		Left:         NIL,
