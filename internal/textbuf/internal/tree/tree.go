@@ -27,7 +27,7 @@ func (t *Tree) InsertRight(p *node.Node, z *node.Node) {
 }
 
 func (t *Tree) InsertBefore(p *node.Node, z *node.Node) {
-	if p.Left.Nil {
+	if p.Left == node.NIL {
 		t.InsertLeft(p, z)
 	} else {
 		t.InsertRight(node.Maximum(p.Left), z)
@@ -35,7 +35,7 @@ func (t *Tree) InsertBefore(p *node.Node, z *node.Node) {
 }
 
 func (t *Tree) InsertAfter(p *node.Node, z *node.Node) {
-	if p.Right.Nil {
+	if p.Right == node.NIL {
 		t.InsertRight(p, z)
 	} else {
 		t.InsertLeft(node.Minimum(p.Right), z)
@@ -87,12 +87,12 @@ func (t *Tree) Delete(z *node.Node) {
 	y_original_color := y.Red
 	var x *node.Node
 
-	if z.Left.Nil {
+	if z.Left == node.NIL {
 		x = z.Right
 
 		t.transplant(z, z.Right)
 		node.Bubble(z.Right.P)
-	} else if z.Right.Nil {
+	} else if z.Right == node.NIL {
 		x = z.Left
 
 		t.transplant(z, z.Left)
@@ -193,13 +193,13 @@ func (t *Tree) leftRotate(x *node.Node) {
 	y := x.Right
 
 	x.Right = y.Left
-	if !y.Left.Nil {
+	if y.Left != node.NIL {
 		y.Left.P = x
 	}
 
 	y.P = x.P
 
-	if x.P.Nil {
+	if x.P == node.NIL {
 		t.Root = y
 	} else if x == x.P.Left {
 		x.P.Left = y
@@ -217,13 +217,13 @@ func (t *Tree) rightRotate(y *node.Node) {
 	x := y.Left
 
 	y.Left = x.Right
-	if !x.Right.Nil {
+	if x.Right != node.NIL {
 		x.Right.P = y
 	}
 
 	x.P = y.P
 
-	if y.P.Nil {
+	if y.P == node.NIL {
 		t.Root = x
 	} else if y == y.P.Left {
 		y.P.Left = x
@@ -238,7 +238,7 @@ func (t *Tree) rightRotate(y *node.Node) {
 }
 
 func (t *Tree) transplant(u *node.Node, v *node.Node) {
-	if u.P.Nil {
+	if u.P == node.NIL {
 		t.Root = v
 	} else if u == u.P.Left {
 		u.P.Left = v

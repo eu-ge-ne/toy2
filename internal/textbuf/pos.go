@@ -1,7 +1,11 @@
 package textbuf
 
-func (buf TextBuf) posToIndex(ln, col int) (int, bool) {
-	i, ok := buf.findLineStart(ln)
+import (
+	"github.com/eu-ge-ne/toy2/internal/textbuf/internal/node"
+)
+
+func (tb TextBuf) posToIndex(ln, col int) (int, bool) {
+	i, ok := tb.findLineStart(ln)
 
 	if !ok {
 		return 0, false
@@ -10,16 +14,16 @@ func (buf TextBuf) posToIndex(ln, col int) (int, bool) {
 	return i + col, true
 }
 
-func (buf TextBuf) findLineStart(ln int) (int, bool) {
+func (tb TextBuf) findLineStart(ln int) (int, bool) {
 	if ln == 0 {
 		return 0, true
 	}
 
 	eolIndex := ln - 1
-	x := buf.tree.Root
+	x := tb.tree.Root
 	i := 0
 
-	for !x.Nil {
+	for x != node.NIL {
 		if eolIndex < x.Left.TotalEolsLen {
 			x = x.Left
 			continue
@@ -29,7 +33,7 @@ func (buf TextBuf) findLineStart(ln int) (int, bool) {
 		i += x.Left.TotalLen
 
 		if eolIndex < x.EolsLen {
-			buf := buf.content.Buffers[x.BufIndex]
+			buf := tb.content.Buffers[x.BufIndex]
 			eolEnd := buf.Eols[x.EolsStart+eolIndex].End
 			return i + eolEnd - x.Start, true
 		}

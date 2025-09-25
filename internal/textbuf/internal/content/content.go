@@ -11,7 +11,7 @@ type Content struct {
 	Buffers []*buffer.Buffer
 }
 
-func (c *Content) Create(text string) node.Node {
+func (c *Content) Create(text string) *node.Node {
 	buffer := buffer.Create(text)
 	c.Buffers = append(c.Buffers, &buffer)
 	BufIndex := len(c.Buffers) - 1
@@ -19,7 +19,7 @@ func (c *Content) Create(text string) node.Node {
 	return node.Create(BufIndex, 0, buffer.Len, 0, len(buffer.Eols))
 }
 
-func (c *Content) Split(x *node.Node, index int, gap int) node.Node {
+func (c *Content) Split(x *node.Node, index int, gap int) *node.Node {
 	buf := c.Buffers[x.BufIndex]
 
 	start := x.Start + index + gap
@@ -37,7 +37,7 @@ func (c *Content) Split(x *node.Node, index int, gap int) node.Node {
 
 func (c *Content) Read(x *node.Node, offset int, n int) iter.Seq[string] {
 	return func(yield func(string) bool) {
-		for !x.Nil && (n > 0) {
+		for x != node.NIL && (n > 0) {
 			count := min(x.Len-offset, n)
 
 			if !yield(c.Buffers[x.BufIndex].Read(x.Start+offset, x.Start+offset+count)) {
