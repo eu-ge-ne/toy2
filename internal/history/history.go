@@ -20,21 +20,24 @@ type entry struct {
 }
 
 func New(buffer *textbuf.TextBuf, cursor *cursor.Cursor) *History {
-	return &History{
+	h := &History{
 		buffer: buffer,
 		cursor: cursor,
-		index:  -1,
 	}
+
+	h.Reset()
+
+	return h
 }
 
 func (h *History) Reset() {
 	snapshot := h.buffer.Save()
 
-	h.entries = append(h.entries, entry{
+	h.entries = []entry{{
 		ln:       h.cursor.Ln,
 		col:      h.cursor.Col,
 		snapshot: snapshot,
-	})
+	}}
 
 	h.index = 0
 
@@ -46,7 +49,7 @@ func (h *History) Reset() {
 func (h *History) Push() {
 	snapshot := h.buffer.Save()
 
-	h.entries = append([]entry(nil), h.entries[:h.index]...)
+	h.entries = append([]entry(nil), h.entries[:h.index+1]...)
 	h.entries = append(h.entries, entry{
 		ln:       h.cursor.Ln,
 		col:      h.cursor.Col,
