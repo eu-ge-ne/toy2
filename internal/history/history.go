@@ -14,9 +14,9 @@ type History struct {
 }
 
 type entry struct {
-	ln       int
-	col      int
-	snapshot *textbuf.Snapshot
+	ln   int
+	col  int
+	text *textbuf.Snapshot
 }
 
 func New(buffer *textbuf.TextBuf, cursor *cursor.Cursor) *History {
@@ -31,12 +31,10 @@ func New(buffer *textbuf.TextBuf, cursor *cursor.Cursor) *History {
 }
 
 func (h *History) Reset() {
-	snapshot := h.buffer.Save()
-
 	h.entries = []entry{{
-		ln:       h.cursor.Ln,
-		col:      h.cursor.Col,
-		snapshot: snapshot,
+		ln:   h.cursor.Ln,
+		col:  h.cursor.Col,
+		text: h.buffer.Save(),
 	}}
 
 	h.index = 0
@@ -47,13 +45,11 @@ func (h *History) Reset() {
 }
 
 func (h *History) Push() {
-	snapshot := h.buffer.Save()
-
 	h.entries = append([]entry(nil), h.entries[:h.index+1]...)
 	h.entries = append(h.entries, entry{
-		ln:       h.cursor.Ln,
-		col:      h.cursor.Col,
-		snapshot: snapshot,
+		ln:   h.cursor.Ln,
+		col:  h.cursor.Col,
+		text: h.buffer.Save(),
 	})
 
 	h.index += 1
@@ -64,38 +60,38 @@ func (h *History) Push() {
 }
 
 func (h *History) Undo() bool {
-	if h.index > 0 {
-		h.index -= 1
-		h.restore()
-
-		if h.OnChanged != nil {
-			h.OnChanged(h.index)
-		}
-
-		return true
+	if h.index <= 0 {
+		return false
 	}
 
-	return false
+	h.index -= 1
+	h.restore()
+
+	if h.OnChanged != nil {
+		h.OnChanged(h.index)
+	}
+
+	return true
 }
 
 func (h *History) Redo() bool {
-	if h.index < (len(h.entries) - 1) {
-		h.index += 1
-		h.restore()
-
-		if h.OnChanged != nil {
-			h.OnChanged(h.index)
-		}
-
-		return true
+	if h.index >= len(h.entries)-1 {
+		return false
 	}
 
-	return false
+	h.index += 1
+	h.restore()
+
+	if h.OnChanged != nil {
+		h.OnChanged(h.index)
+	}
+
+	return true
 }
 
 func (h *History) restore() {
 	entry := h.entries[h.index]
 
-	h.buffer.Restore(entry.snapshot)
+	h.buffer.Restore(entry.text)
 	h.cursor.Set(entry.ln, entry.col, false)
 }
