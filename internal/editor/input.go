@@ -59,6 +59,8 @@ func (ed *Editor) insert(text string) {
 
 		ed.Cursor.Set(ed.Cursor.Ln+eolCount, col, false)
 	}
+
+	ed.History.Push()
 }
 
 func (ed *Editor) backspace() {
@@ -82,10 +84,14 @@ func (ed *Editor) backspace() {
 		ed.Buffer.SegDelete2(ed.Cursor.Ln, ed.Cursor.Col-1, ed.Cursor.Ln, ed.Cursor.Col)
 		ed.Cursor.Left(false)
 	}
+
+	ed.History.Push()
 }
 
 func (ed *Editor) deleteChar() {
 	ed.Buffer.SegDelete2(ed.Cursor.Ln, ed.Cursor.Col, ed.Cursor.Ln, ed.Cursor.Col+1)
+
+	ed.History.Push()
 }
 
 func (ed *Editor) deleteSelection() {
@@ -94,4 +100,6 @@ func (ed *Editor) deleteSelection() {
 	ed.Buffer.SegDelete2(c.FromLn, c.FromCol, c.Ln, c.Col+1)
 
 	ed.Cursor.Set(c.FromLn, c.FromCol, false)
+
+	ed.History.Push()
 }
