@@ -64,13 +64,15 @@ func New(multiLine bool) *Editor {
 		&TextHandler{editor: &editor},
 		&BackspaceHandler{editor: &editor},
 		&DeleteHandler{editor: &editor},
-		&LeftHandler{editor: &editor},
-		&RightHandler{editor: &editor},
-		&UpHandler{editor: &editor},
 		&DownHandler{editor: &editor},
-		&PageUpHandler{editor: &editor},
-		&PageDownHandler{editor: &editor},
 		&EnterHandler{editor: &editor},
+		&LeftHandler{editor: &editor},
+		&PageDownHandler{editor: &editor},
+		&PageUpHandler{editor: &editor},
+		&RedoHandler{editor: &editor},
+		&RightHandler{editor: &editor},
+		&UndoHandler{editor: &editor},
+		&UpHandler{editor: &editor},
 	)
 
 	return &editor
