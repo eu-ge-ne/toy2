@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/eu-ge-ne/toy2/internal/cursor"
+	"github.com/eu-ge-ne/toy2/internal/history"
 	"github.com/eu-ge-ne/toy2/internal/textbuf"
 	"github.com/eu-ge-ne/toy2/internal/theme"
 	"github.com/eu-ge-ne/toy2/internal/ui"
@@ -31,6 +32,7 @@ type Editor struct {
 	multiLine    bool
 	Buffer       *textbuf.TextBuf
 	Cursor       *cursor.Cursor
+	History      *history.History
 	handlers     []Handler
 	OnKeyHandled func(time.Duration)
 	OnRender     func(time.Duration)
@@ -47,13 +49,15 @@ type colors struct {
 }
 
 func New(multiLine bool) *Editor {
-	buffer := textbuf.New("")
-	cursor := cursor.New(buffer)
+	b := textbuf.New("")
+	c := cursor.New(b)
+	h := history.New(b, c)
 
 	editor := Editor{
 		multiLine: multiLine,
-		Buffer:    buffer,
-		Cursor:    cursor,
+		Buffer:    b,
+		Cursor:    c,
+		History:   h,
 	}
 
 	editor.handlers = append(editor.handlers,
@@ -104,4 +108,6 @@ func (ed *Editor) Reset(resetCursor bool) {
 			ed.Cursor.Set(math.MaxInt, math.MaxInt, false)
 		}
 	}
+
+	ed.History.Reset()
 }
