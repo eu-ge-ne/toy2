@@ -11,6 +11,8 @@ type TextBuf struct {
 	tree    tree.Tree
 }
 
+type Snapshot = node.Node
+
 func New(text string) *TextBuf {
 	buf := TextBuf{
 		content: content.Content{},
@@ -37,11 +39,11 @@ func (tb *TextBuf) LineCount() int {
 	}
 }
 
-func (tb *TextBuf) Save() *node.Node {
+func (tb *TextBuf) Save() *Snapshot {
 	return tb.tree.Root.Clone(node.NIL)
 }
 
-func (tb *TextBuf) Restore(n *node.Node) {
+func (tb *TextBuf) Restore(n *Snapshot) {
 	tb.tree.Root = n.Clone(node.NIL)
 }
 
