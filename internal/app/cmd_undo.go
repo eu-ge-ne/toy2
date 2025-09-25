@@ -1,0 +1,34 @@
+package app
+
+import (
+	"github.com/eu-ge-ne/toy2/internal/key"
+	"github.com/eu-ge-ne/toy2/internal/palette"
+)
+
+type UndoCommand struct {
+	app    *App
+	option *palette.Option
+}
+
+func NewUndoCommand(app *App) *UndoCommand {
+	return &UndoCommand{
+		app:    app,
+		option: palette.NewOption("Undo", "Edit: Undo", []key.Key{{Name: "z", Ctrl: true}, {Name: "z", Super: true}}),
+	}
+}
+
+func (c *UndoCommand) Option() *palette.Option {
+	return c.option
+}
+
+func (c *UndoCommand) Match(key key.Key) bool {
+	return false
+}
+
+func (c *UndoCommand) Run() {
+	if c.app.editor.Enabled {
+		c.app.editor.HandleKey(key.Key{Name: "z", Ctrl: true})
+
+		c.app.editor.Render()
+	}
+}

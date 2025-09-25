@@ -49,15 +49,16 @@ func New() *App {
 		NewExitCommand(&app),
 		NewPaletteCommand(&app),
 		NewSaveCommand(&app),
+		NewUndoCommand(&app),
+		NewWhitespaceCommand(&app),
+		NewWrapCommand(&app),
+		NewZenCommand(&app),
 		NewBase16ThemeCommand(&app),
 		NewGrayThemeCommand(&app),
 		NewNeutralThemeCommand(&app),
 		NewSlateThemeCommand(&app),
 		NewStoneThemeCommand(&app),
 		NewZincThemeCommand(&app),
-		NewWhitespaceCommand(&app),
-		NewWrapCommand(&app),
-		NewZenCommand(&app),
 	}
 
 	options := []*palette.Option{}
