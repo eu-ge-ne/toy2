@@ -26,9 +26,11 @@ func (c *UndoCommand) Match(key key.Key) bool {
 }
 
 func (c *UndoCommand) Run() {
-	if c.app.editor.Enabled {
-		c.app.editor.HandleKey(key.Key{Name: "z", Ctrl: true})
+	if !c.app.editor.Enabled {
+		return
+	}
 
+	if c.app.editor.History.Undo() {
 		c.app.editor.Render()
 	}
 }
