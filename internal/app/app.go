@@ -48,6 +48,7 @@ func New() *App {
 		NewDebugCommand(&app),
 		NewExitCommand(&app),
 		NewPaletteCommand(&app),
+		NewRedoCommand(&app),
 		NewSaveCommand(&app),
 		NewUndoCommand(&app),
 		NewWhitespaceCommand(&app),
