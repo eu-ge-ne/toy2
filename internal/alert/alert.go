@@ -62,12 +62,12 @@ func (al *Alert) Render() {
 
 		vt.SetCursor(vt.Buf, y, al.area.X+1)
 		vt.Buf.Write(al.colorText)
-		vt.WriteTextCenter(vt.Buf, &span, string(line))
+		vt.WriteTextCenter(vt.Buf, &span, string(line), true)
 	}
 
 	vt.SetCursor(vt.Buf, al.area.Y+al.area.H-2, al.area.X)
 	span := al.area.W
-	vt.WriteTextCenter(vt.Buf, &span, "ENTER‧ok")
+	vt.WriteTextCenter(vt.Buf, &span, "ENTER‧ok", true)
 
 	vt.Buf.Flush()
 

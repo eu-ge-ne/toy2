@@ -62,12 +62,12 @@ func (ask *Ask) Render() {
 
 		vt.SetCursor(vt.Buf, y, ask.area.X+1)
 		vt.Buf.Write(ask.colorText)
-		vt.WriteTextCenter(vt.Buf, &span, string(line))
+		vt.WriteTextCenter(vt.Buf, &span, string(line), true)
 	}
 
 	vt.SetCursor(vt.Buf, ask.area.Y+ask.area.H-2, ask.area.X)
 	span := ask.area.W
-	vt.WriteTextCenter(vt.Buf, &span, "ESC‧no    ENTER‧yes")
+	vt.WriteTextCenter(vt.Buf, &span, "ESC‧no    ENTER‧yes", true)
 
 	vt.Buf.Flush()
 

@@ -10,7 +10,7 @@ type History struct {
 	cursor    *cursor.Cursor
 	entries   []entry
 	index     int
-	OnChanged func(int)
+	OnChanged func()
 }
 
 type entry struct {
@@ -30,6 +30,10 @@ func New(buffer *textbuf.TextBuf, cursor *cursor.Cursor) *History {
 	return h
 }
 
+func (h *History) IsEmpty() bool {
+	return h.index == 0
+}
+
 func (h *History) Reset() {
 	h.entries = []entry{{
 		ln:   h.cursor.Ln,
@@ -40,7 +44,7 @@ func (h *History) Reset() {
 	h.index = 0
 
 	if h.OnChanged != nil {
-		h.OnChanged(h.index)
+		h.OnChanged()
 	}
 }
 
@@ -55,7 +59,7 @@ func (h *History) Push() {
 	h.index += 1
 
 	if h.OnChanged != nil {
-		h.OnChanged(h.index)
+		h.OnChanged()
 	}
 }
 
@@ -68,7 +72,7 @@ func (h *History) Undo() bool {
 	h.restore()
 
 	if h.OnChanged != nil {
-		h.OnChanged(h.index)
+		h.OnChanged()
 	}
 
 	return true
@@ -83,7 +87,7 @@ func (h *History) Redo() bool {
 	h.restore()
 
 	if h.OnChanged != nil {
-		h.OnChanged(h.index)
+		h.OnChanged()
 	}
 
 	return true

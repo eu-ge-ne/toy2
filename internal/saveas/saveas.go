@@ -62,10 +62,10 @@ func (sv *SaveAs) Render() {
 	vt.SetCursor(vt.Buf, sv.area.Y+1, sv.area.X)
 	vt.Buf.Write(sv.colorText)
 	span := sv.area.W
-	vt.WriteTextCenter(vt.Buf, &span, "Save As")
+	vt.WriteTextCenter(vt.Buf, &span, "Save As", true)
 	vt.SetCursor(vt.Buf, sv.area.Y+sv.area.H-2, sv.area.X)
 	span = sv.area.W
-	vt.WriteTextCenter(vt.Buf, &span, "ESC‧cancel    ENTER‧ok")
+	vt.WriteTextCenter(vt.Buf, &span, "ESC‧cancel    ENTER‧ok", true)
 
 	sv.editor.Render()
 
