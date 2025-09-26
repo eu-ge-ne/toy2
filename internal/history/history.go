@@ -14,9 +14,9 @@ type History struct {
 }
 
 type entry struct {
-	ln   int
-	col  int
-	text *textbuf.Snapshot
+	ln       int
+	col      int
+	snapshot textbuf.Snapshot
 }
 
 func New(buffer *textbuf.TextBuf, cursor *cursor.Cursor) *History {
@@ -36,9 +36,9 @@ func (h *History) IsEmpty() bool {
 
 func (h *History) Reset() {
 	h.entries = []entry{{
-		ln:   h.cursor.Ln,
-		col:  h.cursor.Col,
-		text: h.buffer.Save(),
+		ln:       h.cursor.Ln,
+		col:      h.cursor.Col,
+		snapshot: h.buffer.Save(),
 	}}
 
 	h.index = 0
@@ -51,9 +51,9 @@ func (h *History) Reset() {
 func (h *History) Push() {
 	h.entries = append([]entry(nil), h.entries[:h.index+1]...)
 	h.entries = append(h.entries, entry{
-		ln:   h.cursor.Ln,
-		col:  h.cursor.Col,
-		text: h.buffer.Save(),
+		ln:       h.cursor.Ln,
+		col:      h.cursor.Col,
+		snapshot: h.buffer.Save(),
 	})
 
 	h.index += 1
@@ -96,6 +96,6 @@ func (h *History) Redo() bool {
 func (h *History) restore() {
 	entry := h.entries[h.index]
 
-	h.buffer.Restore(entry.text)
+	h.buffer.Restore(entry.snapshot)
 	h.cursor.Set(entry.ln, entry.col, false)
 }
