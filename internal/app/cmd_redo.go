@@ -26,9 +26,11 @@ func (c *RedoCommand) Match(key key.Key) bool {
 }
 
 func (c *RedoCommand) Run() {
-	if c.app.editor.Enabled {
-		c.app.editor.HandleKey(key.Key{Name: "y", Ctrl: true})
+	if !c.app.editor.Enabled {
+		return
+	}
 
+	if c.app.editor.History.Redo() {
 		c.app.editor.Render()
 	}
 }
