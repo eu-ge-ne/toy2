@@ -24,7 +24,7 @@ func WriteText(out io.Writer, span *int, text string) {
 	io.WriteString(out, text)
 }
 
-func WriteTextCenter(out io.Writer, span *int, text string, writeToEnd bool) {
+func WriteTextCenter(out io.Writer, span *int, text string) {
 	l := utf8.RuneCountInString(text)
 
 	if l > *span {
@@ -35,13 +35,7 @@ func WriteTextCenter(out io.Writer, span *int, text string, writeToEnd bool) {
 
 	ab := *span - l
 	a := ab / 2
-	b := ab - a
 
-	if writeToEnd {
-		fmt.Fprintf(out, "%*s%s%*s", a, " ", text, b, " ")
-		*span -= a + l + b
-	} else {
-		fmt.Fprintf(out, "%*s%s", a, " ", text)
-		*span -= a + l
-	}
+	fmt.Fprintf(out, "%*s%s", a, " ", text)
+	*span -= a + l
 }

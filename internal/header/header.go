@@ -52,7 +52,7 @@ func (h *Header) Render() {
 	vt.ClearArea(vt.Buf, h.area)
 	vt.SetCursor(vt.Buf, h.area.Y, h.area.X)
 	vt.Buf.Write(h.colorFilePath)
-	vt.WriteTextCenter(vt.Buf, &span, h.filePath, false)
+	vt.WriteTextCenter(vt.Buf, &span, h.filePath)
 
 	if h.flag {
 		vt.Buf.Write(h.colorFlag)
