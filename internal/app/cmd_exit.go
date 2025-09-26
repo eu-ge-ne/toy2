@@ -29,10 +29,10 @@ func (c *ExitCommand) Run() {
 	c.app.editor.Enabled = false
 
 	if !c.app.editor.History.IsEmpty() {
-		askResult := make(chan bool)
-		go c.app.ask.Open("Save changes?", askResult)
+		save := make(chan bool)
+		go c.app.ask.Open("Save changes?", save)
 
-		if <-askResult {
+		if <-save {
 			c.app.save()
 		}
 	}
