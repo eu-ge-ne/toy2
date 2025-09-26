@@ -35,9 +35,7 @@ func WriteTextCenter(out io.Writer, span *int, text string) {
 
 	ab := *span - l
 	a := ab / 2
-	b := ab - a
 
-	*span -= l
-
-	fmt.Fprintf(out, "%*s%s%*s", a, " ", text, b, " ")
+	fmt.Fprintf(out, "%*s%s", a, " ", text)
+	*span -= a + l
 }

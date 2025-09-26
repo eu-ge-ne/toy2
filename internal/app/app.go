@@ -86,6 +86,9 @@ func New() *App {
 	app.editor.OnCursor = app.footer.SetCursorStatus
 	app.editor.OnKeyHandled = app.debug.SetInputTime
 	app.editor.OnRender = app.debug.SetRenderTime
+	app.editor.History.OnChanged = func() {
+		app.header.SetFlag(!app.editor.History.IsEmpty())
+	}
 
 	return &app
 }

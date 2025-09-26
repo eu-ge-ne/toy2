@@ -10,11 +10,12 @@ import (
 type Header struct {
 	area     ui.Area
 	filePath string
+	flag     bool
 	Enabled  bool
 
-	colorBackground  []byte
-	colorFilePath    []byte
-	colorUnsavedFlag []byte
+	colorBackground []byte
+	colorFilePath   []byte
+	colorFlag       []byte
 }
 
 func New() *Header {
@@ -24,7 +25,7 @@ func New() *Header {
 func (h *Header) SetColors(t theme.Tokens) {
 	h.colorBackground = t.Dark0Bg()
 	h.colorFilePath = append(t.Dark0Bg(), t.Dark0Fg()...)
-	h.colorUnsavedFlag = append(t.Dark0Bg(), t.Light2Fg()...)
+	h.colorFlag = append(t.Dark0Bg(), t.Light2Fg()...)
 }
 
 func (h *Header) Layout(a ui.Area) {
@@ -52,6 +53,12 @@ func (h *Header) Render() {
 	vt.SetCursor(vt.Buf, h.area.Y, h.area.X)
 	vt.Buf.Write(h.colorFilePath)
 	vt.WriteTextCenter(vt.Buf, &span, h.filePath)
+
+	if h.flag {
+		vt.Buf.Write(h.colorFlag)
+		vt.WriteText(vt.Buf, &span, " +")
+	}
+
 	vt.Buf.Write(vt.RestoreCursor)
 	vt.Buf.Write(vt.ShowCursor)
 
@@ -62,6 +69,12 @@ func (h *Header) Render() {
 
 func (h *Header) SetFilePath(filePath string) {
 	h.filePath = filePath
+
+	h.Render()
+}
+
+func (h *Header) SetFlag(flag bool) {
+	h.flag = flag
 
 	h.Render()
 }
