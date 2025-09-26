@@ -17,16 +17,16 @@ func NewDebugCommand(app *App) *DebugCommand {
 	}
 }
 
-func (d *DebugCommand) Option() *palette.Option {
-	return d.option
+func (c *DebugCommand) Option() *palette.Option {
+	return c.option
 }
 
-func (d *DebugCommand) Match(key key.Key) bool {
+func (c *DebugCommand) Match(key key.Key) bool {
 	return false
 }
 
-func (d *DebugCommand) Run() {
-	d.app.debug.Enabled = !d.app.debug.Enabled
+func (c *DebugCommand) Run() {
+	c.app.debug.Enabled = !c.app.debug.Enabled
 
-	d.app.editor.Render()
+	c.app.editor.Render()
 }
