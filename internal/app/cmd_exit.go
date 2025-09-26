@@ -28,12 +28,13 @@ func (c *ExitCommand) Match(key key.Key) bool {
 func (c *ExitCommand) Run() {
 	c.app.editor.Enabled = false
 
-	askResult := make(chan bool)
-	go c.app.ask.Open("Save changes?", askResult)
-	save := <-askResult
+	if !c.app.editor.History.IsEmpty() {
+		askResult := make(chan bool)
+		go c.app.ask.Open("Save changes?", askResult)
 
-	if save {
-		c.app.save()
+		if <-askResult {
+			c.app.save()
+		}
 	}
 
 	c.app.exit()
