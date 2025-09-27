@@ -50,6 +50,7 @@ func New() *App {
 		NewPaletteCommand(&app),
 		NewRedoCommand(&app),
 		NewSaveCommand(&app),
+		NewSelectAllCommand(&app),
 		NewUndoCommand(&app),
 		NewWhitespaceCommand(&app),
 		NewWrapCommand(&app),
