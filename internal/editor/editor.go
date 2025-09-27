@@ -71,6 +71,7 @@ func New(multiLine bool) *Editor {
 		&PageUpHandler{editor: &editor},
 		&RedoHandler{editor: &editor},
 		&RightHandler{editor: &editor},
+		&SelectAllHandler{editor: &editor},
 		&UndoHandler{editor: &editor},
 		&UpHandler{editor: &editor},
 	)
