@@ -1,8 +1,6 @@
 package editor
 
 import (
-	"math"
-
 	"github.com/eu-ge-ne/toy2/internal/key"
 )
 
@@ -15,13 +13,5 @@ func (h *LeftHandler) Match(key key.Key) bool {
 }
 
 func (h *LeftHandler) Handle(key key.Key) bool {
-	if h.editor.Cursor.Move(0, -1, key.Shift) {
-		return true
-	}
-
-	if h.editor.Cursor.Ln > 0 {
-		return h.editor.Cursor.Move(-1, math.MaxInt, key.Shift)
-	}
-
-	return false
+	return h.editor.Cursor.Left(key.Shift)
 }

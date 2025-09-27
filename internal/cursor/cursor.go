@@ -9,16 +9,15 @@ import (
 )
 
 type Cursor struct {
-	Ln  int
-	Col int
-
+	ln0       int
+	col0      int
+	Ln        int
+	Col       int
 	Selecting bool
 	FromLn    int
 	FromCol   int
 	ToLn      int
 	ToCol     int
-	startLn   int
-	startCol  int
 
 	buffer *textbuf.TextBuf
 }
@@ -33,13 +32,10 @@ func (cur *Cursor) Set(ln, col int, sel bool) bool {
 
 	cur.setLn(ln)
 	cur.setCol(col)
-	cur.setRange(oldLn, oldCol, cur.Ln, cur.Col, sel)
+	cur.setSelection(oldLn, oldCol, sel)
+	cur.setRange()
 
 	return cur.Ln != oldLn || cur.Col != oldCol
-}
-
-func (cur *Cursor) Move(dy, dx int, sel bool) bool {
-	return cur.Set(cur.Ln+dy, cur.Col+dx, sel)
 }
 
 func (cur *Cursor) Top(sel bool) bool {
@@ -137,30 +133,30 @@ func (cur *Cursor) setCol(col int) {
 	cur.Col = std.Clamp(col, 0, len)
 }
 
-func (cur *Cursor) setRange(oldLn, oldCol, newLn, newCol int, sel bool) {
+func (cur *Cursor) setSelection(ln, col int, sel bool) {
 	if !sel {
 		cur.Selecting = false
 		return
 	}
 
 	if !cur.Selecting {
-		cur.startLn = oldLn
-		cur.startCol = oldCol
+		cur.ln0 = ln
+		cur.col0 = col
 	}
 
 	cur.Selecting = true
+}
 
-	if (cur.startLn > newLn) || (cur.startLn == newLn && cur.startCol > newCol) {
-		cur.FromLn = newLn
-		cur.FromCol = newCol
-
-		cur.ToLn = cur.startLn
-		cur.ToCol = cur.startCol
+func (cur *Cursor) setRange() {
+	if (cur.ln0 > cur.Ln) || (cur.ln0 == cur.Ln && cur.col0 > cur.Col) {
+		cur.FromLn = cur.Ln
+		cur.FromCol = cur.Col
+		cur.ToLn = cur.ln0
+		cur.ToCol = cur.col0
 	} else {
-		cur.FromLn = cur.startLn
-		cur.FromCol = cur.startCol
-
-		cur.ToLn = newLn
-		cur.ToCol = newCol
+		cur.FromLn = cur.ln0
+		cur.FromCol = cur.col0
+		cur.ToLn = cur.Ln
+		cur.ToCol = cur.Col
 	}
 }
