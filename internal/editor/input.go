@@ -32,7 +32,7 @@ func (ed *Editor) HandleKey(key key.Key) bool {
 
 func (ed *Editor) insert(text string) {
 	if ed.Cursor.Selecting {
-		ed.Buffer.SegDelete2(ed.Cursor.FromLn, ed.Cursor.FromCol, ed.Cursor.ToLn, ed.Cursor.ToCol)
+		ed.Buffer.SegDelete2(ed.Cursor.FromLn, ed.Cursor.FromCol, ed.Cursor.ToLn, ed.Cursor.ToCol+1)
 		ed.Cursor.Set(ed.Cursor.FromLn, ed.Cursor.FromCol, false)
 	}
 
