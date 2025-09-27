@@ -52,7 +52,7 @@ func (tb *TextBuf) Restore(s Snapshot) {
 }
 
 func (tb *TextBuf) Reset(text string) {
-	tb.DeleteToEnd(0)
+	tb.Delete(0)
 
 	if len(text) > 0 {
 		tb.Insert(0, text)
