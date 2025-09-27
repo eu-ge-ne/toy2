@@ -47,7 +47,7 @@ func Save(filePath string, textBuf *textbuf.TextBuf) error {
 
 	defer f.Close()
 
-	for text := range textBuf.ReadToEnd(0) {
+	for text := range textBuf.Read(0) {
 		_, err := f.WriteString(text)
 		if err != nil {
 			return err

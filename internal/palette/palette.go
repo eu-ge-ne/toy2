@@ -69,7 +69,7 @@ func (p *Palette) filter() {
 
 	text := strings.ToUpper(
 		strings.Join(
-			slices.Collect(p.editor.Buffer.ReadToEnd(0)),
+			slices.Collect(p.editor.Buffer.Read(0)),
 			"",
 		),
 	)
