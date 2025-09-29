@@ -54,7 +54,9 @@ func (sb *SegBuf) Iter() iter.Seq[string] {
 }
 
 func (sb *SegBuf) Text() string {
-	return strings.Join(slices.Collect(sb.textbuf.Read(0)), "")
+	it := sb.textbuf.Read(0)
+
+	return strings.Join(slices.Collect(it), "")
 }
 
 type Cell struct {
@@ -130,7 +132,9 @@ func (sb *SegBuf) Read(startLn, startCol, endLn, endCol int) string {
 	startCol = sb.col(startLn, startCol)
 	endCol = sb.col(endLn, endCol)
 
-	return strings.Join(slices.Collect(sb.textbuf.Read2Range(startLn, startCol, endLn, endCol)), "")
+	it := sb.textbuf.Read2Range(startLn, startCol, endLn, endCol)
+
+	return strings.Join(slices.Collect(it), "")
 }
 
 func (sb *SegBuf) Insert(ln, col int, text string) {
