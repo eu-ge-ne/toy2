@@ -9,7 +9,7 @@ import (
 )
 
 func TestInsertInto0Line(t *testing.T) {
-	buf := textbuf.New("")
+	buf := textbuf.Create()
 
 	buf.Insert2(0, 0, "Lorem ipsum")
 
@@ -22,7 +22,7 @@ func TestInsertInto0Line(t *testing.T) {
 }
 
 func TestInsertIntoALine(t *testing.T) {
-	buf := textbuf.New("")
+	buf := textbuf.Create()
 	buf.Insert(0, "Lorem")
 
 	buf.Insert2(0, 5, " ipsum")
@@ -36,7 +36,7 @@ func TestInsertIntoALine(t *testing.T) {
 }
 
 func TestInsertIntoALineWhichDoesNotExist(t *testing.T) {
-	buf := textbuf.New("")
+	buf := textbuf.Create()
 
 	buf.Insert2(1, 0, "Lorem ipsum")
 
@@ -49,7 +49,7 @@ func TestInsertIntoALineWhichDoesNotExist(t *testing.T) {
 }
 
 func TestInsertIntoAColumnWhichDoesNotExist(t *testing.T) {
-	buf := textbuf.New("")
+	buf := textbuf.Create()
 
 	buf.Insert2(0, 1, "Lorem ipsum")
 

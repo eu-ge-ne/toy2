@@ -9,7 +9,7 @@ import (
 )
 
 func TestReadEmpty(t *testing.T) {
-	buf := textbuf.New("")
+	buf := textbuf.Create()
 
 	assert.Equal(t, "",
 		iterToStr(buf.Read(0)))
@@ -17,7 +17,8 @@ func TestReadEmpty(t *testing.T) {
 }
 
 func TestRead(t *testing.T) {
-	buf := textbuf.New("Lorem ipsum dolor")
+	buf := textbuf.Create()
+	buf.Append("Lorem ipsum dolor")
 
 	assert.Equal(t, "ipsum ",
 		iterToStr(buf.ReadRange(6, 12)))
@@ -25,7 +26,8 @@ func TestRead(t *testing.T) {
 }
 
 func TestReadAtStartGTECount(t *testing.T) {
-	buf := textbuf.New("Lorem")
+	buf := textbuf.Create()
+	buf.Append("Lorem")
 
 	assert.Equal(t, "m",
 		iterToStr(buf.Read(4)))
@@ -38,7 +40,8 @@ func TestReadAtStartGTECount(t *testing.T) {
 }
 
 func TestReadAtStartLT0(t *testing.T) {
-	buf := textbuf.New("Lorem")
+	buf := textbuf.Create()
+	buf.Append("Lorem")
 
 	assert.Equal(t, "Lorem",
 		iterToStr(buf.Read(0)))

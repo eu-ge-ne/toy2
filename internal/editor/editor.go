@@ -49,13 +49,13 @@ type colors struct {
 }
 
 func New(multiLine bool) *Editor {
-	b := textbuf.New("")
-	c := cursor.New(b)
-	h := history.New(b, c)
+	b := textbuf.Create()
+	c := cursor.New(&b)
+	h := history.New(&b, c)
 
 	editor := Editor{
 		multiLine: multiLine,
-		Buffer:    b,
+		Buffer:    &b,
 		Cursor:    c,
 		History:   h,
 	}

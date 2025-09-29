@@ -10,7 +10,7 @@ import (
 )
 
 func TestReadEmptyLine(t *testing.T) {
-	buf := textbuf.New("")
+	buf := textbuf.Create()
 
 	assert.Equal(t, 0, buf.LineCount())
 	assert.Equal(t, "",
@@ -20,7 +20,8 @@ func TestReadEmptyLine(t *testing.T) {
 }
 
 func Test1Line(t *testing.T) {
-	buf := textbuf.New("0")
+	buf := textbuf.Create()
+	buf.Append("0")
 
 	assert.Equal(t, 1, buf.LineCount())
 	assert.Equal(t, "0",
@@ -30,7 +31,8 @@ func Test1Line(t *testing.T) {
 }
 
 func Test2Lines(t *testing.T) {
-	buf := textbuf.New("0\n")
+	buf := textbuf.Create()
+	buf.Append("0\n")
 
 	assert.Equal(t, 2, buf.LineCount())
 	assert.Equal(t, "0\n",
@@ -42,7 +44,8 @@ func Test2Lines(t *testing.T) {
 }
 
 func Test3Lines(t *testing.T) {
-	buf := textbuf.New("0\n1\n")
+	buf := textbuf.Create()
+	buf.Append("0\n1\n")
 
 	assert.Equal(t, 3, buf.LineCount())
 	assert.Equal(t, "0\n",
@@ -56,7 +59,7 @@ func Test3Lines(t *testing.T) {
 }
 
 func TestReadLineAtValidIndex(t *testing.T) {
-	buf := textbuf.New("")
+	buf := textbuf.Create()
 
 	buf.Insert(0, "Lorem\naliqua.")
 	buf.Insert(6, "ipsum\nmagna\n")
@@ -112,7 +115,8 @@ func TestReadLineAtValidIndex(t *testing.T) {
 }
 
 func TestReadLineAtIndexGTELineCount(t *testing.T) {
-	buf := textbuf.New("Lorem\nipsum\ndolor\nsit\namet")
+	buf := textbuf.Create()
+	buf.Append("Lorem\nipsum\ndolor\nsit\namet")
 
 	assert.Equal(t, "amet",
 		iterToStr(buf.Read2Range(4, 0, 5, 0)))
@@ -125,7 +129,8 @@ func TestReadLineAtIndexGTELineCount(t *testing.T) {
 }
 
 func TestReadLineAtIndexLT0(t *testing.T) {
-	buf := textbuf.New("Lorem\nipsum\ndolor\nsit\namet")
+	buf := textbuf.Create()
+	buf.Append("Lorem\nipsum\ndolor\nsit\namet")
 
 	assert.Equal(t, "Lorem\n",
 		iterToStr(buf.Read2Range(0, 0, 1, 0)))
@@ -138,7 +143,7 @@ func TestReadLineAtIndexLT0(t *testing.T) {
 }
 
 func TestInsertAddsLines(t *testing.T) {
-	buf := textbuf.New("")
+	buf := textbuf.Create()
 
 	for i := 0; i < 10; i += 1 {
 		buf.Insert(buf.Count(), fmt.Sprintf("%d\n", i))
