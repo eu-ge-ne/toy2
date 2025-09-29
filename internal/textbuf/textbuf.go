@@ -15,18 +15,11 @@ type Snapshot struct {
 	node *node.Node
 }
 
-func New(text string) *TextBuf {
-	buf := TextBuf{
+func Create() TextBuf {
+	return TextBuf{
 		content: content.Content{},
 		tree:    tree.Tree{Root: node.NIL},
 	}
-
-	if len(text) > 0 {
-		buf.tree.Root = buf.content.Create(text)
-		buf.tree.Root.Red = false
-	}
-
-	return &buf
 }
 
 func (tb *TextBuf) Count() int {
@@ -52,7 +45,7 @@ func (tb *TextBuf) Restore(s Snapshot) {
 }
 
 func (tb *TextBuf) Reset(text string) {
-	tb.DeleteToEnd(0)
+	tb.Delete(0)
 
 	if len(text) > 0 {
 		tb.Insert(0, text)

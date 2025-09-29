@@ -6,7 +6,7 @@ import (
 
 	"github.com/eu-ge-ne/toy2/internal/cursor"
 	"github.com/eu-ge-ne/toy2/internal/history"
-	"github.com/eu-ge-ne/toy2/internal/textbuf"
+	"github.com/eu-ge-ne/toy2/internal/segbuf"
 	"github.com/eu-ge-ne/toy2/internal/theme"
 	"github.com/eu-ge-ne/toy2/internal/ui"
 )
@@ -21,16 +21,13 @@ type Editor struct {
 
 	indexWidth int
 	textWidth  int
-	wrapWidth  int
 	cursorY    int
 	cursorX    int
-	measureY   int
-	measureX   int
 	scrollLn   int
 	scrollCol  int
 
 	multiLine    bool
-	Buffer       *textbuf.TextBuf
+	Buffer       *segbuf.SegBuf
 	Cursor       *cursor.Cursor
 	History      *history.History
 	handlers     []Handler
@@ -49,7 +46,7 @@ type colors struct {
 }
 
 func New(multiLine bool) *Editor {
-	b := textbuf.New("")
+	b := segbuf.New()
 	c := cursor.New(b)
 	h := history.New(b, c)
 

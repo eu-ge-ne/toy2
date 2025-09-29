@@ -10,7 +10,7 @@ var reSeparator = regexp.MustCompile(`\p{Separator}`)
 var reOther = regexp.MustCompile(`\p{Other}`)
 
 type Grapheme struct {
-	seg         string
+	Seg         string
 	Bytes       []byte
 	Width       int
 	IsLetter    bool
@@ -23,7 +23,7 @@ type Grapheme struct {
 func NewGrapheme(seg string, bytes []byte, width int) *Grapheme {
 	g := Grapheme{}
 
-	g.seg = seg
+	g.Seg = seg
 	g.Bytes = bytes
 	g.Width = width
 	g.IsLetter = reLetter.MatchString(seg)

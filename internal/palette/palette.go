@@ -1,7 +1,6 @@
 package palette
 
 import (
-	"slices"
 	"strings"
 
 	"github.com/eu-ge-ne/toy2/internal/editor"
@@ -67,12 +66,7 @@ func (p *Palette) Open(done chan<- *Option) {
 func (p *Palette) filter() {
 	p.selectedIndex = 0
 
-	text := strings.ToUpper(
-		strings.Join(
-			slices.Collect(p.editor.Buffer.ReadToEnd(0)),
-			"",
-		),
-	)
+	text := strings.ToUpper(p.editor.Buffer.Text())
 
 	if len(text) == 0 {
 		p.filteredOptions = p.options

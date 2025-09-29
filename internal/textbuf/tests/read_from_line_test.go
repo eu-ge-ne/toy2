@@ -9,44 +9,47 @@ import (
 )
 
 func TestLineAtValidIndex(t *testing.T) {
-	buf := textbuf.New("Lorem\nipsum\ndolor\nsit\namet")
+	buf := textbuf.Create()
+	buf.Append("Lorem\nipsum\ndolor\nsit\namet")
 
 	assert.Equal(t, "Lorem\nipsum\ndolor\nsit\namet",
-		iterToStr(buf.Read2ToEnd(0, 0)))
+		iterToStr(buf.Read2(0, 0)))
 	assert.Equal(t, "ipsum\ndolor\nsit\namet",
-		iterToStr(buf.Read2ToEnd(1, 0)))
+		iterToStr(buf.Read2(1, 0)))
 	assert.Equal(t, "dolor\nsit\namet",
-		iterToStr(buf.Read2ToEnd(2, 0)))
+		iterToStr(buf.Read2(2, 0)))
 	assert.Equal(t, "sit\namet",
-		iterToStr(buf.Read2ToEnd(3, 0)))
+		iterToStr(buf.Read2(3, 0)))
 	assert.Equal(t, "amet",
-		iterToStr(buf.Read2ToEnd(4, 0)))
+		iterToStr(buf.Read2(4, 0)))
 
 	buf.Validate()
 }
 
 func TestLineAtIndexGTELineCount(t *testing.T) {
-	buf := textbuf.New("Lorem\nipsum\ndolor\nsit\namet")
+	buf := textbuf.Create()
+	buf.Append("Lorem\nipsum\ndolor\nsit\namet")
 
 	assert.Equal(t, "amet",
-		iterToStr(buf.Read2ToEnd(4, 0)))
+		iterToStr(buf.Read2(4, 0)))
 	assert.Equal(t, "",
-		iterToStr(buf.Read2ToEnd(5, 0)))
+		iterToStr(buf.Read2(5, 0)))
 	assert.Equal(t, "",
-		iterToStr(buf.Read2ToEnd(6, 0)))
+		iterToStr(buf.Read2(6, 0)))
 
 	buf.Validate()
 }
 
 func TestLineAtIndexLT0(t *testing.T) {
-	buf := textbuf.New("Lorem\nipsum\ndolor\nsit\namet")
+	buf := textbuf.Create()
+	buf.Append("Lorem\nipsum\ndolor\nsit\namet")
 
 	assert.Equal(t, "Lorem\nipsum\ndolor\nsit\namet",
-		iterToStr(buf.Read2ToEnd(0, 0)))
+		iterToStr(buf.Read2(0, 0)))
 	assert.Equal(t, "amet",
-		iterToStr(buf.Read2ToEnd(buf.LineCount()-1, 0)))
+		iterToStr(buf.Read2(buf.LineCount()-1, 0)))
 	assert.Equal(t, "sit\namet",
-		iterToStr(buf.Read2ToEnd(buf.LineCount()-2, 0)))
+		iterToStr(buf.Read2(buf.LineCount()-2, 0)))
 
 	buf.Validate()
 }

@@ -98,7 +98,7 @@ func (sv *SaveAs) processInput() string {
 			case "ESC":
 				return ""
 			case "ENTER":
-				return "todo"
+				return sv.editor.Buffer.Text()
 			}
 
 			if sv.editor.HandleKey(key) {

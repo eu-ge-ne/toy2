@@ -2,11 +2,11 @@ package history
 
 import (
 	"github.com/eu-ge-ne/toy2/internal/cursor"
-	"github.com/eu-ge-ne/toy2/internal/textbuf"
+	"github.com/eu-ge-ne/toy2/internal/segbuf"
 )
 
 type History struct {
-	buffer    *textbuf.TextBuf
+	buffer    *segbuf.SegBuf
 	cursor    *cursor.Cursor
 	entries   []entry
 	index     int
@@ -16,10 +16,10 @@ type History struct {
 type entry struct {
 	ln       int
 	col      int
-	snapshot textbuf.Snapshot
+	snapshot segbuf.Snapshot
 }
 
-func New(buffer *textbuf.TextBuf, cursor *cursor.Cursor) *History {
+func New(buffer *segbuf.SegBuf, cursor *cursor.Cursor) *History {
 	h := &History{
 		buffer: buffer,
 		cursor: cursor,

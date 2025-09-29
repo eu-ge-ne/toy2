@@ -44,8 +44,8 @@ func TestDeleteCharsFromTheMiddleReversed(t *testing.T) {
 	}
 }
 
-func createTextBuf() *textbuf.TextBuf {
-	buf := textbuf.New("")
+func createTextBuf() textbuf.TextBuf {
+	buf := textbuf.Create()
 
 	buf.Insert(buf.Count(), "Lorem")
 	buf.Insert(buf.Count(), " ipsum")
@@ -70,8 +70,8 @@ func createTextBuf() *textbuf.TextBuf {
 	return buf
 }
 
-func createTextBufReversed() *textbuf.TextBuf {
-	buf := textbuf.New("")
+func createTextBufReversed() textbuf.TextBuf {
+	buf := textbuf.Create()
 
 	buf.Insert(0, " aliqua.")
 	buf.Insert(0, " magna")
@@ -98,63 +98,63 @@ func createTextBufReversed() *textbuf.TextBuf {
 
 const text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
 
-func testDeleteHead(t *testing.T, buf *textbuf.TextBuf, n int) {
+func testDeleteHead(t *testing.T, buf textbuf.TextBuf, n int) {
 	expected := text
 
 	for len(expected) > 0 {
 		assert.Equal(t, expected,
-			iterToStr(buf.ReadToEnd(0)))
+			iterToStr(buf.Read(0)))
 		assert.Equal(t, len(expected), buf.Count())
 		buf.Validate()
 
 		i := min(buf.Count(), n)
-		buf.Delete(0, i)
+		buf.DeleteRange(0, i)
 		expected = expected[i:]
 	}
 
 	assert.Equal(t, expected,
-		iterToStr(buf.ReadToEnd(0)))
+		iterToStr(buf.Read(0)))
 	assert.Equal(t, len(expected), buf.Count())
 	buf.Validate()
 }
 
-func testDeleteTail(t *testing.T, buf *textbuf.TextBuf, n int) {
+func testDeleteTail(t *testing.T, buf textbuf.TextBuf, n int) {
 	expected := text
 
 	for len(expected) > 0 {
 		assert.Equal(t, expected,
-			iterToStr(buf.ReadToEnd(0)))
+			iterToStr(buf.Read(0)))
 		assert.Equal(t, len(expected), buf.Count())
 		buf.Validate()
 
 		i := max(buf.Count()-n, 0)
-		buf.Delete(i, buf.Count())
+		buf.DeleteRange(i, buf.Count())
 		expected = expected[0:i]
 	}
 
 	assert.Equal(t, expected,
-		iterToStr(buf.ReadToEnd(0)))
+		iterToStr(buf.Read(0)))
 	assert.Equal(t, len(expected), buf.Count())
 	buf.Validate()
 }
 
-func testDeleteMiddle(t *testing.T, buf *textbuf.TextBuf, n int) {
+func testDeleteMiddle(t *testing.T, buf textbuf.TextBuf, n int) {
 	expected := text
 
 	for len(expected) > 0 {
 		assert.Equal(t, expected,
-			iterToStr(buf.ReadToEnd(0)))
+			iterToStr(buf.Read(0)))
 		assert.Equal(t, len(expected), buf.Count())
 		buf.Validate()
 
 		pos := buf.Count() / 2
 		i := min(buf.Count(), pos+n)
-		buf.Delete(pos, i)
+		buf.DeleteRange(pos, i)
 		expected = expected[0:pos] + expected[i:]
 	}
 
 	assert.Equal(t, expected,
-		iterToStr(buf.ReadToEnd(0)))
+		iterToStr(buf.Read(0)))
 	assert.Equal(t, len(expected), buf.Count())
 	buf.Validate()
 }
