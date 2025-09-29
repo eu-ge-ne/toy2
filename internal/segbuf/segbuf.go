@@ -69,26 +69,30 @@ func (sb *SegBuf) Line(ln int, extra bool) iter.Seq2[int, Cell] {
 		c := Cell{}
 		w := 0
 
-		for seg := range sb.segLine(ln) {
-			c.G = grapheme.Graphemes.Get(seg)
+		for chunk := range sb.textbuf.Read2Range(ln, 0, ln+1, 0) {
+			gr := uniseg.NewGraphemes(chunk)
 
-			if c.G.Width < 0 {
-				c.G.Width = vt.MeasureCursor(sb.MeasureY, sb.MeasureX, c.G.Bytes)
+			for gr.Next() {
+				c.G = grapheme.Graphemes.Get(gr.Str())
+
+				if c.G.Width < 0 {
+					c.G.Width = vt.MeasureCursor(sb.MeasureY, sb.MeasureX, c.G.Bytes)
+				}
+
+				w += c.G.Width
+				if w > sb.WrapWidth {
+					w = c.G.Width
+					c.Ln += 1
+					c.Col = 0
+				}
+
+				if !yield(i, c) {
+					return
+				}
+
+				i += 1
+				c.Col += 1
 			}
-
-			w += c.G.Width
-			if w > sb.WrapWidth {
-				w = c.G.Width
-				c.Ln += 1
-				c.Col = 0
-			}
-
-			if !yield(i, c) {
-				return
-			}
-
-			i += 1
-			c.Col += 1
 		}
 
 		if extra {
@@ -143,34 +147,17 @@ func (sb *SegBuf) Delete(startLn, startCol, endLn, endCol int) {
 }
 
 func (sb *SegBuf) col(ln, col int) int {
-	col2 := 0
-	i := 0
+	c := 0
 
-	for seg := range sb.segLine(ln) {
+	for i, cell := range sb.Line(ln, false) {
 		if i == col {
 			break
 		}
 
 		if i < col {
-			col2 += len(seg)
-		}
-
-		i += 1
-	}
-
-	return col2
-}
-
-func (sb *SegBuf) segLine(ln int) iter.Seq[string] {
-	return func(yield func(string) bool) {
-		for chunk := range sb.textbuf.Read2Range(ln, 0, ln+1, 0) {
-			gr := uniseg.NewGraphemes(chunk)
-
-			for gr.Next() {
-				if !yield(gr.Str()) {
-					return
-				}
-			}
+			c += len(cell.G.Seg)
 		}
 	}
+
+	return c
 }
