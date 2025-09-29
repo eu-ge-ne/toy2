@@ -122,20 +122,20 @@ func (sb *SegBuf) LineSlice(ln int, extra bool, start, end int) iter.Seq2[int, C
 	}
 }
 
-func (sb *SegBuf) SegRead2(startLn, startCol, endLn, endCol int) iter.Seq[string] {
+func (sb *SegBuf) Read(startLn, startCol, endLn, endCol int) string {
 	startLn, startCol = sb.segToPos(startLn, startCol)
 	endLn, endCol = sb.segToPos(endLn, endCol)
 
-	return sb.textbuf.Read2Range(startLn, startCol, endLn, endCol)
+	return strings.Join(slices.Collect(sb.textbuf.Read2Range(startLn, startCol, endLn, endCol)), "")
 }
 
-func (sb *SegBuf) SegInsert2(ln, col int, text string) {
+func (sb *SegBuf) Insert(ln, col int, text string) {
 	ln, col = sb.segToPos(ln, col)
 
 	sb.textbuf.Insert2(ln, col, text)
 }
 
-func (sb *SegBuf) SegDelete2(startLn, startCol, endLn, endCol int) {
+func (sb *SegBuf) Delete(startLn, startCol, endLn, endCol int) {
 	startLn, startCol = sb.segToPos(startLn, startCol)
 	endLn, endCol = sb.segToPos(endLn, endCol)
 
