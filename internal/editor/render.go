@@ -5,6 +5,7 @@ import (
 	"math"
 	"time"
 
+	"github.com/eu-ge-ne/toy2/internal/segbuf"
 	"github.com/eu-ge-ne/toy2/internal/std"
 	"github.com/eu-ge-ne/toy2/internal/vt"
 )
@@ -58,16 +59,16 @@ func (ed *Editor) determineLayout() {
 	ed.textWidth = ed.area.W - ed.indexWidth
 
 	if ed.WrapEnabled {
-		ed.wrapWidth = ed.textWidth
+		ed.Buffer.WrapWidth = ed.textWidth
 	} else {
-		ed.wrapWidth = math.MaxInt
+		ed.Buffer.WrapWidth = math.MaxInt
 	}
 
 	ed.cursorY = ed.area.Y
 	ed.cursorX = ed.area.X + ed.indexWidth
 
-	ed.measureY = ed.area.Y
-	ed.measureX = ed.area.X + ed.indexWidth
+	ed.Buffer.MeasureY = ed.area.Y
+	ed.Buffer.MeasureX = ed.area.X + ed.indexWidth
 }
 
 func (ed *Editor) scrollV() {
@@ -88,8 +89,8 @@ func (ed *Editor) scrollV() {
 	xs := make([]int, ed.Cursor.Ln+1-ed.scrollLn)
 	for i := 0; i < len(xs); i += 1 {
 		xs[i] = 1
-		for j, cell := range ed.cells(ed.scrollLn+i, false) {
-			if j > 0 && cell.col == 0 {
+		for j, cell := range ed.Buffer.Line(ed.scrollLn+i, false) {
+			if j > 0 && cell.Col == 0 {
 				xs[i] += 1
 			}
 		}
@@ -111,18 +112,18 @@ func (ed *Editor) scrollV() {
 }
 
 func (ed *Editor) scrollH() {
-	var cell *cell = nil
-	for _, c := range ed.sliceCells(ed.Cursor.Ln, true, ed.Cursor.Col, math.MaxInt) {
+	var cell *segbuf.Cell = nil
+	for _, c := range ed.Buffer.LineSlice(ed.Cursor.Ln, true, ed.Cursor.Col, math.MaxInt) {
 		cell = &c
 		break
 	}
 	if cell != nil {
-		ed.cursorY += cell.ln
+		ed.cursorY += cell.Ln
 	}
 
 	col := 0
 	if cell != nil {
-		col = cell.col
+		col = cell.Col
 	}
 
 	deltaCol := col - ed.scrollCol
@@ -137,8 +138,8 @@ func (ed *Editor) scrollH() {
 	// After?
 
 	xs := make([]int, deltaCol)
-	for i, c := range ed.sliceCells(ed.Cursor.Ln, true, ed.Cursor.Col-deltaCol, ed.Cursor.Col) {
-		xs[i] = c.g.Width
+	for i, c := range ed.Buffer.LineSlice(ed.Cursor.Ln, true, ed.Cursor.Col-deltaCol, ed.Cursor.Col) {
+		xs[i] = c.G.Width
 	}
 
 	width := std.Sum(xs)
@@ -178,8 +179,8 @@ func (ed *Editor) renderLine(ln int, row int) int {
 	availableW := 0
 	currentColor := charColorUndefined
 
-	for i, cell := range ed.cells(ln, false) {
-		if cell.col == 0 {
+	for i, cell := range ed.Buffer.Line(ln, false) {
+		if cell.Col == 0 {
 			if i > 0 {
 				row += 1
 				if row >= ed.area.Y+ed.area.H {
@@ -202,19 +203,19 @@ func (ed *Editor) renderLine(ln int, row int) int {
 			availableW = ed.area.W - ed.indexWidth
 		}
 
-		if (cell.col < ed.scrollCol) || (cell.g.Width > availableW) {
+		if (cell.Col < ed.scrollCol) || (cell.G.Width > availableW) {
 			continue
 		}
 
-		color := createCharColor(ed.Cursor.IsSelected(ln, i), cell.g.IsVisible, ed.WhitespaceEnabled)
+		color := createCharColor(ed.Cursor.IsSelected(ln, i), cell.G.IsVisible, ed.WhitespaceEnabled)
 		if color != currentColor {
 			currentColor = color
 			vt.Buf.Write(ed.colors.char[color])
 		}
 
-		vt.Buf.Write(cell.g.Bytes)
+		vt.Buf.Write(cell.G.Bytes)
 
-		availableW -= cell.g.Width
+		availableW -= cell.G.Width
 	}
 
 	return row

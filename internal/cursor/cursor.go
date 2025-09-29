@@ -3,9 +3,8 @@ package cursor
 import (
 	"math"
 
-	"github.com/eu-ge-ne/toy2/internal/grapheme"
+	"github.com/eu-ge-ne/toy2/internal/segbuf"
 	"github.com/eu-ge-ne/toy2/internal/std"
-	"github.com/eu-ge-ne/toy2/internal/textbuf"
 )
 
 type Cursor struct {
@@ -19,10 +18,10 @@ type Cursor struct {
 	ToLn      int
 	ToCol     int
 
-	buffer *textbuf.TextBuf
+	buffer *segbuf.SegBuf
 }
 
-func New(buffer *textbuf.TextBuf) *Cursor {
+func New(buffer *segbuf.SegBuf) *Cursor {
 	return &Cursor{buffer: buffer}
 }
 
@@ -122,9 +121,8 @@ func (cur *Cursor) setLn(ln int) {
 func (cur *Cursor) setCol(col int) {
 	len := 0
 
-	for seg := range cur.buffer.SegLine(cur.Ln) {
-		g := grapheme.Graphemes.Get(seg)
-		if g.IsEol {
+	for _, c := range cur.buffer.Line(cur.Ln, false) {
+		if c.G.IsEol {
 			break
 		}
 		len += 1
