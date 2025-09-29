@@ -123,26 +123,26 @@ func (sb *SegBuf) LineSlice(ln int, extra bool, start, end int) iter.Seq2[int, C
 }
 
 func (sb *SegBuf) Read(startLn, startCol, endLn, endCol int) string {
-	startLn, startCol = sb.segToPos(startLn, startCol)
-	endLn, endCol = sb.segToPos(endLn, endCol)
+	startCol = sb.col(startLn, startCol)
+	endCol = sb.col(endLn, endCol)
 
 	return strings.Join(slices.Collect(sb.textbuf.Read2Range(startLn, startCol, endLn, endCol)), "")
 }
 
 func (sb *SegBuf) Insert(ln, col int, text string) {
-	ln, col = sb.segToPos(ln, col)
+	col = sb.col(ln, col)
 
 	sb.textbuf.Insert2(ln, col, text)
 }
 
 func (sb *SegBuf) Delete(startLn, startCol, endLn, endCol int) {
-	startLn, startCol = sb.segToPos(startLn, startCol)
-	endLn, endCol = sb.segToPos(endLn, endCol)
+	startCol = sb.col(startLn, startCol)
+	endCol = sb.col(endLn, endCol)
 
 	sb.textbuf.Delete2Range(startLn, startCol, endLn, endCol)
 }
 
-func (sb *SegBuf) segToPos(ln, col int) (int, int) {
+func (sb *SegBuf) col(ln, col int) int {
 	col2 := 0
 	i := 0
 
@@ -158,7 +158,7 @@ func (sb *SegBuf) segToPos(ln, col int) (int, int) {
 		i += 1
 	}
 
-	return ln, col2
+	return col2
 }
 
 func (sb *SegBuf) segLine(ln int) iter.Seq[string] {
