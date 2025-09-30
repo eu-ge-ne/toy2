@@ -27,8 +27,7 @@ func Read() {
 				continue
 			}
 
-			next_esc_i := bytes.Index(raw[1:], []byte{0x1b})
-			if next_esc_i >= 0 {
+			if next_esc_i := bytes.Index(raw[1:], []byte{0x1b}); next_esc_i >= 0 {
 				next_esc_i += 1
 				raw = raw[next_esc_i:]
 				continue
