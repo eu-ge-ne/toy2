@@ -11,7 +11,7 @@ import (
 
 var re = regexp.MustCompile(`\x1b\[\d+;(\d+)R`)
 
-var Keys = make(chan key.Key, 1)
+var Keys = make(chan key.Key, 100)
 var Pos = make(chan int)
 
 func Read() {
