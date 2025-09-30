@@ -12,8 +12,9 @@ import (
 )
 
 type Editor struct {
-	area    ui.Area
-	Enabled bool
+	area      ui.Area
+	Enabled   bool
+	clipboard string
 
 	IndexEnabled      bool
 	WhitespaceEnabled bool
@@ -60,12 +61,15 @@ func New(multiLine bool) *Editor {
 	editor.handlers = append(editor.handlers,
 		&TextHandler{editor: &editor},
 		&BackspaceHandler{editor: &editor},
+		&CopyHandler{editor: &editor},
+		&CutHandler{editor: &editor},
 		&DeleteHandler{editor: &editor},
 		&DownHandler{editor: &editor},
 		&EnterHandler{editor: &editor},
 		&LeftHandler{editor: &editor},
 		&PageDownHandler{editor: &editor},
 		&PageUpHandler{editor: &editor},
+		&PasteHandler{editor: &editor},
 		&RedoHandler{editor: &editor},
 		&RightHandler{editor: &editor},
 		&SelectAllHandler{editor: &editor},
@@ -110,4 +114,41 @@ func (ed *Editor) Reset(resetCursor bool) {
 	}
 
 	ed.History.Reset()
+}
+
+func (ed *Editor) Copy() bool {
+	c := ed.Cursor
+
+	if c.Selecting {
+		ed.clipboard = ed.Buffer.Read(c.FromLn, c.FromCol, c.ToLn, c.ToCol+1)
+		c.Set(c.Ln, c.Col, false)
+	} else {
+		ed.clipboard = ed.Buffer.Read(c.Ln, c.Col, c.Ln, c.Col+1)
+	}
+
+	return false
+}
+
+func (ed *Editor) Cut() bool {
+	c := ed.Cursor
+
+	if c.Selecting {
+		ed.clipboard = ed.Buffer.Read(c.FromLn, c.FromCol, c.ToLn, c.ToCol+1)
+		ed.deleteSelection()
+	} else {
+		ed.clipboard = ed.Buffer.Read(c.Ln, c.Col, c.Ln, c.Col+1)
+		ed.deleteChar()
+	}
+
+	return true
+}
+
+func (ed *Editor) Paste() bool {
+	if len(ed.clipboard) == 0 {
+		return false
+	}
+
+	ed.insert(ed.clipboard)
+
+	return true
 }

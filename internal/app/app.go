@@ -45,9 +45,12 @@ func New() *App {
 	app := App{}
 
 	app.commands = []Command{
+		NewCopyCommand(&app),
+		NewCutCommand(&app),
 		NewDebugCommand(&app),
 		NewExitCommand(&app),
 		NewPaletteCommand(&app),
+		NewPasteCommand(&app),
 		NewRedoCommand(&app),
 		NewSaveCommand(&app),
 		NewSelectAllCommand(&app),
