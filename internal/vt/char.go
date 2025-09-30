@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-type Attr = int
+type Attr int
 
 const (
 	Default    Attr = 0
