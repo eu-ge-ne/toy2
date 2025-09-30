@@ -78,7 +78,7 @@ func (sb *SegBuf) Line(ln int, extra bool) iter.Seq2[int, Cell] {
 				c.G = grapheme.Graphemes.Get(gr.Str())
 
 				if c.G.Width < 0 {
-					c.G.Width = vt.MeasureCursor(sb.MeasureY, sb.MeasureX, c.G.Bytes)
+					c.G.Width = vt.Wchar(sb.MeasureY, sb.MeasureX, c.G.Bytes)
 				}
 
 				w += c.G.Width
