@@ -2,47 +2,39 @@ package vt
 
 import (
 	"bytes"
-	"iter"
 	"os"
 
 	"github.com/eu-ge-ne/toy2/internal/key"
 )
 
-var readBuf = make([]byte, 1024)
+var Keys = make(chan key.Key)
 
-func Read() iter.Seq[key.Key] {
-	return func(yield func(key.Key) bool) {
-		bytesRead, err := os.Stdin.Read(readBuf)
+func Read() {
+	var buf = make([]byte, 1024)
 
+	for {
+		n, err := os.Stdin.Read(buf)
 		if err != nil {
 			panic(err)
 		}
 
-		if bytesRead == 0 {
-			return
-		}
+		raw := buf[:n]
 
-		raw := readBuf[:bytesRead]
-
-		for i := 0; i < bytesRead; {
-			key, bytesParsed, ok := key.Parse(raw[i:])
-
-			if !ok {
-				next_esc_i := bytes.Index(raw[1:], []byte{0x1b})
-				if next_esc_i < 0 {
-					next_esc_i = len(raw)
-				} else {
-					next_esc_i += 1
-				}
-				i = next_esc_i
+		for len(raw) > 0 {
+			if key, bytesParsed, ok := key.Parse(raw); ok {
+				Keys <- key
+				raw = raw[bytesParsed:]
 				continue
 			}
 
-			if !yield(key) {
-				return
+			next_esc_i := bytes.Index(raw[1:], []byte{0x1b})
+			if next_esc_i >= 0 {
+				next_esc_i += 1
+				raw = raw[next_esc_i:]
+				continue
 			}
 
-			i += bytesParsed
+			break
 		}
 	}
 }

@@ -85,7 +85,7 @@ func (p *Palette) filter() {
 
 func (p *Palette) processInput() *Option {
 	for {
-		for key := range vt.Read() {
+		for key := range vt.Keys {
 			switch key.Name {
 			case "ESC":
 				return nil

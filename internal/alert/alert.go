@@ -89,7 +89,7 @@ func (al *Alert) Open(text string, done chan<- struct{}) {
 
 func (al *Alert) processInput() {
 	for {
-		for key := range vt.Read() {
+		for key := range vt.Keys {
 			switch key.Name {
 			case "ESC":
 				return
