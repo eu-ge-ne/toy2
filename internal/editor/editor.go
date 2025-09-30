@@ -62,6 +62,7 @@ func New(multiLine bool) *Editor {
 	editor.handlers = append(editor.handlers,
 		&TextHandler{editor: &editor},
 		&BackspaceHandler{editor: &editor},
+		&BottomHandler{editor: &editor},
 		&CopyHandler{editor: &editor},
 		&CutHandler{editor: &editor},
 		&DeleteHandler{editor: &editor},
@@ -76,6 +77,7 @@ func New(multiLine bool) *Editor {
 		&RedoHandler{editor: &editor},
 		&RightHandler{editor: &editor},
 		&SelectAllHandler{editor: &editor},
+		&TopHandler{editor: &editor},
 		&UndoHandler{editor: &editor},
 		&UpHandler{editor: &editor},
 	)
