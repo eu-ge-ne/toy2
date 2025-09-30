@@ -4,6 +4,7 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+	"time"
 )
 
 var cprReq = []byte("\x1b[6n")
@@ -14,32 +15,40 @@ func Wchar(y, x int, b []byte) int {
 	Sync.Write(b)
 	Sync.Write(cprReq)
 
-	done := make(chan int)
-	go measure(done)
-
-	return <-done - x
-}
-
-func measure(done chan<- int) {
+	t0 := time.Now()
 	buf := make([]byte, 1024)
+	done := make(chan int)
 
-	for {
-		n, err := os.Stdin.Read(buf)
-		if err != nil {
-			panic(err)
+	go func() {
+		for {
+			n, err := os.Stdin.Read(buf)
+			if err != nil {
+				panic(err)
+			}
+
+			match := re.FindStringSubmatch(string(buf[:n]))
+
+			if match != nil {
+				x1, err := strconv.Atoi(match[1])
+				if err != nil {
+					panic(err)
+				}
+
+				done <- x1 - 1
+				return
+			}
+
+			if time.Since(t0).Milliseconds() > 10 {
+				done <- -1
+				return
+			}
 		}
+	}()
 
-		match := re.FindStringSubmatch(string(buf[:n]))
-		if match == nil {
-			continue
-		}
-
-		x, err := strconv.Atoi(match[1])
-		if err != nil {
-			panic(err)
-		}
-
-		done <- x - 1
-		return
+	x1 := <-done
+	if x1 < 0 {
+		panic("Wchar timeout")
 	}
+
+	return x1 - x
 }
