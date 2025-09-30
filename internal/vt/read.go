@@ -7,7 +7,7 @@ import (
 	"github.com/eu-ge-ne/toy2/internal/key"
 )
 
-var Keys = make(chan key.Key)
+var Keys = make(chan key.Key, 1)
 
 func Read() {
 	var buf = make([]byte, 1024)
