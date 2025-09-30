@@ -9,6 +9,7 @@ import (
 	"github.com/eu-ge-ne/toy2/internal/segbuf"
 	"github.com/eu-ge-ne/toy2/internal/theme"
 	"github.com/eu-ge-ne/toy2/internal/ui"
+	"github.com/eu-ge-ne/toy2/internal/vt"
 )
 
 type Editor struct {
@@ -126,6 +127,8 @@ func (ed *Editor) Copy() bool {
 		ed.clipboard = ed.Buffer.Read(c.Ln, c.Col, c.Ln, c.Col+1)
 	}
 
+	vt.CopyToClipboard(vt.Sync, ed.clipboard)
+
 	return false
 }
 
@@ -139,6 +142,8 @@ func (ed *Editor) Cut() bool {
 		ed.clipboard = ed.Buffer.Read(c.Ln, c.Col, c.Ln, c.Col+1)
 		ed.deleteChar()
 	}
+
+	vt.CopyToClipboard(vt.Sync, ed.clipboard)
 
 	return true
 }
