@@ -18,7 +18,12 @@ func Wchar(y, x int, b []byte) int {
 	done := make(chan int)
 	go measure(done)
 
-	return <-done - x
+	x1 := <-done
+	if x1 < 0 {
+		panic("Wchar timeout")
+	}
+
+	return x1 - x
 }
 
 func measure(done chan<- int) {
@@ -27,7 +32,6 @@ func measure(done chan<- int) {
 
 	for {
 		n, err := os.Stdin.Read(buf)
-
 		if err != nil {
 			panic(err)
 		}
@@ -45,7 +49,8 @@ func measure(done chan<- int) {
 		}
 
 		if time.Since(t0).Milliseconds() > 10 {
-			panic("Wchar timeout")
+			done <- -1
+			return
 		}
 	}
 }
