@@ -35,13 +35,12 @@ func measure(done chan<- int) {
 		match := re.FindStringSubmatch(string(buf[:n]))
 
 		if match != nil {
-			x, err := strconv.Atoi(match[1])
+			x1, err := strconv.Atoi(match[1])
 			if err != nil {
 				panic(err)
 			}
 
-			w := x - 1
-			done <- w
+			done <- x1 - 1
 			return
 		}
 
