@@ -47,7 +47,7 @@ func Wchar(y, x int, b []byte) int {
 
 	x1 := <-done
 	if x1 < 0 {
-		panic("Wchar timeout")
+		panic("Wchar error")
 	}
 
 	return x1 - x
