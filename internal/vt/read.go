@@ -3,13 +3,10 @@ package vt
 import (
 	"bytes"
 	"os"
-	"regexp"
 	"strconv"
 
 	"github.com/eu-ge-ne/toy2/internal/key"
 )
-
-var re = regexp.MustCompile(`\x1b\[\d+;(\d+)R`)
 
 var Keys = make(chan key.Key, 100)
 var Pos = make(chan int)
@@ -32,7 +29,7 @@ func Read() {
 				continue
 			}
 
-			if match := re.FindStringSubmatch(string(raw)); match != nil {
+			if match := cprRe.FindStringSubmatch(string(raw)); match != nil {
 				x, err := strconv.Atoi(match[1])
 				if err != nil {
 					panic(err)
