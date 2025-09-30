@@ -19,9 +19,9 @@ func WriteText(out io.Writer, span *int, text string) {
 		l = utf8.RuneCountInString(text)
 	}
 
-	*span -= l
-
 	io.WriteString(out, text)
+
+	*span -= l
 }
 
 func WriteTextCenter(out io.Writer, span *int, text string) {
@@ -36,6 +36,8 @@ func WriteTextCenter(out io.Writer, span *int, text string) {
 	ab := *span - l
 	a := ab / 2
 
-	fmt.Fprintf(out, "%*s%s", a, " ", text)
+	WriteSpaces(out, a)
+	io.WriteString(out, text)
+
 	*span -= a + l
 }
