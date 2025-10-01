@@ -30,19 +30,18 @@ func Read() {
 			}
 
 			if match := cprRe.FindSubmatch(buf); match != nil {
-				x, err := strconv.Atoi(string(match[1]))
-				if err != nil {
+				if x, err := strconv.Atoi(string(match[1])); err == nil {
+					Pos <- x - 1
+					loc := cprRe.FindIndex(buf)
+					buf = buf[loc[1]:]
+					continue
+				} else {
 					panic(err)
 				}
-				Pos <- x - 1
-				loc := cprRe.FindIndex(buf)
-				buf = buf[loc[1]:]
-				break
 			}
 
-			if n := bytes.Index(buf[1:], []byte{0x1b}); n >= 0 {
-				n += 1
-				buf = buf[n:]
+			if n := bytes.IndexByte(buf[1:], 0x1b); n >= 0 {
+				buf = buf[n+1:]
 				continue
 			}
 
