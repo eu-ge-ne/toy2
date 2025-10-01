@@ -56,7 +56,7 @@ func Parse(raw []byte) (Key, int, bool) {
 	case b == 0x7f || b == 0x08:
 		return Key{Name: "BACKSPACE"}, 1, true
 	case b != 0x1b:
-		next_esc_i := bytes.Index(raw[1:], []byte{0x1b})
+		next_esc_i := bytes.IndexByte(raw[1:], 0x1b)
 		if next_esc_i < 0 {
 			next_esc_i = len(raw)
 		} else {
@@ -66,7 +66,7 @@ func Parse(raw []byte) (Key, int, bool) {
 		return Key{Name: text, Text: text}, next_esc_i, true
 	}
 
-	match := re.FindStringSubmatch(string(raw)) // TODO: use FindSubmatch
+	match := re.FindSubmatch(raw)
 	if match == nil {
 		return Key{}, 0, false
 	}
@@ -75,21 +75,21 @@ func Parse(raw []byte) (Key, int, bool) {
 
 	if funcName, ok := funcNames[fmt.Sprintf("%s%s%s", match[1], match[2], match[8])]; ok {
 		key.Name = funcName
-	} else if i, err := strconv.Atoi(match[2]); err == nil {
+	} else if i, err := strconv.Atoi(string(match[2])); err == nil {
 		key.Name = string(rune(i))
 	} else {
 		key.Name = fmt.Sprintf("%s%s", match[1], match[8])
 	}
 
-	code, _ := strconv.Atoi(match[2])
-	shiftCode, _ := strconv.Atoi(match[3])
-	baseCode, _ := strconv.Atoi(match[4])
+	code, _ := strconv.Atoi(string(match[2]))
+	shiftCode, _ := strconv.Atoi(string(match[3]))
+	baseCode, _ := strconv.Atoi(string(match[4]))
 
 	key.KeyCode = code
 	key.ShiftCode = shiftCode
 	key.BaseCode = baseCode
 
-	mods, err := strconv.Atoi(match[5])
+	mods, err := strconv.Atoi(string(match[5]))
 	if err != nil {
 		mods = 1
 	}
@@ -102,7 +102,7 @@ func Parse(raw []byte) (Key, int, bool) {
 	key.CapsLock = mods&64 == 64
 	key.NumLock = mods&128 == 128
 
-	switch match[6] {
+	switch string(match[6]) {
 	case "2":
 		key.Event = EventRepeat
 	case "3":
@@ -112,7 +112,7 @@ func Parse(raw []byte) (Key, int, bool) {
 	}
 
 	if len(match[7]) > 0 {
-		cps := strings.Split(match[7], ":")
+		cps := strings.Split(string(match[7]), ":")
 		runes := make([]rune, 0, len(cps))
 
 		for _, cp := range cps {
