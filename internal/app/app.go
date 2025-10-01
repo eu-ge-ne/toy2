@@ -129,6 +129,8 @@ func (app *App) Run() {
 	app.editor.Reset(true)
 	app.editor.Render()
 
+	go vt.Read()
+
 	app.processInput()
 }
 
@@ -222,7 +224,7 @@ func (app *App) refresh() {
 
 func (app *App) processInput() {
 	for {
-		for key := range vt.Read() {
+		for key := range vt.Keys {
 			i := slices.IndexFunc(app.commands, func(c Command) bool {
 				return c.Match(key)
 			})

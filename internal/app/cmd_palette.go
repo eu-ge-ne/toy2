@@ -19,7 +19,7 @@ func (c *PaletteCommand) Option() *palette.Option {
 	return nil
 }
 
-func (c *PaletteCommand) Match(key key.Key) bool {
+func (c *PaletteCommand) Match(key *key.Key) bool {
 	return key.Name == "F1"
 }
 

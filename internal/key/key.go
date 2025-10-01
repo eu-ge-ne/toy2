@@ -66,7 +66,7 @@ func Parse(raw []byte) (Key, int, bool) {
 		return Key{Name: text, Text: text}, next_esc_i, true
 	}
 
-	match := re.FindStringSubmatch(string(raw))
+	match := re.FindStringSubmatch(string(raw)) // TODO: use FindSubmatch
 	if match == nil {
 		return Key{}, 0, false
 	}
@@ -123,7 +123,7 @@ func Parse(raw []byte) (Key, int, bool) {
 		key.Text = string(runes)
 	}
 
-	index := re.FindStringSubmatchIndex(string(raw))
+	index := re.FindIndex(raw)
 
 	return key, index[1] - index[0], true
 }

@@ -93,7 +93,7 @@ func (sv *SaveAs) Open(filePath string, done chan<- string) {
 
 func (sv *SaveAs) processInput() string {
 	for {
-		for key := range vt.Read() {
+		for key := range vt.Keys {
 			switch key.Name {
 			case "ESC":
 				return ""

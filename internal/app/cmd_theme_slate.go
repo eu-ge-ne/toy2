@@ -22,7 +22,7 @@ func (c *SlateThemeCommand) Option() *palette.Option {
 	return c.option
 }
 
-func (c *SlateThemeCommand) Match(key key.Key) bool {
+func (c *SlateThemeCommand) Match(key *key.Key) bool {
 	return false
 }
 

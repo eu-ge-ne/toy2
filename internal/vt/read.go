@@ -2,47 +2,50 @@ package vt
 
 import (
 	"bytes"
-	"iter"
 	"os"
+	"strconv"
 
 	"github.com/eu-ge-ne/toy2/internal/key"
 )
 
-var readBuf = make([]byte, 1024)
+var Keys = make(chan *key.Key, 100_000)
+var Pos = make(chan int)
 
-func Read() iter.Seq[key.Key] {
-	return func(yield func(key.Key) bool) {
-		bytesRead, err := os.Stdin.Read(readBuf)
+func Read() {
+	var buf []byte
+	chunk := make([]byte, 1024)
 
-		if err != nil {
+	for {
+		if n, err := os.Stdin.Read(chunk); err == nil {
+			buf = append(buf, chunk[:n]...)
+		} else {
 			panic(err)
 		}
 
-		if bytesRead == 0 {
-			return
-		}
-
-		raw := readBuf[:bytesRead]
-
-		for i := 0; i < bytesRead; {
-			key, bytesParsed, ok := key.Parse(raw[i:])
-
-			if !ok {
-				next_esc_i := bytes.Index(raw[1:], []byte{0x1b})
-				if next_esc_i < 0 {
-					next_esc_i = len(raw)
-				} else {
-					next_esc_i += 1
-				}
-				i = next_esc_i
+		for len(buf) > 0 {
+			if key, n, ok := key.Parse(buf); ok {
+				Keys <- &key
+				buf = buf[n:]
 				continue
 			}
 
-			if !yield(key) {
-				return
+			if match := cprRe.FindSubmatch(buf); match != nil {
+				if x, err := strconv.Atoi(string(match[1])); err == nil {
+					Pos <- x - 1
+					loc := cprRe.FindIndex(buf)
+					buf = buf[loc[1]:]
+					continue
+				} else {
+					panic(err)
+				}
 			}
 
-			i += bytesParsed
+			if n := bytes.IndexByte(buf[1:], 0x1b); n >= 0 {
+				buf = buf[n+1:]
+				continue
+			}
+
+			buf = nil
 		}
 	}
 }

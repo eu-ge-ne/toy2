@@ -21,7 +21,7 @@ func (c *CutCommand) Option() *palette.Option {
 	return c.option
 }
 
-func (c *CutCommand) Match(key key.Key) bool {
+func (c *CutCommand) Match(key *key.Key) bool {
 	return false
 }
 
