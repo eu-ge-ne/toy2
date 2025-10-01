@@ -123,7 +123,7 @@ func Parse(raw []byte) (Key, int, bool) {
 		key.Text = string(runes)
 	}
 
-	index := re.FindStringSubmatchIndex(string(raw))
+	index := re.FindIndex(raw)
 
 	return key, index[1] - index[0], true
 }
