@@ -21,7 +21,7 @@ func (c *CopyCommand) Option() *palette.Option {
 	return c.option
 }
 
-func (c *CopyCommand) Match(key key.Key) bool {
+func (c *CopyCommand) Match(key *key.Key) bool {
 	return false
 }
 

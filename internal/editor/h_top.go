@@ -8,11 +8,11 @@ type TopHandler struct {
 	editor *Editor
 }
 
-func (h *TopHandler) Match(key key.Key) bool {
+func (h *TopHandler) Match(key *key.Key) bool {
 	return key.Name == "UP" && key.Super
 }
 
-func (h *TopHandler) Handle(key key.Key) bool {
+func (h *TopHandler) Handle(key *key.Key) bool {
 	if !h.editor.multiLine {
 		return false
 	}

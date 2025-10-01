@@ -23,7 +23,7 @@ func (c *SelectAllCommand) Option() *palette.Option {
 	return c.option
 }
 
-func (c *SelectAllCommand) Match(key key.Key) bool {
+func (c *SelectAllCommand) Match(key *key.Key) bool {
 	return false
 }
 

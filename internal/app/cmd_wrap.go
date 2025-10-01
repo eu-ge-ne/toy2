@@ -21,7 +21,7 @@ func (c *WrapCommand) Option() *palette.Option {
 	return c.option
 }
 
-func (c *WrapCommand) Match(key key.Key) bool {
+func (c *WrapCommand) Match(key *key.Key) bool {
 	return key.Name == "F6"
 }
 

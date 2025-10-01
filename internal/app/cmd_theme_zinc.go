@@ -22,7 +22,7 @@ func (c *ZincThemeCommand) Option() *palette.Option {
 	return c.option
 }
 
-func (c *ZincThemeCommand) Match(key key.Key) bool {
+func (c *ZincThemeCommand) Match(key *key.Key) bool {
 	return false
 }
 

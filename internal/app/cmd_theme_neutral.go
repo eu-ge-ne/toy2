@@ -22,7 +22,7 @@ func (c *NeutralThemeCommand) Option() *palette.Option {
 	return c.option
 }
 
-func (c *NeutralThemeCommand) Match(key key.Key) bool {
+func (c *NeutralThemeCommand) Match(key *key.Key) bool {
 	return false
 }
 
