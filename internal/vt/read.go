@@ -16,11 +16,12 @@ func Read() {
 	chunk := make([]byte, 1024)
 
 	for {
-		if n, err := os.Stdin.Read(chunk); err == nil {
-			buf = append(buf, chunk[:n]...)
-		} else {
+		n, err := os.Stdin.Read(chunk)
+		if err != nil {
 			panic(err)
 		}
+
+		buf = append(buf, chunk[:n]...)
 
 		for len(buf) > 0 {
 			if key, n, ok := key.Parse(buf); ok {
@@ -30,14 +31,15 @@ func Read() {
 			}
 
 			if match := cprRe.FindSubmatch(buf); match != nil {
-				if x, err := strconv.Atoi(string(match[1])); err == nil {
-					Pos <- x - 1
-					loc := cprRe.FindIndex(buf)
-					buf = buf[loc[1]:]
-					continue
-				} else {
+				x, err := strconv.Atoi(string(match[1]))
+				if err != nil {
 					panic(err)
 				}
+
+				Pos <- x - 1
+				loc := cprRe.FindIndex(buf)
+				buf = buf[loc[1]:]
+				continue
 			}
 
 			if n := bytes.IndexByte(buf[1:], 0x1b); n >= 0 {
