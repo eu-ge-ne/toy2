@@ -29,8 +29,8 @@ func Read() {
 				continue
 			}
 
-			if match := cprRe.FindStringSubmatch(string(buf)); match != nil {
-				x, err := strconv.Atoi(match[1])
+			if match := cprRe.FindSubmatch(buf); match != nil {
+				x, err := strconv.Atoi(string(match[1]))
 				if err != nil {
 					panic(err)
 				}
