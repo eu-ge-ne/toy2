@@ -8,43 +8,45 @@ import (
 	"github.com/eu-ge-ne/toy2/internal/key"
 )
 
-var Keys = make(chan key.Key, 100)
+var Keys = make(chan key.Key, 1_000_000)
 var Pos = make(chan int)
 
 func Read() {
-	var buf = make([]byte, 1024)
+	var buf []byte
+	chunk := make([]byte, 1024)
 
 	for {
-		n, err := os.Stdin.Read(buf)
-		if err != nil {
+		if n, err := os.Stdin.Read(chunk); err == nil {
+			buf = append(buf, chunk[:n]...)
+		} else {
 			panic(err)
 		}
 
-		raw := buf[:n]
-
-		for len(raw) > 0 {
-			if key, bytesParsed, ok := key.Parse(raw); ok {
+		for len(buf) > 0 {
+			if key, n, ok := key.Parse(buf); ok {
 				Keys <- key
-				raw = raw[bytesParsed:]
+				buf = buf[n:]
 				continue
 			}
 
-			if match := cprRe.FindStringSubmatch(string(raw)); match != nil {
+			if match := cprRe.FindStringSubmatch(string(buf)); match != nil {
 				x, err := strconv.Atoi(match[1])
 				if err != nil {
 					panic(err)
 				}
 				Pos <- x - 1
+				loc := cprRe.FindIndex(buf)
+				buf = buf[loc[1]:]
 				break
 			}
 
-			if next_esc_i := bytes.Index(raw[1:], []byte{0x1b}); next_esc_i >= 0 {
-				next_esc_i += 1
-				raw = raw[next_esc_i:]
+			if n := bytes.Index(buf[1:], []byte{0x1b}); n >= 0 {
+				n += 1
+				buf = buf[n:]
 				continue
 			}
 
-			break
+			buf = nil
 		}
 	}
 }
