@@ -21,7 +21,7 @@ func (c *DebugCommand) Option() *palette.Option {
 	return c.option
 }
 
-func (c *DebugCommand) Match(key key.Key) bool {
+func (c *DebugCommand) Match(key.Key) bool {
 	return false
 }
 

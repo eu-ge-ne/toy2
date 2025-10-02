@@ -23,7 +23,7 @@ func TestINSERT(t *testing.T) {
 	assert.Equal(t, key.Key{
 		Name:    "INSERT",
 		KeyCode: 2,
-		Ctrl:    true,
+		Mods:    key.Ctrl,
 	}, k)
 
 	k, n, ok = key.Parse([]byte("\x1b[2;3~"))
@@ -32,7 +32,7 @@ func TestINSERT(t *testing.T) {
 	assert.Equal(t, key.Key{
 		Name:    "INSERT",
 		KeyCode: 2,
-		Alt:     true,
+		Mods:    key.Alt,
 	}, k)
 
 	k, n, ok = key.Parse([]byte("\x1b[2;2~"))
@@ -41,7 +41,7 @@ func TestINSERT(t *testing.T) {
 	assert.Equal(t, key.Key{
 		Name:    "INSERT",
 		KeyCode: 2,
-		Shift:   true,
+		Mods:    key.Shift,
 	}, k)
 
 	k, n, ok = key.Parse([]byte("\x1b[2;1:1~"))

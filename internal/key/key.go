@@ -15,13 +15,10 @@ type Key struct {
 	BaseCode  rune
 	Event     Event
 	Text      string
-	Shift     bool
-	Alt       bool
-	Ctrl      bool
-	Super     bool
+	Mods      Mods
 }
 
-type Event int
+type Event uint8
 
 const (
 	EventPress Event = iota
@@ -91,12 +88,7 @@ func Parse(raw []byte) (Key, int, bool) {
 	if err != nil {
 		mods = 1
 	}
-	mods -= 1
-
-	key.Shift = mods&1 == 1
-	key.Alt = mods&2 == 2
-	key.Ctrl = mods&4 == 4
-	key.Super = mods&8 == 8
+	key.Mods = Mods(mods - 1)
 
 	switch string(match[6]) {
 	case "2":

@@ -8,14 +8,14 @@ type UpHandler struct {
 	editor *Editor
 }
 
-func (h *UpHandler) Match(key key.Key) bool {
-	return key.Name == "UP"
+func (h *UpHandler) Match(k key.Key) bool {
+	return k.Name == "UP"
 }
 
-func (h *UpHandler) Handle(key key.Key) bool {
+func (h *UpHandler) Handle(k key.Key) bool {
 	if !h.editor.multiLine {
 		return false
 	}
 
-	return h.editor.Cursor.Up(1, key.Shift)
+	return h.editor.Cursor.Up(1, k.Mods&key.Shift != 0)
 }

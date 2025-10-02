@@ -8,10 +8,10 @@ type UndoHandler struct {
 	editor *Editor
 }
 
-func (h *UndoHandler) Match(key key.Key) bool {
-	return key.Name == "z" && (key.Ctrl || key.Super)
+func (h *UndoHandler) Match(k key.Key) bool {
+	return k.Name == "z" && (k.Mods&key.Ctrl != 0 || k.Mods&key.Super != 0)
 }
 
-func (h *UndoHandler) Handle(key key.Key) bool {
+func (h *UndoHandler) Handle(key.Key) bool {
 	return h.editor.History.Undo()
 }

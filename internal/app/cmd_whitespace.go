@@ -21,8 +21,8 @@ func (c *WhitespaceCommand) Option() *palette.Option {
 	return c.option
 }
 
-func (c *WhitespaceCommand) Match(key key.Key) bool {
-	return key.Name == "F5"
+func (c *WhitespaceCommand) Match(k key.Key) bool {
+	return k.Name == "F5"
 }
 
 func (c *WhitespaceCommand) Run() {

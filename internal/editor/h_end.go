@@ -8,16 +8,16 @@ type EndHandler struct {
 	editor *Editor
 }
 
-func (h *EndHandler) Match(key key.Key) bool {
+func (h *EndHandler) Match(k key.Key) bool {
 	switch {
-	case key.Name == "END":
+	case k.Name == "END":
 		return true
-	case key.Name == "RIGHT" && key.Super:
+	case k.Name == "RIGHT" && k.Mods&key.Super != 0:
 		return true
 	}
 	return false
 }
 
-func (h *EndHandler) Handle(key key.Key) bool {
-	return h.editor.Cursor.End(key.Shift)
+func (h *EndHandler) Handle(k key.Key) bool {
+	return h.editor.Cursor.End(k.Mods&key.Shift != 0)
 }

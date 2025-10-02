@@ -12,8 +12,12 @@ type PasteCommand struct {
 
 func NewPasteCommand(app *App) *PasteCommand {
 	return &PasteCommand{
-		app:    app,
-		option: palette.NewOption("Paste", "Edit: Paste", []key.Key{{Name: "v", Ctrl: true}, {Name: "v", Super: true}}),
+		app: app,
+		option: palette.NewOption(
+			"Paste",
+			"Edit: Paste",
+			[]key.Key{{Name: "v", Mods: key.Ctrl}, {Name: "v", Mods: key.Super}},
+		),
 	}
 }
 
@@ -21,7 +25,7 @@ func (c *PasteCommand) Option() *palette.Option {
 	return c.option
 }
 
-func (c *PasteCommand) Match(key key.Key) bool {
+func (c *PasteCommand) Match(key.Key) bool {
 	return false
 }
 

@@ -8,16 +8,16 @@ type HomeHandler struct {
 	editor *Editor
 }
 
-func (h *HomeHandler) Match(key key.Key) bool {
+func (h *HomeHandler) Match(k key.Key) bool {
 	switch {
-	case key.Name == "HOME":
+	case k.Name == "HOME":
 		return true
-	case key.Name == "LEFT" && key.Super:
+	case k.Name == "LEFT" && k.Mods&key.Super != 0:
 		return true
 	}
 	return false
 }
 
-func (h *HomeHandler) Handle(key key.Key) bool {
-	return h.editor.Cursor.Home(key.Shift)
+func (h *HomeHandler) Handle(k key.Key) bool {
+	return h.editor.Cursor.Home(k.Mods&key.Shift != 0)
 }

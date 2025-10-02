@@ -23,9 +23,7 @@ func Test1DisambiguateEscapeCodes(t *testing.T) {
 	assert.Equal(t, key.Key{
 		Name:    "ж",
 		KeyCode: 1078,
-		Shift:   true,
-		Alt:     true,
-		Ctrl:    true,
+		Mods:    key.Shift | key.Alt | key.Ctrl,
 	}, k)
 }
 
@@ -38,9 +36,7 @@ func Test14ReportAlternateKeys(t *testing.T) {
 		KeyCode:   1078,
 		ShiftCode: 1046,
 		BaseCode:  59,
-		Shift:     true,
-		Alt:       true,
-		Ctrl:      true,
+		Mods:      key.Shift | key.Alt | key.Ctrl,
 	}, k)
 }
 
@@ -64,7 +60,7 @@ func Test14816ReportAssociatedText(t *testing.T) {
 		ShiftCode: 1046,
 		BaseCode:  59,
 		Text:      "Ж",
-		Shift:     true,
+		Mods:      key.Shift,
 	}, k)
 }
 
@@ -78,7 +74,7 @@ func Test_1_4_8_16_2_ReportEventTypes(t *testing.T) {
 		ShiftCode: 1046,
 		BaseCode:  59,
 		Text:      "Ж",
-		Shift:     true,
+		Mods:      key.Shift,
 	}, k)
 
 	k, n, ok = key.Parse([]byte("\x1b[1078:1046:59;2:2;1046u"))
@@ -91,7 +87,7 @@ func Test_1_4_8_16_2_ReportEventTypes(t *testing.T) {
 		BaseCode:  59,
 		Event:     key.EventRepeat,
 		Text:      "Ж",
-		Shift:     true,
+		Mods:      key.Shift,
 	}, k)
 
 	k, n, ok = key.Parse([]byte("\x1b[1078::59;2:3u"))
@@ -102,6 +98,6 @@ func Test_1_4_8_16_2_ReportEventTypes(t *testing.T) {
 		KeyCode:  1078,
 		BaseCode: 59,
 		Event:    key.EventRelease,
-		Shift:    true,
+		Mods:     key.Shift,
 	}, k)
 }

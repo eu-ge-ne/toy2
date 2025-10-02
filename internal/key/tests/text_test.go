@@ -24,7 +24,7 @@ func Test_a(t *testing.T) {
 	assert.Equal(t, key.Key{
 		Name:    "a",
 		KeyCode: 97,
-		Alt:     true,
+		Mods:    key.Alt,
 	}, k)
 
 	k, n, ok = key.Parse([]byte("\x1b[97;5u"))
@@ -33,7 +33,7 @@ func Test_a(t *testing.T) {
 	assert.Equal(t, key.Key{
 		Name:    "a",
 		KeyCode: 97,
-		Ctrl:    true,
+		Mods:    key.Ctrl,
 	}, k)
 
 	k, n, ok = key.Parse([]byte("\x1b[97;9u"))
@@ -42,7 +42,7 @@ func Test_a(t *testing.T) {
 	assert.Equal(t, key.Key{
 		Name:    "a",
 		KeyCode: 97,
-		Super:   true,
+		Mods:    key.Super,
 	}, k)
 
 	k, n, ok = key.Parse([]byte("\x1b[97;1:1u"))
@@ -81,6 +81,6 @@ func Test_A(t *testing.T) {
 		KeyCode:   97,
 		ShiftCode: 65,
 		Text:      "A",
-		Shift:     true,
+		Mods:      key.Shift,
 	}, k)
 }

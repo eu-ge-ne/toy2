@@ -12,8 +12,12 @@ type CopyCommand struct {
 
 func NewCopyCommand(app *App) *CopyCommand {
 	return &CopyCommand{
-		app:    app,
-		option: palette.NewOption("Copy", "Edit: Copy", []key.Key{{Name: "c", Ctrl: true}, {Name: "c", Super: true}}),
+		app: app,
+		option: palette.NewOption(
+			"Copy",
+			"Edit: Copy",
+			[]key.Key{{Name: "c", Mods: key.Ctrl}, {Name: "c", Mods: key.Super}},
+		),
 	}
 }
 
@@ -21,7 +25,7 @@ func (c *CopyCommand) Option() *palette.Option {
 	return c.option
 }
 
-func (c *CopyCommand) Match(key key.Key) bool {
+func (c *CopyCommand) Match(key.Key) bool {
 	return false
 }
 

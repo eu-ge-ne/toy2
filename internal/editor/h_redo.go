@@ -8,10 +8,10 @@ type RedoHandler struct {
 	editor *Editor
 }
 
-func (h *RedoHandler) Match(key key.Key) bool {
-	return key.Name == "y" && (key.Ctrl || key.Super)
+func (h *RedoHandler) Match(k key.Key) bool {
+	return k.Name == "y" && (k.Mods&key.Ctrl != 0 || k.Mods&key.Super != 0)
 }
 
-func (h *RedoHandler) Handle(key key.Key) bool {
+func (h *RedoHandler) Handle(key.Key) bool {
 	return h.editor.History.Redo()
 }

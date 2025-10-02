@@ -23,7 +23,7 @@ func TestESC(t *testing.T) {
 	assert.Equal(t, key.Key{
 		Name:    "ESC",
 		KeyCode: 27,
-		Ctrl:    true,
+		Mods:    key.Ctrl,
 	}, k)
 
 	k, n, ok = key.Parse([]byte("\x1b[27;3u"))
@@ -32,7 +32,7 @@ func TestESC(t *testing.T) {
 	assert.Equal(t, key.Key{
 		Name:    "ESC",
 		KeyCode: 27,
-		Alt:     true,
+		Mods:    key.Alt,
 	}, k)
 
 	k, n, ok = key.Parse([]byte("\x1b[27;2u"))
@@ -41,7 +41,7 @@ func TestESC(t *testing.T) {
 	assert.Equal(t, key.Key{
 		Name:    "ESC",
 		KeyCode: 27,
-		Shift:   true,
+		Mods:    key.Shift,
 	}, k)
 
 	k, n, ok = key.Parse([]byte("\x1b[27;1:1u"))

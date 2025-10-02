@@ -21,8 +21,8 @@ func (c *ExitCommand) Option() *palette.Option {
 	return c.option
 }
 
-func (c *ExitCommand) Match(key key.Key) bool {
-	return key.Name == "F10"
+func (c *ExitCommand) Match(k key.Key) bool {
+	return k.Name == "F10"
 }
 
 func (c *ExitCommand) Run() {

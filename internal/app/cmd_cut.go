@@ -12,8 +12,12 @@ type CutCommand struct {
 
 func NewCutCommand(app *App) *CutCommand {
 	return &CutCommand{
-		app:    app,
-		option: palette.NewOption("Cut", "Edit: Cut", []key.Key{{Name: "x", Ctrl: true}, {Name: "x", Super: true}}),
+		app: app,
+		option: palette.NewOption(
+			"Cut",
+			"Edit: Cut",
+			[]key.Key{{Name: "x", Mods: key.Ctrl}, {Name: "x", Mods: key.Super}},
+		),
 	}
 }
 
@@ -21,7 +25,7 @@ func (c *CutCommand) Option() *palette.Option {
 	return c.option
 }
 
-func (c *CutCommand) Match(key key.Key) bool {
+func (c *CutCommand) Match(key.Key) bool {
 	return false
 }
 
