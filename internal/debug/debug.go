@@ -2,6 +2,7 @@ package debug
 
 import (
 	"fmt"
+	"runtime"
 	"time"
 
 	"github.com/eu-ge-ne/toy2/internal/std"
@@ -9,6 +10,8 @@ import (
 	"github.com/eu-ge-ne/toy2/internal/ui"
 	"github.com/eu-ge-ne/toy2/internal/vt"
 )
+
+const mib = 1024 * 1024
 
 type Debug struct {
 	area    ui.Area
@@ -47,6 +50,9 @@ func (d *Debug) Render() {
 		return
 	}
 
+	mem := runtime.MemStats{}
+	runtime.ReadMemStats(&mem)
+
 	vt.Sync.Bsu()
 
 	vt.Buf.Write(vt.HideCursor)
@@ -55,9 +61,12 @@ func (d *Debug) Render() {
 	vt.ClearArea(vt.Buf, d.area)
 	vt.Buf.Write(d.colorText)
 	vt.SetCursor(vt.Buf, d.area.Y+1, d.area.X+1)
-	fmt.Fprintf(vt.Buf, "Input    : %v", d.inputTime)
+	fmt.Fprintf(vt.Buf, "Input  : %v", d.inputTime)
 	vt.SetCursor(vt.Buf, d.area.Y+2, d.area.X+1)
-	fmt.Fprintf(vt.Buf, "Render   : %v", d.renderTime)
+	fmt.Fprintf(vt.Buf, "Render : %v", d.renderTime)
+	vt.SetCursor(vt.Buf, d.area.Y+3, d.area.X+1)
+	fmt.Fprintf(vt.Buf, "Alloc  : %v MiB", mem.Alloc/mib)
+
 	vt.Buf.Write(vt.RestoreCursor)
 	vt.Buf.Write(vt.ShowCursor)
 

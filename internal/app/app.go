@@ -8,6 +8,7 @@ import (
 	"slices"
 	"strings"
 	"syscall"
+	"runtime"
 
 	"github.com/eu-ge-ne/toy2/internal/alert"
 	"github.com/eu-ge-ne/toy2/internal/ask"
@@ -259,6 +260,8 @@ func (app *App) open(filePath string) {
 	}
 
 	app.setFilePath(filePath)
+
+	runtime.GC()
 }
 
 func (app *App) save() bool {
