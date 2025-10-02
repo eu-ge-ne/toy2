@@ -16,21 +16,7 @@ func NewOption(id string, description string, keys []key.Key) *Option {
 	shortcuts := make([]string, len(keys))
 
 	for i, k := range keys {
-		s := ""
-		if k.Mods&key.Shift != 0 {
-			s += "⇧"
-		}
-		if k.Mods&key.Ctrl != 0 {
-			s += "⌃"
-		}
-		if k.Mods&key.Alt != 0 {
-			s += "⌥"
-		}
-		if k.Mods&key.Super != 0 {
-			s += "⌘"
-		}
-		s += strings.ToUpper(k.Name)
-		shortcuts[i] = s
+		shortcuts[i] = k.Shortcut()
 	}
 
 	return &Option{

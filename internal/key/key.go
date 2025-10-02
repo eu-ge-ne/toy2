@@ -95,3 +95,24 @@ func Parse(raw []byte) (Key, int, bool) {
 
 	return key, index[1] - index[0], true
 }
+
+func (k Key) Shortcut() string {
+	s := ""
+
+	if k.Mods&Shift != 0 {
+		s += "⇧"
+	}
+	if k.Mods&Ctrl != 0 {
+		s += "⌃"
+	}
+	if k.Mods&Alt != 0 {
+		s += "⌥"
+	}
+	if k.Mods&Super != 0 {
+		s += "⌘"
+	}
+
+	s += strings.ToUpper(k.Name)
+
+	return s
+}
