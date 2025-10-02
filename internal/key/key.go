@@ -43,14 +43,14 @@ func Parse(raw []byte) (Key, int, bool) {
 	case b == 0x7f || b == 0x08:
 		return Key{Name: "BACKSPACE"}, 1, true
 	case b != 0x1b:
-		next_esc_i := bytes.IndexByte(raw[1:], 0x1b)
-		if next_esc_i < 0 {
-			next_esc_i = len(raw)
+		n := bytes.IndexByte(raw[1:], 0x1b)
+		if n < 0 {
+			n = len(raw)
 		} else {
-			next_esc_i += 1
+			n += 1
 		}
-		text := string(raw[:next_esc_i])
-		return Key{Name: text, Text: text}, next_esc_i, true
+		text := string(raw[:n])
+		return Key{Name: text, Text: text}, n, true
 	}
 
 	match := re.FindSubmatch(raw)
