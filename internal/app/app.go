@@ -134,10 +134,6 @@ func (app *App) Run() {
 	app.processInput()
 }
 
-func (app *App) Area() ui.Area {
-	return app.area
-}
-
 func (app *App) Render() {
 	vt.Sync.Bsu()
 
@@ -158,21 +154,25 @@ func (app *App) layout(a ui.Area) {
 
 	app.header.Layout(app.area)
 	app.footer.Layout(app.area)
+
+	var editorArea ui.Area
 	if app.zenEnabled {
-		app.editor.Layout(app.area)
+		editorArea = app.area
 	} else {
-		app.editor.Layout(ui.Area{
+		editorArea = ui.Area{
 			Y: a.Y + 1,
 			X: a.X,
 			W: a.W,
 			H: a.H - 2,
-		})
+		}
 	}
-	app.debug.Layout(app.editor.Area())
-	app.palette.Layout(app.editor.Area())
-	app.ask.Layout(app.editor.Area())
-	app.alert.Layout(app.editor.Area())
-	app.saveas.Layout(app.editor.Area())
+
+	app.editor.Layout(editorArea)
+	app.debug.Layout(editorArea)
+	app.palette.Layout(editorArea)
+	app.ask.Layout(editorArea)
+	app.alert.Layout(editorArea)
+	app.saveas.Layout(editorArea)
 }
 
 func (app *App) setColors(t theme.Tokens) {

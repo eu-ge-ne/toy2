@@ -101,10 +101,6 @@ func (ed *Editor) SetColors(t theme.Tokens) {
 	}
 }
 
-func (ed *Editor) Area() ui.Area {
-	return ed.area
-}
-
 func (ed *Editor) Layout(a ui.Area) {
 	ed.area = a
 }
