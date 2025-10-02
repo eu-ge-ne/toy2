@@ -8,11 +8,11 @@ type EnterHandler struct {
 	editor *Editor
 }
 
-func (h *EnterHandler) Match(key *key.Key) bool {
+func (h *EnterHandler) Match(key key.Key) bool {
 	return key.Name == "ENTER"
 }
 
-func (h *EnterHandler) Handle(key *key.Key) bool {
+func (h *EnterHandler) Handle(key key.Key) bool {
 	if !h.editor.multiLine {
 		return false
 	}

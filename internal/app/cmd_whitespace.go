@@ -21,7 +21,7 @@ func (c *WhitespaceCommand) Option() *palette.Option {
 	return c.option
 }
 
-func (c *WhitespaceCommand) Match(key *key.Key) bool {
+func (c *WhitespaceCommand) Match(key key.Key) bool {
 	return key.Name == "F5"
 }
 

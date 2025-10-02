@@ -8,7 +8,7 @@ import (
 	"github.com/eu-ge-ne/toy2/internal/key"
 )
 
-var Keys = make(chan *key.Key, 100_000)
+var Keys = make(chan key.Key, 1_000_000)
 var Pos = make(chan int)
 
 func Read() {
@@ -25,7 +25,7 @@ func Read() {
 
 		for len(buf) > 0 {
 			if key, n, ok := key.Parse(buf); ok {
-				Keys <- &key
+				Keys <- key
 				buf = buf[n:]
 				continue
 			}

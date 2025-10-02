@@ -8,10 +8,10 @@ type CutHandler struct {
 	editor *Editor
 }
 
-func (h *CutHandler) Match(key *key.Key) bool {
+func (h *CutHandler) Match(key key.Key) bool {
 	return key.Name == "x" && (key.Ctrl || key.Super)
 }
 
-func (h *CutHandler) Handle(key *key.Key) bool {
+func (h *CutHandler) Handle(key key.Key) bool {
 	return h.editor.Cut()
 }

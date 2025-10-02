@@ -8,11 +8,11 @@ type DownHandler struct {
 	editor *Editor
 }
 
-func (h *DownHandler) Match(key *key.Key) bool {
+func (h *DownHandler) Match(key key.Key) bool {
 	return key.Name == "DOWN"
 }
 
-func (h *DownHandler) Handle(key *key.Key) bool {
+func (h *DownHandler) Handle(key key.Key) bool {
 	if !h.editor.multiLine {
 		return false
 	}

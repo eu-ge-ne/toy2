@@ -21,7 +21,7 @@ func (c *SaveCommand) Option() *palette.Option {
 	return c.option
 }
 
-func (c *SaveCommand) Match(key *key.Key) bool {
+func (c *SaveCommand) Match(key key.Key) bool {
 	return key.Name == "F2"
 }
 

@@ -21,7 +21,7 @@ func (c *RedoCommand) Option() *palette.Option {
 	return c.option
 }
 
-func (c *RedoCommand) Match(key *key.Key) bool {
+func (c *RedoCommand) Match(key key.Key) bool {
 	return false
 }
 

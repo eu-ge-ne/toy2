@@ -8,11 +8,11 @@ type BackspaceHandler struct {
 	editor *Editor
 }
 
-func (h *BackspaceHandler) Match(key *key.Key) bool {
+func (h *BackspaceHandler) Match(key key.Key) bool {
 	return key.Name == "BACKSPACE"
 }
 
-func (h *BackspaceHandler) Handle(key *key.Key) bool {
+func (h *BackspaceHandler) Handle(key key.Key) bool {
 	if h.editor.Cursor.Selecting {
 		h.editor.deleteSelection()
 	} else {

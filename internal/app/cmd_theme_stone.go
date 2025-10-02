@@ -22,7 +22,7 @@ func (c *StoneThemeCommand) Option() *palette.Option {
 	return c.option
 }
 
-func (c *StoneThemeCommand) Match(key *key.Key) bool {
+func (c *StoneThemeCommand) Match(key key.Key) bool {
 	return false
 }
 

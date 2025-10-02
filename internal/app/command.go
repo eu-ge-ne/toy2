@@ -7,6 +7,6 @@ import (
 
 type Command interface {
 	Option() *palette.Option
-	Match(key *key.Key) bool
+	Match(key key.Key) bool
 	Run()
 }

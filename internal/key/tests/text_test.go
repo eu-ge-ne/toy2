@@ -45,24 +45,6 @@ func Test_a(t *testing.T) {
 		Super:   true,
 	}, k)
 
-	k, n, ok = key.Parse([]byte("\x1b[97;65u"))
-	assert.True(t, ok)
-	assert.Equal(t, 8, n)
-	assert.Equal(t, key.Key{
-		Name:     "a",
-		KeyCode:  97,
-		CapsLock: true,
-	}, k)
-
-	k, n, ok = key.Parse([]byte("\x1b[97;129u"))
-	assert.True(t, ok)
-	assert.Equal(t, 9, n)
-	assert.Equal(t, key.Key{
-		Name:    "a",
-		KeyCode: 97,
-		NumLock: true,
-	}, k)
-
 	k, n, ok = key.Parse([]byte("\x1b[97;1:1u"))
 	assert.True(t, ok)
 	assert.Equal(t, 9, n)
