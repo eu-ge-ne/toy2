@@ -111,7 +111,7 @@ func (app *App) Run() {
 
 	app.restoreVt = vt.Init()
 
-	app.setColors(theme.Neutral{})
+	app.setColors(theme.Zinc{})
 	app.enableZen(false)
 	app.editor.WhitespaceEnabled = true
 	app.editor.WrapEnabled = true
