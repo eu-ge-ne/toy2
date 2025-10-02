@@ -59,7 +59,7 @@ func Test_a(t *testing.T) {
 	assert.Equal(t, key.Key{
 		Name:    "a",
 		KeyCode: 97,
-		Event:   key.EventRepeat,
+		Event:   key.Repeat,
 	}, k)
 
 	k, n, ok = key.Parse([]byte("\x1b[97;1:3u"))
@@ -68,7 +68,7 @@ func Test_a(t *testing.T) {
 	assert.Equal(t, key.Key{
 		Name:    "a",
 		KeyCode: 97,
-		Event:   key.EventRelease,
+		Event:   key.Release,
 	}, k)
 }
 

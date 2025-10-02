@@ -85,7 +85,7 @@ func Test_1_4_8_16_2_ReportEventTypes(t *testing.T) {
 		KeyCode:   1078,
 		ShiftCode: 1046,
 		BaseCode:  59,
-		Event:     key.EventRepeat,
+		Event:     key.Repeat,
 		Text:      "Ж",
 		Mods:      key.Shift,
 	}, k)
@@ -97,7 +97,7 @@ func Test_1_4_8_16_2_ReportEventTypes(t *testing.T) {
 		Name:     "ж",
 		KeyCode:  1078,
 		BaseCode: 59,
-		Event:    key.EventRelease,
+		Event:    key.Release,
 		Mods:     key.Shift,
 	}, k)
 }

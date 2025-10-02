@@ -58,7 +58,7 @@ func TestINSERT(t *testing.T) {
 	assert.Equal(t, key.Key{
 		Name:    "INSERT",
 		KeyCode: 2,
-		Event:   key.EventRepeat,
+		Event:   key.Repeat,
 	}, k)
 
 	k, n, ok = key.Parse([]byte("\x1b[2;1:3~"))
@@ -67,6 +67,6 @@ func TestINSERT(t *testing.T) {
 	assert.Equal(t, key.Key{
 		Name:    "INSERT",
 		KeyCode: 2,
-		Event:   key.EventRelease,
+		Event:   key.Release,
 	}, k)
 }

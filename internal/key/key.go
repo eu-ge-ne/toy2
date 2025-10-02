@@ -18,14 +18,6 @@ type Key struct {
 	Mods      Mods
 }
 
-type Event uint8
-
-const (
-	EventPress Event = iota
-	EventRepeat
-	EventRelease
-)
-
 const rePrefix = `(\x1b\x5b|\x1b\x4f)`
 const reCodes = `(?:(\d+)(?::(\d*))?(?::(\d*))?)?`
 const reParams = `(?:;(\d*)?(?::(\d*))?)?`
@@ -85,15 +77,7 @@ func Parse(raw []byte) (Key, int, bool) {
 	key.BaseCode = rune(baseCode)
 
 	key.Mods = parseMods(match[5])
-
-	switch string(match[6]) {
-	case "2":
-		key.Event = EventRepeat
-	case "3":
-		key.Event = EventRelease
-	default:
-		key.Event = EventPress
-	}
+	key.Event = parseEvent(match[6])
 
 	if len(match[7]) > 0 {
 		cps := strings.Split(string(match[7]), ":")

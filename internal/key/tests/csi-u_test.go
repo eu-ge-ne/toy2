@@ -58,7 +58,7 @@ func TestESC(t *testing.T) {
 	assert.Equal(t, key.Key{
 		Name:    "ESC",
 		KeyCode: 27,
-		Event:   key.EventRepeat,
+		Event:   key.Repeat,
 	}, k)
 
 	k, n, ok = key.Parse([]byte("\x1b[27;1:3u"))
@@ -67,6 +67,6 @@ func TestESC(t *testing.T) {
 	assert.Equal(t, key.Key{
 		Name:    "ESC",
 		KeyCode: 27,
-		Event:   key.EventRelease,
+		Event:   key.Release,
 	}, k)
 }
