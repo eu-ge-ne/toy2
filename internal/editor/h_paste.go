@@ -8,10 +8,10 @@ type PasteHandler struct {
 	editor *Editor
 }
 
-func (h *PasteHandler) Match(key *key.Key) bool {
-	return key.Name == "v" && (key.Ctrl || key.Super)
+func (h *PasteHandler) Match(k key.Key) bool {
+	return k.Name == "v" && (k.Mods&key.Ctrl != 0 || k.Mods&key.Super != 0)
 }
 
-func (h *PasteHandler) Handle(key *key.Key) bool {
+func (h *PasteHandler) Handle(key.Key) bool {
 	return h.editor.Paste()
 }

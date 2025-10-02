@@ -8,10 +8,10 @@ type RightHandler struct {
 	editor *Editor
 }
 
-func (h *RightHandler) Match(key *key.Key) bool {
-	return key.Name == "RIGHT"
+func (h *RightHandler) Match(k key.Key) bool {
+	return k.Name == "RIGHT"
 }
 
-func (h *RightHandler) Handle(key *key.Key) bool {
-	return h.editor.Cursor.Right(key.Shift)
+func (h *RightHandler) Handle(k key.Key) bool {
+	return h.editor.Cursor.Right(k.Mods&key.Shift != 0)
 }

@@ -8,14 +8,14 @@ type TopHandler struct {
 	editor *Editor
 }
 
-func (h *TopHandler) Match(key *key.Key) bool {
-	return key.Name == "UP" && key.Super
+func (h *TopHandler) Match(k key.Key) bool {
+	return k.Name == "UP" && k.Mods&key.Super != 0
 }
 
-func (h *TopHandler) Handle(key *key.Key) bool {
+func (h *TopHandler) Handle(k key.Key) bool {
 	if !h.editor.multiLine {
 		return false
 	}
 
-	return h.editor.Cursor.Top(key.Shift)
+	return h.editor.Cursor.Top(k.Mods&key.Shift != 0)
 }

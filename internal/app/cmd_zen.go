@@ -21,8 +21,8 @@ func (c *ZenCommand) Option() *palette.Option {
 	return c.option
 }
 
-func (c *ZenCommand) Match(key *key.Key) bool {
-	return key.Name == "F11"
+func (c *ZenCommand) Match(k key.Key) bool {
+	return k.Name == "F11"
 }
 
 func (c *ZenCommand) Run() {

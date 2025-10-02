@@ -10,7 +10,7 @@ import (
 	"github.com/eu-ge-ne/toy2/internal/key"
 )
 
-func (ed *Editor) HandleKey(key *key.Key) bool {
+func (ed *Editor) HandleKey(key key.Key) bool {
 	t0 := time.Now()
 
 	i := slices.IndexFunc(ed.handlers, func(h Handler) bool {

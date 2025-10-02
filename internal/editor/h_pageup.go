@@ -8,14 +8,14 @@ type PageUpHandler struct {
 	editor *Editor
 }
 
-func (h *PageUpHandler) Match(key *key.Key) bool {
-	return key.Name == "PAGE_UP"
+func (h *PageUpHandler) Match(k key.Key) bool {
+	return k.Name == "PAGE_UP"
 }
 
-func (h *PageUpHandler) Handle(key *key.Key) bool {
+func (h *PageUpHandler) Handle(k key.Key) bool {
 	if !h.editor.multiLine {
 		return false
 	}
 
-	return h.editor.Cursor.Up(h.editor.area.H, key.Shift)
+	return h.editor.Cursor.Up(h.editor.area.H, k.Mods&key.Shift != 0)
 }

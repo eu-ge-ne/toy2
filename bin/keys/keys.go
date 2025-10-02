@@ -42,7 +42,7 @@ func main() {
 		raw := buf[:bytesRead]
 
 		for i := 0; i < bytesRead; {
-			key, bytesParsed, ok := key.Parse(raw[i:])
+			k, bytesParsed, ok := key.Parse(raw[i:])
 
 			if !ok {
 				next_esc_i := bytes.Index(raw[1:], []byte{0x1b})
@@ -60,9 +60,9 @@ func main() {
 				continue
 			}
 
-			fmt.Printf("%d: %+v\r\n", j, key)
+			fmt.Printf("%d: %+v\r\n", j, k)
 
-			if key.Name == "c" && key.Ctrl {
+			if k.Name == "c" && k.Mods == key.Ctrl {
 				return
 			}
 

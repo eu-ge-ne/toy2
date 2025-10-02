@@ -10,26 +10,13 @@ import (
 
 type Key struct {
 	Name      string
-	KeyCode   int
-	ShiftCode int
-	BaseCode  int
+	KeyCode   rune
+	ShiftCode rune
+	BaseCode  rune
 	Event     Event
 	Text      string
-	Shift     bool
-	Alt       bool
-	Ctrl      bool
-	Super     bool
-	CapsLock  bool
-	NumLock   bool
+	Mods      Mods
 }
-
-type Event int
-
-const (
-	EventPress Event = iota
-	EventRepeat
-	EventRelease
-)
 
 const rePrefix = `(\x1b\x5b|\x1b\x4f)`
 const reCodes = `(?:(\d+)(?::(\d*))?(?::(\d*))?)?`
@@ -56,14 +43,14 @@ func Parse(raw []byte) (Key, int, bool) {
 	case b == 0x7f || b == 0x08:
 		return Key{Name: "BACKSPACE"}, 1, true
 	case b != 0x1b:
-		next_esc_i := bytes.IndexByte(raw[1:], 0x1b)
-		if next_esc_i < 0 {
-			next_esc_i = len(raw)
+		n := bytes.IndexByte(raw[1:], 0x1b)
+		if n < 0 {
+			n = len(raw)
 		} else {
-			next_esc_i += 1
+			n += 1
 		}
-		text := string(raw[:next_esc_i])
-		return Key{Name: text, Text: text}, next_esc_i, true
+		text := string(raw[:n])
+		return Key{Name: text, Text: text}, n, true
 	}
 
 	match := re.FindSubmatch(raw)
@@ -85,31 +72,12 @@ func Parse(raw []byte) (Key, int, bool) {
 	shiftCode, _ := strconv.Atoi(string(match[3]))
 	baseCode, _ := strconv.Atoi(string(match[4]))
 
-	key.KeyCode = code
-	key.ShiftCode = shiftCode
-	key.BaseCode = baseCode
+	key.KeyCode = rune(code)
+	key.ShiftCode = rune(shiftCode)
+	key.BaseCode = rune(baseCode)
 
-	mods, err := strconv.Atoi(string(match[5]))
-	if err != nil {
-		mods = 1
-	}
-	mods -= 1
-
-	key.Shift = mods&1 == 1
-	key.Alt = mods&2 == 2
-	key.Ctrl = mods&4 == 4
-	key.Super = mods&8 == 8
-	key.CapsLock = mods&64 == 64
-	key.NumLock = mods&128 == 128
-
-	switch string(match[6]) {
-	case "2":
-		key.Event = EventRepeat
-	case "3":
-		key.Event = EventRelease
-	default:
-		key.Event = EventPress
-	}
+	key.Mods = parseMods(match[5])
+	key.Event = parseEvent(match[6])
 
 	if len(match[7]) > 0 {
 		cps := strings.Split(string(match[7]), ":")
@@ -128,80 +96,23 @@ func Parse(raw []byte) (Key, int, bool) {
 	return key, index[1] - index[0], true
 }
 
-var funcNames = map[string]string{
-	"\x1b[27u":  "ESC",
-	"\x1b[13u":  "ENTER",
-	"\x1b[9u":   "TAB",
-	"\x1b[127u": "BACKSPACE",
+func (k Key) Shortcut() string {
+	s := ""
 
-	"\x1b[2~": "INSERT",
-	"\x1b[3~": "DELETE",
+	if k.Mods&Shift != 0 {
+		s += "⇧"
+	}
+	if k.Mods&Ctrl != 0 {
+		s += "⌃"
+	}
+	if k.Mods&Alt != 0 {
+		s += "⌥"
+	}
+	if k.Mods&Super != 0 {
+		s += "⌘"
+	}
 
-	"\x1b[1D": "LEFT",
-	"\x1b[D":  "LEFT",
-	"\x1bOD":  "LEFT",
-	"\x1b[1C": "RIGHT",
-	"\x1b[C":  "RIGHT",
-	"\x1bOC":  "RIGHT",
-	"\x1b[1A": "UP",
-	"\x1b[A":  "UP",
-	"\x1bOA":  "UP",
-	"\x1b[1B": "DOWN",
-	"\x1b[B":  "DOWN",
-	"\x1bOB":  "DOWN",
+	s += strings.ToUpper(k.Name)
 
-	"\x1b[5~": "PAGE_UP",
-	"\x1b[6~": "PAGE_DOWN",
-
-	"\x1b[7~": "HOME",
-	"\x1b[1H": "HOME",
-	"\x1b[H":  "HOME",
-	"\x1bOH":  "HOME",
-	"\x1b[8~": "END",
-	"\x1b[1F": "END",
-	"\x1b[F":  "END",
-	"\x1bOF":  "END",
-
-	"\x1b[57358u": "CAPS_LOCK",
-	"\x1b[57359u": "SCROLL_LOCK",
-	"\x1b[57360u": "NUM_LOCK",
-	"\x1b[57361u": "PRINT_SCREEN",
-	"\x1b[57362u": "PAUSE",
-	"\x1b[57363u": "MENU",
-
-	"\x1b[11~": "F1",
-	"\x1b[1P":  "F1",
-	"\x1b[P":   "F1",
-	"\x1bOP":   "F1",
-
-	"\x1b[12~": "F2",
-	"\x1b[1Q":  "F2",
-	"\x1b[Q":   "F2",
-	"\x1bOQ":   "F2",
-
-	"\x1b[13~": "F3",
-	"\x1bOR":   "F3",
-
-	"\x1b[14~": "F4",
-	"\x1b[1S":  "F4",
-	"\x1b[S":   "F4",
-	"\x1bOS":   "F4",
-
-	"\x1b[15~": "F5",
-	"\x1b[17~": "F6",
-	"\x1b[18~": "F7",
-	"\x1b[19~": "F8",
-	"\x1b[20~": "F9",
-	"\x1b[21~": "F10",
-	"\x1b[23~": "F11",
-	"\x1b[24~": "F12",
-
-	"\x1b[57441u": "LEFT_SHIFT",
-	"\x1b[57442u": "LEFT_CONTROL",
-	"\x1b[57443u": "LEFT_ALT",
-	"\x1b[57444u": "LEFT_SUPER",
-	"\x1b[57447u": "RIGHT_SHIFT",
-	"\x1b[57448u": "RIGHT_CONTROL",
-	"\x1b[57449u": "RIGHT_ALT",
-	"\x1b[57450u": "RIGHT_SUPER",
+	return s
 }

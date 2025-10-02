@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-type Flags = int
+type Flags int
 
 const (
 	FLAG_DISAMBIGUATE Flags = 1

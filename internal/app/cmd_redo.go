@@ -12,8 +12,12 @@ type RedoCommand struct {
 
 func NewRedoCommand(app *App) *RedoCommand {
 	return &RedoCommand{
-		app:    app,
-		option: palette.NewOption("Redo", "Edit: Redo", []key.Key{{Name: "y", Ctrl: true}, {Name: "y", Super: true}}),
+		app: app,
+		option: palette.NewOption(
+			"Redo",
+			"Edit: Redo",
+			[]key.Key{{Name: "y", Mods: key.Ctrl}, {Name: "y", Mods: key.Super}},
+		),
 	}
 }
 
@@ -21,7 +25,7 @@ func (c *RedoCommand) Option() *palette.Option {
 	return c.option
 }
 
-func (c *RedoCommand) Match(key *key.Key) bool {
+func (c *RedoCommand) Match(key.Key) bool {
 	return false
 }
 

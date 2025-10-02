@@ -23,7 +23,7 @@ func TestLEFT(t *testing.T) {
 	assert.Equal(t, key.Key{
 		Name:    "LEFT",
 		KeyCode: 1,
-		Ctrl:    true,
+		Mods:    key.Ctrl,
 	}, k)
 
 	k, n, ok = key.Parse([]byte("\x1b[1;3D"))
@@ -32,7 +32,7 @@ func TestLEFT(t *testing.T) {
 	assert.Equal(t, key.Key{
 		Name:    "LEFT",
 		KeyCode: 1,
-		Alt:     true,
+		Mods:    key.Alt,
 	}, k)
 
 	k, n, ok = key.Parse([]byte("\x1b[1;2D"))
@@ -41,7 +41,7 @@ func TestLEFT(t *testing.T) {
 	assert.Equal(t, key.Key{
 		Name:    "LEFT",
 		KeyCode: 1,
-		Shift:   true,
+		Mods:    key.Shift,
 	}, k)
 
 	k, n, ok = key.Parse([]byte("\x1b[1;1:1D"))
@@ -58,7 +58,7 @@ func TestLEFT(t *testing.T) {
 	assert.Equal(t, key.Key{
 		Name:    "LEFT",
 		KeyCode: 1,
-		Event:   key.EventRepeat,
+		Event:   key.Repeat,
 	}, k)
 
 	k, n, ok = key.Parse([]byte("\x1b[1;1:3D"))
@@ -67,6 +67,6 @@ func TestLEFT(t *testing.T) {
 	assert.Equal(t, key.Key{
 		Name:    "LEFT",
 		KeyCode: 1,
-		Event:   key.EventRelease,
+		Event:   key.Release,
 	}, k)
 }

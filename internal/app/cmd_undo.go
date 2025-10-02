@@ -12,8 +12,12 @@ type UndoCommand struct {
 
 func NewUndoCommand(app *App) *UndoCommand {
 	return &UndoCommand{
-		app:    app,
-		option: palette.NewOption("Undo", "Edit: Undo", []key.Key{{Name: "z", Ctrl: true}, {Name: "z", Super: true}}),
+		app: app,
+		option: palette.NewOption(
+			"Undo",
+			"Edit: Undo",
+			[]key.Key{{Name: "z", Mods: key.Ctrl}, {Name: "z", Mods: key.Super}},
+		),
 	}
 }
 
@@ -21,7 +25,7 @@ func (c *UndoCommand) Option() *palette.Option {
 	return c.option
 }
 
-func (c *UndoCommand) Match(key *key.Key) bool {
+func (c *UndoCommand) Match(key.Key) bool {
 	return false
 }
 

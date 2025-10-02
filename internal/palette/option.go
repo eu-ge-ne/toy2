@@ -15,22 +15,8 @@ type Option struct {
 func NewOption(id string, description string, keys []key.Key) *Option {
 	shortcuts := make([]string, len(keys))
 
-	for i, key := range keys {
-		s := ""
-		if key.Shift {
-			s += "⇧"
-		}
-		if key.Ctrl {
-			s += "⌃"
-		}
-		if key.Alt {
-			s += "⌥"
-		}
-		if key.Super {
-			s += "⌘"
-		}
-		s += strings.ToUpper(key.Name)
-		shortcuts[i] = s
+	for i, k := range keys {
+		shortcuts[i] = k.Shortcut()
 	}
 
 	return &Option{

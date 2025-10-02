@@ -8,14 +8,14 @@ type DownHandler struct {
 	editor *Editor
 }
 
-func (h *DownHandler) Match(key *key.Key) bool {
-	return key.Name == "DOWN"
+func (h *DownHandler) Match(k key.Key) bool {
+	return k.Name == "DOWN"
 }
 
-func (h *DownHandler) Handle(key *key.Key) bool {
+func (h *DownHandler) Handle(k key.Key) bool {
 	if !h.editor.multiLine {
 		return false
 	}
 
-	return h.editor.Cursor.Down(1, key.Shift)
+	return h.editor.Cursor.Down(1, k.Mods&key.Shift != 0)
 }

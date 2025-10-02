@@ -5,6 +5,6 @@ import (
 )
 
 type Handler interface {
-	Match(key *key.Key) bool
-	Handle(key *key.Key) bool
+	Match(key.Key) bool
+	Handle(key.Key) bool
 }
