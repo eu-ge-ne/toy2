@@ -1,9 +1,9 @@
 package grapheme
 
-var Graphemes *GraphemePool
+var Graphemes GraphemePool
 
 func init() {
-	m := map[string]*Grapheme{
+	pool := map[string]*Grapheme{
 		"\u0000": NewGrapheme("\u0000", []byte("␀"), 1),
 		"\u0001": NewGrapheme("\u0001", []byte("␁"), 1),
 		"\u0002": NewGrapheme("\u0002", []byte("␂"), 1),
@@ -44,8 +44,8 @@ func init() {
 	for i := 0x21; i < 0x7f; i += 1 {
 		s := string(rune(i))
 
-		m[s] = NewGrapheme(s, []byte(s), 1)
+		pool[s] = NewGrapheme(s, []byte(s), 1)
 	}
 
-	Graphemes = NewGraphemePool(m)
+	Graphemes = GraphemePool{pool: pool}
 }
