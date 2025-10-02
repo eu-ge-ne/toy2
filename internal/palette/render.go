@@ -13,19 +13,27 @@ func (p *Palette) Render() {
 		return
 	}
 
-	p.resize()
+	area := p.resize2()
+
+	p.editor.Layout(ui.Area{
+		Y: area.Y + 1,
+		X: area.X + 2,
+		W: area.W - 4,
+		H: 1,
+	})
+
 	p.scroll()
 
 	vt.Sync.Bsu()
 
 	vt.Buf.Write(vt.HideCursor)
 	vt.Buf.Write(p.colorBackground)
-	vt.ClearArea(vt.Buf, p.area)
+	vt.ClearArea(vt.Buf, area)
 
 	if len(p.filteredOptions) == 0 {
-		p.renderEmpty()
+		p.renderEmpty(area)
 	} else {
-		p.renderOptions()
+		p.renderOptions(area)
 	}
 
 	p.editor.Render()
@@ -35,30 +43,25 @@ func (p *Palette) Render() {
 	vt.Sync.Esu()
 }
 
-func (p *Palette) resize() {
-	a := p.parent.Area()
-
+func (p *Palette) resize2() ui.Area {
 	p.listSize = min(len(p.filteredOptions), maxListSize)
 
-	p.area.W = min(60, a.W)
+	area := ui.Area{}
 
-	p.area.H = 3 + max(p.listSize, 1)
-	if p.area.H > a.H {
-		p.area.H = a.H
+	area.W = min(60, p.area.W)
+
+	area.H = 3 + max(p.listSize, 1)
+	if area.H > p.area.H {
+		area.H = p.area.H
 		if p.listSize > 0 {
-			p.listSize = p.area.H - 3
+			p.listSize = area.H - 3
 		}
 	}
 
-	p.area.Y = a.Y + ((a.H - p.area.H) / 2)
-	p.area.X = a.X + ((a.W - p.area.W) / 2)
+	area.Y = p.area.Y + ((p.area.H - area.H) / 2)
+	area.X = p.area.X + ((p.area.W - area.W) / 2)
 
-	p.editor.Layout(ui.Area{
-		Y: p.area.Y + 1,
-		X: p.area.X + 2,
-		W: p.area.W - 4,
-		H: 1,
-	})
+	return area
 }
 
 func (p *Palette) scroll() {
@@ -71,15 +74,15 @@ func (p *Palette) scroll() {
 	}
 }
 
-func (p *Palette) renderEmpty() {
-	vt.SetCursor(vt.Buf, p.area.Y+2, p.area.X+2)
+func (p *Palette) renderEmpty(area ui.Area) {
+	vt.SetCursor(vt.Buf, area.Y+2, area.X+2)
 	vt.Buf.Write(p.colorOption)
 	io.WriteString(vt.Buf, "No matching commands")
 }
 
-func (p *Palette) renderOptions() {
+func (p *Palette) renderOptions(area ui.Area) {
 	i := 0
-	y := p.area.Y + 2
+	y := area.Y + 2
 
 	for {
 		if i == p.listSize {
@@ -92,11 +95,11 @@ func (p *Palette) renderOptions() {
 			break
 		}
 
-		if y == p.area.Y+p.area.H {
+		if y == area.Y+area.H {
 			break
 		}
 
-		span := p.area.W - 4
+		span := area.W - 4
 
 		if index == p.selectedIndex {
 			vt.Buf.Write(p.colorSelectedOption)
@@ -104,7 +107,7 @@ func (p *Palette) renderOptions() {
 			vt.Buf.Write(p.colorOption)
 		}
 
-		vt.SetCursor(vt.Buf, y, p.area.X+2)
+		vt.SetCursor(vt.Buf, y, area.X+2)
 		vt.WriteText(vt.Buf, &span, option.Description)
 		vt.WriteText(vt.Buf, &span, fmt.Sprintf("%*s", span, option.shortcuts))
 

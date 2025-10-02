@@ -35,15 +35,17 @@ func New(parent ui.Control, options []*Option) *Palette {
 	}
 }
 
-func (d *Palette) SetColors(t theme.Tokens) {
-	d.colorBackground = t.Light1Bg()
-	d.colorOption = append(t.Light1Bg(), t.Light1Fg()...)
-	d.colorSelectedOption = append(t.Light2Bg(), t.Light1Fg()...)
+func (p *Palette) SetColors(t theme.Tokens) {
+	p.colorBackground = t.Light1Bg()
+	p.colorOption = append(t.Light1Bg(), t.Light1Fg()...)
+	p.colorSelectedOption = append(t.Light2Bg(), t.Light1Fg()...)
 
-	d.editor.SetColors(t)
+	p.editor.SetColors(t)
 }
 
-func (*Palette) Layout(ui.Area) {}
+func (p *Palette) Layout(a ui.Area) {
+	p.area = a
+}
 
 func (p *Palette) Open(done chan<- *Option) {
 	p.enabled = true
