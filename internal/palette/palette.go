@@ -18,7 +18,6 @@ type Palette struct {
 	options         []*Option
 	filteredOptions []*Option
 	editor          *editor.Editor
-	listSize        int
 	selectedIndex   int
 	scrollIndex     int
 

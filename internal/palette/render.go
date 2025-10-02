@@ -13,7 +13,7 @@ func (p *Palette) Render() {
 		return
 	}
 
-	area := p.resize2()
+	listSize, area := p.resize()
 
 	p.editor.Layout(ui.Area{
 		Y: area.Y + 1,
@@ -22,7 +22,7 @@ func (p *Palette) Render() {
 		H: 1,
 	})
 
-	p.scroll()
+	p.scroll(listSize)
 
 	vt.Sync.Bsu()
 
@@ -33,7 +33,7 @@ func (p *Palette) Render() {
 	if len(p.filteredOptions) == 0 {
 		p.renderEmpty(area)
 	} else {
-		p.renderOptions(area)
+		p.renderOptions(listSize, area)
 	}
 
 	p.editor.Render()
@@ -43,34 +43,34 @@ func (p *Palette) Render() {
 	vt.Sync.Esu()
 }
 
-func (p *Palette) resize2() ui.Area {
-	p.listSize = min(len(p.filteredOptions), maxListSize)
+func (p *Palette) resize() (listSize int, area ui.Area) {
+	listSize = min(len(p.filteredOptions), maxListSize)
 
-	area := ui.Area{}
+	area = ui.Area{}
 
 	area.W = min(60, p.area.W)
 
-	area.H = 3 + max(p.listSize, 1)
+	area.H = 3 + max(listSize, 1)
 	if area.H > p.area.H {
 		area.H = p.area.H
-		if p.listSize > 0 {
-			p.listSize = area.H - 3
+		if listSize > 0 {
+			listSize = area.H - 3
 		}
 	}
 
 	area.Y = p.area.Y + ((p.area.H - area.H) / 2)
 	area.X = p.area.X + ((p.area.W - area.W) / 2)
 
-	return area
+	return
 }
 
-func (p *Palette) scroll() {
+func (p *Palette) scroll(listSize int) {
 	delta := p.selectedIndex - p.scrollIndex
 
 	if delta < 0 {
 		p.scrollIndex = p.selectedIndex
-	} else if delta >= p.listSize {
-		p.scrollIndex = p.selectedIndex - p.listSize + 1
+	} else if delta >= listSize {
+		p.scrollIndex = p.selectedIndex - listSize + 1
 	}
 }
 
@@ -80,12 +80,12 @@ func (p *Palette) renderEmpty(area ui.Area) {
 	io.WriteString(vt.Buf, "No matching commands")
 }
 
-func (p *Palette) renderOptions(area ui.Area) {
+func (p *Palette) renderOptions(listSize int, area ui.Area) {
 	i := 0
 	y := area.Y + 2
 
 	for {
-		if i == p.listSize {
+		if i == listSize {
 			break
 		}
 
