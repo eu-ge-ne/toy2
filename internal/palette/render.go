@@ -13,19 +13,27 @@ func (p *Palette) Render() {
 		return
 	}
 
-	p.resize()
-	p.scroll()
+	listSize, area := p.resize()
+
+	p.editor.Layout(ui.Area{
+		Y: area.Y + 1,
+		X: area.X + 2,
+		W: area.W - 4,
+		H: 1,
+	})
+
+	p.scroll(listSize)
 
 	vt.Sync.Bsu()
 
 	vt.Buf.Write(vt.HideCursor)
 	vt.Buf.Write(p.colorBackground)
-	vt.ClearArea(vt.Buf, p.area)
+	vt.ClearArea(vt.Buf, area)
 
 	if len(p.filteredOptions) == 0 {
-		p.renderEmpty()
+		p.renderEmpty(area)
 	} else {
-		p.renderOptions()
+		p.renderOptions(listSize, area)
 	}
 
 	p.editor.Render()
@@ -35,54 +43,49 @@ func (p *Palette) Render() {
 	vt.Sync.Esu()
 }
 
-func (p *Palette) resize() {
-	a := p.parent.Area()
+func (p *Palette) resize() (listSize int, area ui.Area) {
+	listSize = min(len(p.filteredOptions), maxListSize)
 
-	p.listSize = min(len(p.filteredOptions), maxListSize)
+	area = ui.Area{}
 
-	p.area.W = min(60, a.W)
+	area.W = min(60, p.area.W)
 
-	p.area.H = 3 + max(p.listSize, 1)
-	if p.area.H > a.H {
-		p.area.H = a.H
-		if p.listSize > 0 {
-			p.listSize = p.area.H - 3
+	area.H = 3 + max(listSize, 1)
+	if area.H > p.area.H {
+		area.H = p.area.H
+		if listSize > 0 {
+			listSize = area.H - 3
 		}
 	}
 
-	p.area.Y = a.Y + ((a.H - p.area.H) / 2)
-	p.area.X = a.X + ((a.W - p.area.W) / 2)
+	area.Y = p.area.Y + ((p.area.H - area.H) / 2)
+	area.X = p.area.X + ((p.area.W - area.W) / 2)
 
-	p.editor.Layout(ui.Area{
-		Y: p.area.Y + 1,
-		X: p.area.X + 2,
-		W: p.area.W - 4,
-		H: 1,
-	})
+	return
 }
 
-func (p *Palette) scroll() {
+func (p *Palette) scroll(listSize int) {
 	delta := p.selectedIndex - p.scrollIndex
 
 	if delta < 0 {
 		p.scrollIndex = p.selectedIndex
-	} else if delta >= p.listSize {
-		p.scrollIndex = p.selectedIndex - p.listSize + 1
+	} else if delta >= listSize {
+		p.scrollIndex = p.selectedIndex - listSize + 1
 	}
 }
 
-func (p *Palette) renderEmpty() {
-	vt.SetCursor(vt.Buf, p.area.Y+2, p.area.X+2)
+func (p *Palette) renderEmpty(area ui.Area) {
+	vt.SetCursor(vt.Buf, area.Y+2, area.X+2)
 	vt.Buf.Write(p.colorOption)
 	io.WriteString(vt.Buf, "No matching commands")
 }
 
-func (p *Palette) renderOptions() {
+func (p *Palette) renderOptions(listSize int, area ui.Area) {
 	i := 0
-	y := p.area.Y + 2
+	y := area.Y + 2
 
 	for {
-		if i == p.listSize {
+		if i == listSize {
 			break
 		}
 
@@ -92,11 +95,11 @@ func (p *Palette) renderOptions() {
 			break
 		}
 
-		if y == p.area.Y+p.area.H {
+		if y == area.Y+area.H {
 			break
 		}
 
-		span := p.area.W - 4
+		span := area.W - 4
 
 		if index == p.selectedIndex {
 			vt.Buf.Write(p.colorSelectedOption)
@@ -104,7 +107,7 @@ func (p *Palette) renderOptions() {
 			vt.Buf.Write(p.colorOption)
 		}
 
-		vt.SetCursor(vt.Buf, y, p.area.X+2)
+		vt.SetCursor(vt.Buf, y, area.X+2)
 		vt.WriteText(vt.Buf, &span, option.Description)
 		vt.WriteText(vt.Buf, &span, fmt.Sprintf("%*s", span, option.shortcuts))
 
