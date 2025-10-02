@@ -7,7 +7,7 @@ import (
 
 type ZenCommand struct {
 	app    *App
-	option *palette.Option
+	option palette.Option
 }
 
 func NewZenCommand(app *App) *ZenCommand {
@@ -18,7 +18,7 @@ func NewZenCommand(app *App) *ZenCommand {
 }
 
 func (c *ZenCommand) Option() *palette.Option {
-	return c.option
+	return &c.option
 }
 
 func (c *ZenCommand) Match(k key.Key) bool {

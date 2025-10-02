@@ -7,7 +7,7 @@ import (
 
 type SaveCommand struct {
 	app    *App
-	option *palette.Option
+	option palette.Option
 }
 
 func NewSaveCommand(app *App) *SaveCommand {
@@ -18,7 +18,7 @@ func NewSaveCommand(app *App) *SaveCommand {
 }
 
 func (c *SaveCommand) Option() *palette.Option {
-	return c.option
+	return &c.option
 }
 
 func (c *SaveCommand) Match(k key.Key) bool {

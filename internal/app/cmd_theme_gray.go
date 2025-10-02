@@ -8,7 +8,7 @@ import (
 
 type GrayThemeCommand struct {
 	app    *App
-	option *palette.Option
+	option palette.Option
 }
 
 func NewGrayThemeCommand(app *App) *GrayThemeCommand {
@@ -19,7 +19,7 @@ func NewGrayThemeCommand(app *App) *GrayThemeCommand {
 }
 
 func (c *GrayThemeCommand) Option() *palette.Option {
-	return c.option
+	return &c.option
 }
 
 func (c *GrayThemeCommand) Match(key.Key) bool {

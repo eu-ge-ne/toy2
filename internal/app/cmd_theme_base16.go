@@ -8,7 +8,7 @@ import (
 
 type Base16ThemeCommand struct {
 	app    *App
-	option *palette.Option
+	option palette.Option
 }
 
 func NewBase16ThemeCommand(app *App) *Base16ThemeCommand {
@@ -19,7 +19,7 @@ func NewBase16ThemeCommand(app *App) *Base16ThemeCommand {
 }
 
 func (c *Base16ThemeCommand) Option() *palette.Option {
-	return c.option
+	return &c.option
 }
 
 func (c *Base16ThemeCommand) Match(key.Key) bool {

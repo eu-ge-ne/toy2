@@ -7,7 +7,7 @@ import (
 
 type DebugCommand struct {
 	app    *App
-	option *palette.Option
+	option palette.Option
 }
 
 func NewDebugCommand(app *App) *DebugCommand {
@@ -18,7 +18,7 @@ func NewDebugCommand(app *App) *DebugCommand {
 }
 
 func (c *DebugCommand) Option() *palette.Option {
-	return c.option
+	return &c.option
 }
 
 func (c *DebugCommand) Match(key.Key) bool {

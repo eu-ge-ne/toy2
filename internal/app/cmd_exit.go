@@ -7,7 +7,7 @@ import (
 
 type ExitCommand struct {
 	app    *App
-	option *palette.Option
+	option palette.Option
 }
 
 func NewExitCommand(app *App) *ExitCommand {
@@ -18,7 +18,7 @@ func NewExitCommand(app *App) *ExitCommand {
 }
 
 func (c *ExitCommand) Option() *palette.Option {
-	return c.option
+	return &c.option
 }
 
 func (c *ExitCommand) Match(k key.Key) bool {

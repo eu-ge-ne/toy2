@@ -8,7 +8,7 @@ import (
 
 type SlateThemeCommand struct {
 	app    *App
-	option *palette.Option
+	option palette.Option
 }
 
 func NewSlateThemeCommand(app *App) *SlateThemeCommand {
@@ -19,7 +19,7 @@ func NewSlateThemeCommand(app *App) *SlateThemeCommand {
 }
 
 func (c *SlateThemeCommand) Option() *palette.Option {
-	return c.option
+	return &c.option
 }
 
 func (c *SlateThemeCommand) Match(key.Key) bool {

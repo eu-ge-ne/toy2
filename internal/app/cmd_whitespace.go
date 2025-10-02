@@ -7,7 +7,7 @@ import (
 
 type WhitespaceCommand struct {
 	app    *App
-	option *palette.Option
+	option palette.Option
 }
 
 func NewWhitespaceCommand(app *App) *WhitespaceCommand {
@@ -18,7 +18,7 @@ func NewWhitespaceCommand(app *App) *WhitespaceCommand {
 }
 
 func (c *WhitespaceCommand) Option() *palette.Option {
-	return c.option
+	return &c.option
 }
 
 func (c *WhitespaceCommand) Match(k key.Key) bool {
