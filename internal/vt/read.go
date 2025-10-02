@@ -8,8 +8,8 @@ import (
 	"github.com/eu-ge-ne/toy2/internal/key"
 )
 
-var Keys = make(chan key.Key, 1_000_000)
-var Pos = make(chan int)
+var Keys = make(chan key.Key, 100_000)
+var Cpr = make(chan int)
 
 func Read() {
 	var buf []byte
@@ -24,21 +24,21 @@ func Read() {
 		buf = append(buf, chunk[:n]...)
 
 		for len(buf) > 0 {
-			if key, n, ok := key.Parse(buf); ok {
-				Keys <- key
-				buf = buf[n:]
-				continue
-			}
-
 			if match := cprRe.FindSubmatch(buf); match != nil {
 				x, err := strconv.Atoi(string(match[1]))
 				if err != nil {
 					panic(err)
 				}
 
-				Pos <- x - 1
+				Cpr <- x - 1
 				loc := cprRe.FindIndex(buf)
-				buf = buf[loc[1]:]
+				buf = append(buf[:loc[0]], buf[loc[1]:]...)
+				continue
+			}
+
+			if key, n, ok := key.Parse(buf); ok {
+				Keys <- key
+				buf = buf[n:]
 				continue
 			}
 
