@@ -1,5 +1,9 @@
 package key
 
+import (
+	"strconv"
+)
+
 type Mods byte
 
 const (
@@ -12,3 +16,13 @@ const (
 	CapsLock Mods = 64
 	NumLock  Mods = 128
 )
+
+func parseMods(b []byte) Mods {
+	mods, err := strconv.Atoi(string(b))
+
+	if err != nil {
+		mods = 1
+	}
+
+	return Mods(mods - 1)
+}

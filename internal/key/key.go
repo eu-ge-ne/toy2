@@ -84,11 +84,7 @@ func Parse(raw []byte) (Key, int, bool) {
 	key.ShiftCode = rune(shiftCode)
 	key.BaseCode = rune(baseCode)
 
-	mods, err := strconv.Atoi(string(match[5]))
-	if err != nil {
-		mods = 1
-	}
-	key.Mods = Mods(mods - 1)
+	key.Mods = parseMods(match[5])
 
 	switch string(match[6]) {
 	case "2":
