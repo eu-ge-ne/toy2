@@ -7,7 +7,7 @@ import (
 
 type RedoCommand struct {
 	app    *App
-	option *palette.Option
+	option palette.Option
 }
 
 func NewRedoCommand(app *App) *RedoCommand {
@@ -22,7 +22,7 @@ func NewRedoCommand(app *App) *RedoCommand {
 }
 
 func (c *RedoCommand) Option() *palette.Option {
-	return c.option
+	return &c.option
 }
 
 func (c *RedoCommand) Match(key.Key) bool {

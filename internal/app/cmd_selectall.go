@@ -9,7 +9,7 @@ import (
 
 type SelectAllCommand struct {
 	app    *App
-	option *palette.Option
+	option palette.Option
 }
 
 func NewSelectAllCommand(app *App) *SelectAllCommand {
@@ -24,7 +24,7 @@ func NewSelectAllCommand(app *App) *SelectAllCommand {
 }
 
 func (c *SelectAllCommand) Option() *palette.Option {
-	return c.option
+	return &c.option
 }
 
 func (c *SelectAllCommand) Match(key.Key) bool {

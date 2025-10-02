@@ -7,7 +7,7 @@ import (
 
 type WrapCommand struct {
 	app    *App
-	option *palette.Option
+	option palette.Option
 }
 
 func NewWrapCommand(app *App) *WrapCommand {
@@ -18,7 +18,7 @@ func NewWrapCommand(app *App) *WrapCommand {
 }
 
 func (c *WrapCommand) Option() *palette.Option {
-	return c.option
+	return &c.option
 }
 
 func (c *WrapCommand) Match(k key.Key) bool {

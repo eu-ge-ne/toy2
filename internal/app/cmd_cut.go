@@ -7,7 +7,7 @@ import (
 
 type CutCommand struct {
 	app    *App
-	option *palette.Option
+	option palette.Option
 }
 
 func NewCutCommand(app *App) *CutCommand {
@@ -22,7 +22,7 @@ func NewCutCommand(app *App) *CutCommand {
 }
 
 func (c *CutCommand) Option() *palette.Option {
-	return c.option
+	return &c.option
 }
 
 func (c *CutCommand) Match(key.Key) bool {

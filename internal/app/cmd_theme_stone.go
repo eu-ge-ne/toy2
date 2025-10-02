@@ -8,7 +8,7 @@ import (
 
 type StoneThemeCommand struct {
 	app    *App
-	option *palette.Option
+	option palette.Option
 }
 
 func NewStoneThemeCommand(app *App) *StoneThemeCommand {
@@ -19,7 +19,7 @@ func NewStoneThemeCommand(app *App) *StoneThemeCommand {
 }
 
 func (c *StoneThemeCommand) Option() *palette.Option {
-	return c.option
+	return &c.option
 }
 
 func (c *StoneThemeCommand) Match(key.Key) bool {

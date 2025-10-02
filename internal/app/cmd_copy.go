@@ -7,7 +7,7 @@ import (
 
 type CopyCommand struct {
 	app    *App
-	option *palette.Option
+	option palette.Option
 }
 
 func NewCopyCommand(app *App) *CopyCommand {
@@ -22,7 +22,7 @@ func NewCopyCommand(app *App) *CopyCommand {
 }
 
 func (c *CopyCommand) Option() *palette.Option {
-	return c.option
+	return &c.option
 }
 
 func (c *CopyCommand) Match(key.Key) bool {

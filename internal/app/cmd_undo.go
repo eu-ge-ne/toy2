@@ -7,7 +7,7 @@ import (
 
 type UndoCommand struct {
 	app    *App
-	option *palette.Option
+	option palette.Option
 }
 
 func NewUndoCommand(app *App) *UndoCommand {
@@ -22,7 +22,7 @@ func NewUndoCommand(app *App) *UndoCommand {
 }
 
 func (c *UndoCommand) Option() *palette.Option {
-	return c.option
+	return &c.option
 }
 
 func (c *UndoCommand) Match(key.Key) bool {
