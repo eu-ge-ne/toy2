@@ -86,30 +86,30 @@ func (p *Palette) filter() {
 
 func (p *Palette) processInput() *Option {
 	for {
-		for key := range vt.Keys {
-			switch key.Name {
-			case "ESC":
-				return nil
-			case "ENTER":
-				return p.filteredOptions[p.selectedIndex]
-			case "UP":
-				if len(p.filteredOptions) > 0 {
-					p.selectedIndex = max(p.selectedIndex-1, 0)
-					p.parent.Render()
-				}
-				continue
-			case "DOWN":
-				if len(p.filteredOptions) > 0 {
-					p.selectedIndex = min(p.selectedIndex+1, len(p.filteredOptions)-1)
-					p.parent.Render()
-				}
-				continue
-			}
+		key := vt.ReadKey()
 
-			if p.editor.HandleKey(key) {
-				p.filter()
+		switch key.Name {
+		case "ESC":
+			return nil
+		case "ENTER":
+			return p.filteredOptions[p.selectedIndex]
+		case "UP":
+			if len(p.filteredOptions) > 0 {
+				p.selectedIndex = max(p.selectedIndex-1, 0)
 				p.parent.Render()
 			}
+			continue
+		case "DOWN":
+			if len(p.filteredOptions) > 0 {
+				p.selectedIndex = min(p.selectedIndex+1, len(p.filteredOptions)-1)
+				p.parent.Render()
+			}
+			continue
+		}
+
+		if p.editor.HandleKey(key) {
+			p.filter()
+			p.parent.Render()
 		}
 	}
 }

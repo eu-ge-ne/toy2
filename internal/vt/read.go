@@ -8,8 +8,8 @@ import (
 	"github.com/eu-ge-ne/toy2/internal/key"
 )
 
-var Keys = make(chan key.Key)
-var Cpr = make(chan int)
+var keys = make(chan key.Key)
+var cprs = make(chan int)
 
 func Read() {
 	go func() {
@@ -26,7 +26,7 @@ func Read() {
 
 			for len(buf) > 0 {
 				if key, n, ok := key.Parse(buf); ok {
-					Keys <- key
+					keys <- key
 					buf = buf[n:]
 					continue
 				}
@@ -37,7 +37,7 @@ func Read() {
 						panic(err)
 					}
 
-					Cpr <- x - 1
+					cprs <- x - 1
 					loc := cprRe.FindIndex(buf)
 					buf = buf[loc[1]:]
 					continue
@@ -52,4 +52,24 @@ func Read() {
 			}
 		}
 	}()
+}
+
+func readCpr() int {
+	for {
+		select {
+		case <-keys:
+		case cpr := <-cprs:
+			return cpr
+		}
+	}
+}
+
+func ReadKey() key.Key {
+	for {
+		select {
+		case <-cprs:
+		case key := <-keys:
+			return key
+		}
+	}
 }

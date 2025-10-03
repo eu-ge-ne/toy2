@@ -89,13 +89,13 @@ func (al *Alert) Open(text string, done chan<- struct{}) {
 
 func (al *Alert) processInput() {
 	for {
-		for key := range vt.Keys {
-			switch key.Name {
-			case "ESC":
-				return
-			case "ENTER":
-				return
-			}
+		key := vt.ReadKey()
+
+		switch key.Name {
+		case "ESC":
+			return
+		case "ENTER":
+			return
 		}
 	}
 }

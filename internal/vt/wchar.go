@@ -12,15 +12,10 @@ func Wchar(y, x int, b []byte) int {
 	Sync.Write(b)
 	Sync.Write(cprReq)
 
-	for {
-		select {
-		case <-Keys:
-		case cpr := <-Cpr:
-			w := cpr - x
-			if w < 1 {
-				panic("Wchar error")
-			}
-			return w
-		}
+	w := readCpr() - x
+	if w < 1 {
+		panic("Wchar error")
 	}
+
+	return w
 }
