@@ -130,7 +130,7 @@ func (app *App) Run() {
 	app.editor.Reset(true)
 	app.editor.Render()
 
-	vt.Read()
+	vt.ListenStdin()
 
 	app.processInput()
 }

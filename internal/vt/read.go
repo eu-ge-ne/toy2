@@ -11,7 +11,7 @@ import (
 var keys = make(chan key.Key)
 var cprs = make(chan int)
 
-func Read() {
+func ListenStdin() {
 	go func() {
 		var buf []byte
 		chunk := make([]byte, 1024)
