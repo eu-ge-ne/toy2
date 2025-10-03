@@ -14,6 +14,7 @@ var cprs = make(chan int)
 func ListenStdin() {
 	go func() {
 		var buf []byte
+
 		chunk := make([]byte, 1024)
 
 		for {
