@@ -12,7 +12,7 @@ func Wchar(y, x int, b []byte) int {
 	Sync.Write(b)
 	Sync.Write(cprReq)
 
-	w := <-Cpr - x
+	w := readCpr() - x
 	if w < 1 {
 		panic("Wchar error")
 	}

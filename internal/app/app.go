@@ -4,11 +4,11 @@ import (
 	"flag"
 	"os"
 	"os/signal"
+	"runtime"
 	"runtime/pprof"
 	"slices"
 	"strings"
 	"syscall"
-	"runtime"
 
 	"github.com/eu-ge-ne/toy2/internal/alert"
 	"github.com/eu-ge-ne/toy2/internal/ask"
@@ -130,7 +130,7 @@ func (app *App) Run() {
 	app.editor.Reset(true)
 	app.editor.Render()
 
-	go vt.Read()
+	vt.ListenStdin()
 
 	app.processInput()
 }
@@ -225,20 +225,20 @@ func (app *App) refresh() {
 
 func (app *App) processInput() {
 	for {
-		for key := range vt.Keys {
-			i := slices.IndexFunc(app.commands, func(c Command) bool {
-				return c.Match(key)
-			})
+		key := vt.ReadKey()
 
-			if i >= 0 {
-				app.commands[i].Run()
-				continue
-			}
+		i := slices.IndexFunc(app.commands, func(c Command) bool {
+			return c.Match(key)
+		})
 
-			if app.editor.Enabled {
-				if app.editor.HandleKey(key) {
-					app.editor.Render()
-				}
+		if i >= 0 {
+			app.commands[i].Run()
+			continue
+		}
+
+		if app.editor.Enabled {
+			if app.editor.HandleKey(key) {
+				app.editor.Render()
 			}
 		}
 	}

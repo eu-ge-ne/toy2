@@ -93,20 +93,20 @@ func (sv *SaveAs) Open(filePath string, done chan<- string) {
 
 func (sv *SaveAs) processInput() string {
 	for {
-		for key := range vt.Keys {
-			switch key.Name {
-			case "ESC":
-				return ""
-			case "ENTER":
-				fp := sv.editor.Buffer.Text()
-				if len(fp) > 0 {
-					return fp
-				}
-			}
+		key := vt.ReadKey()
 
-			if sv.editor.HandleKey(key) {
-				sv.editor.Render()
+		switch key.Name {
+		case "ESC":
+			return ""
+		case "ENTER":
+			fp := sv.editor.Buffer.Text()
+			if len(fp) > 0 {
+				return fp
 			}
+		}
+
+		if sv.editor.HandleKey(key) {
+			sv.editor.Render()
 		}
 	}
 }

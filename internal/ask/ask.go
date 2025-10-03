@@ -89,13 +89,13 @@ func (ask *Ask) Open(text string, done chan<- bool) {
 
 func (ask *Ask) processInput() bool {
 	for {
-		for key := range vt.Keys {
-			switch key.Name {
-			case "ESC":
-				return false
-			case "ENTER":
-				return true
-			}
+		key := vt.ReadKey()
+
+		switch key.Name {
+		case "ESC":
+			return false
+		case "ENTER":
+			return true
 		}
 	}
 }
