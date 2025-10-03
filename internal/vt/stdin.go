@@ -3,7 +3,6 @@ package vt
 import (
 	"bytes"
 	"os"
-	"strconv"
 
 	"github.com/eu-ge-ne/toy2/internal/key"
 )
@@ -32,15 +31,9 @@ func ListenStdin() {
 					continue
 				}
 
-				if match := cprRe.FindSubmatch(buf); match != nil {
-					x, err := strconv.Atoi(string(match[1]))
-					if err != nil {
-						panic(err)
-					}
-
-					cprs <- x - 1
-					loc := cprRe.FindIndex(buf)
-					buf = buf[loc[1]:]
+				if cpr, n, ok := parseCpr(buf); ok {
+					cprs <- cpr
+					buf = buf[n:]
 					continue
 				}
 
