@@ -9,7 +9,7 @@ import (
 )
 
 func TestLineAtValidIndex(t *testing.T) {
-	buf := textbuf.Create()
+	buf := textbuf.New()
 	buf.Append("Lorem\nipsum\ndolor\nsit\namet")
 
 	assert.Equal(t, "Lorem\nipsum\ndolor\nsit\namet",
@@ -27,7 +27,7 @@ func TestLineAtValidIndex(t *testing.T) {
 }
 
 func TestLineAtIndexGTELineCount(t *testing.T) {
-	buf := textbuf.Create()
+	buf := textbuf.New()
 	buf.Append("Lorem\nipsum\ndolor\nsit\namet")
 
 	assert.Equal(t, "amet",
@@ -41,7 +41,7 @@ func TestLineAtIndexGTELineCount(t *testing.T) {
 }
 
 func TestLineAtIndexLT0(t *testing.T) {
-	buf := textbuf.Create()
+	buf := textbuf.New()
 	buf.Append("Lorem\nipsum\ndolor\nsit\namet")
 
 	assert.Equal(t, "Lorem\nipsum\ndolor\nsit\namet",

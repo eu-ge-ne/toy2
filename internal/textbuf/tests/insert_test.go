@@ -9,7 +9,7 @@ import (
 )
 
 func TestInsertIntoTheEnd(t *testing.T) {
-	buf := textbuf.Create()
+	buf := textbuf.New()
 
 	buf.Insert(buf.Count(), "Lorem")
 	assert.Equal(t, "Lorem",
@@ -127,7 +127,7 @@ func TestInsertIntoTheEnd(t *testing.T) {
 }
 
 func TestInsertIntoTheBeginning(t *testing.T) {
-	buf := textbuf.Create()
+	buf := textbuf.New()
 
 	buf.Insert(0, " aliqua.")
 	assert.Equal(t, " aliqua.",
@@ -245,7 +245,7 @@ func TestInsertIntoTheBeginning(t *testing.T) {
 }
 
 func TestInsertSplittingNodes(t *testing.T) {
-	buf := textbuf.Create()
+	buf := textbuf.New()
 
 	buf.Insert(0, "Lorem aliqua.")
 	assert.Equal(t, "Lorem aliqua.",
@@ -309,7 +309,7 @@ func TestInsertSplittingNodes(t *testing.T) {
 }
 
 func TestInsertAtTheNegativeIndex(t *testing.T) {
-	buf := textbuf.Create()
+	buf := textbuf.New()
 
 	buf.Insert(0, "ipsum")
 	assert.Equal(t, "ipsum",
@@ -331,7 +331,7 @@ func TestInsertAtTheNegativeIndex(t *testing.T) {
 }
 
 func TestInsertSplittingNodeWithFixup(t *testing.T) {
-	buf := textbuf.Create()
+	buf := textbuf.New()
 
 	buf.Insert(0, "11")
 	buf.Insert(2, "22")

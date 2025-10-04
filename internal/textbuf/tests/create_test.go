@@ -9,7 +9,7 @@ import (
 )
 
 func TestCreateEmpty(t *testing.T) {
-	buf := textbuf.Create()
+	buf := textbuf.New()
 
 	assert.Equal(t, "",
 		iterToStr(buf.Read(0)))

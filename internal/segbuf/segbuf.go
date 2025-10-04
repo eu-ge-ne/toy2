@@ -22,9 +22,9 @@ type SegBuf struct {
 
 type Snapshot = textbuf.Snapshot
 
-func New() *SegBuf {
-	return &SegBuf{
-		textbuf:   textbuf.Create(),
+func New() SegBuf {
+	return SegBuf{
+		textbuf:   textbuf.New(),
 		WrapWidth: math.MaxInt,
 	}
 }
