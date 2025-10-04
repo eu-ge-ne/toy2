@@ -12,7 +12,7 @@ build: vet
 	go build -ldflags="-s -w" -o tmp/toy2 bin/toy2/main.go
 
 build_debug: vet
-	go build -gcflags=all="-N -l" -o tmp/toy2 bin/toy2/main.go
+	go build -gcflags=all="-N -l" -o tmp/toy2_debug bin/toy2/main.go
 
 tmp:
 	mkdir -p tmp
