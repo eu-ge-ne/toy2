@@ -3,6 +3,7 @@ package vt
 import (
 	"bytes"
 	"os"
+	"time"
 
 	"github.com/eu-ge-ne/toy2/internal/key"
 )
@@ -48,9 +49,13 @@ func ListenStdin() {
 	}()
 }
 
-func readCpr() int {
+func readCpr(t int) int {
+	timeout := time.After(time.Duration(t) * time.Millisecond)
+
 	for {
 		select {
+		case <-timeout:
+			return -1
 		case <-keys:
 		case cpr := <-cprs:
 			return cpr
