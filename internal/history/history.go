@@ -19,8 +19,8 @@ type entry struct {
 	snapshot segbuf.Snapshot
 }
 
-func New(buffer *segbuf.SegBuf, cursor *cursor.Cursor) *History {
-	h := &History{
+func New(buffer *segbuf.SegBuf, cursor *cursor.Cursor) History {
+	h := History{
 		buffer: buffer,
 		cursor: cursor,
 	}
