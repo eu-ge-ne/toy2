@@ -45,7 +45,7 @@ func TestDeleteCharsFromTheMiddleReversed(t *testing.T) {
 }
 
 func createTextBuf() textbuf.TextBuf {
-	buf := textbuf.Create()
+	buf := textbuf.New()
 
 	buf.Insert(buf.Count(), "Lorem")
 	buf.Insert(buf.Count(), " ipsum")
@@ -71,7 +71,7 @@ func createTextBuf() textbuf.TextBuf {
 }
 
 func createTextBufReversed() textbuf.TextBuf {
-	buf := textbuf.Create()
+	buf := textbuf.New()
 
 	buf.Insert(0, " aliqua.")
 	buf.Insert(0, " magna")

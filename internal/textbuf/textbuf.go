@@ -15,7 +15,7 @@ type Snapshot struct {
 	node *node.Node
 }
 
-func Create() TextBuf {
+func New() TextBuf {
 	return TextBuf{
 		content: content.Content{},
 		tree:    tree.Tree{Root: node.NIL},

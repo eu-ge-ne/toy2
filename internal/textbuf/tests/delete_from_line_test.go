@@ -9,7 +9,7 @@ import (
 )
 
 func TestDeleteFromLine(t *testing.T) {
-	buf := textbuf.Create()
+	buf := textbuf.New()
 	buf.Append("Lorem \nipsum \ndolor \nsit \namet")
 
 	assert.Equal(t, 5, buf.LineCount())
