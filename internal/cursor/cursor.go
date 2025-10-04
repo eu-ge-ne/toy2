@@ -21,8 +21,8 @@ type Cursor struct {
 	buffer *segbuf.SegBuf
 }
 
-func New(buffer *segbuf.SegBuf) *Cursor {
-	return &Cursor{buffer: buffer}
+func New(buffer *segbuf.SegBuf) Cursor {
+	return Cursor{buffer: buffer}
 }
 
 func (cur *Cursor) Set(ln, col int, sel bool) bool {
