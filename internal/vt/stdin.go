@@ -49,8 +49,8 @@ func ListenStdin() {
 	}()
 }
 
-func readCpr(t int) int {
-	timeout := time.After(time.Duration(t) * time.Millisecond)
+func readCpr(t time.Duration) int {
+	timeout := time.After(t)
 
 	for {
 		select {
