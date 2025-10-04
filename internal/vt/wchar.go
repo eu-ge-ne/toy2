@@ -2,6 +2,7 @@ package vt
 
 import (
 	"math"
+	"time"
 )
 
 func Wchar(y, x0 int, b []byte) int {
@@ -10,7 +11,7 @@ func Wchar(y, x0 int, b []byte) int {
 		Sync.Write(b)
 		Sync.Write(cprReq)
 
-		x1 := readCpr(int(math.Pow10(i)))
+		x1 := readCpr(time.Duration(math.Pow10(i)) * time.Millisecond)
 		if x1 < 0 {
 			continue
 		}
