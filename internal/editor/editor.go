@@ -50,12 +50,12 @@ type colors struct {
 func New(multiLine bool) *Editor {
 	b := segbuf.New()
 	c := cursor.New(&b)
-	h := history.New(&b, c)
+	h := history.New(&b, &c)
 
 	editor := Editor{
 		multiLine: multiLine,
 		Buffer:    &b,
-		Cursor:    c,
+		Cursor:    &c,
 		History:   h,
 	}
 
