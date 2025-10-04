@@ -56,7 +56,7 @@ func New(multiLine bool) *Editor {
 		multiLine: multiLine,
 		Buffer:    &b,
 		Cursor:    &c,
-		History:   h,
+		History:   &h,
 	}
 
 	editor.handlers = append(editor.handlers,
