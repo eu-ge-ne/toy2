@@ -59,16 +59,16 @@ func (sb *SegBuf) Text() string {
 	return strings.Join(slices.Collect(it), "")
 }
 
-type Cell struct {
+type Seg struct {
 	G   *grapheme.Grapheme
 	Ln  int
 	Col int
 }
 
-func (sb *SegBuf) Line(ln int, extra bool) iter.Seq2[int, Cell] {
-	return func(yield func(int, Cell) bool) {
+func (sb *SegBuf) Line(ln int, extra bool) iter.Seq2[int, Seg] {
+	return func(yield func(int, Seg) bool) {
 		i := 0
-		c := Cell{}
+		c := Seg{}
 		w := 0
 
 		for chunk := range sb.textbuf.ReadPosRange(ln, 0, ln+1, 0) {
@@ -114,8 +114,8 @@ func (sb *SegBuf) Line(ln int, extra bool) iter.Seq2[int, Cell] {
 	}
 }
 
-func (sb *SegBuf) LineSlice(ln int, extra bool, start, end int) iter.Seq2[int, Cell] {
-	return func(yield func(int, Cell) bool) {
+func (sb *SegBuf) LineSlice(ln int, extra bool, start, end int) iter.Seq2[int, Seg] {
+	return func(yield func(int, Seg) bool) {
 		i := 0
 		for j, c := range sb.Line(ln, extra) {
 			if j >= start && j < end {

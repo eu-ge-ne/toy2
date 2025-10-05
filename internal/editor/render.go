@@ -112,7 +112,7 @@ func (ed *Editor) scrollV() {
 }
 
 func (ed *Editor) scrollH() {
-	var cell *segbuf.Cell = nil
+	var cell *segbuf.Seg = nil
 	for _, c := range ed.Buffer.LineSlice(ed.cursor.Ln, true, ed.cursor.Col, math.MaxInt) {
 		cell = &c
 		break
