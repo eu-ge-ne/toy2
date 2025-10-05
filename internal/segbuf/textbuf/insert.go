@@ -1,6 +1,6 @@
 package textbuf
 
-import "github.com/eu-ge-ne/toy2/internal/textbuf/internal/node"
+import "github.com/eu-ge-ne/toy2/internal/segbuf/textbuf/node"
 
 func (tb *TextBuf) Insert(i int, text string) {
 	if i > tb.Count() {

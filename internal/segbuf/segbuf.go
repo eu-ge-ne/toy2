@@ -9,7 +9,7 @@ import (
 	"github.com/rivo/uniseg"
 
 	"github.com/eu-ge-ne/toy2/internal/grapheme"
-	"github.com/eu-ge-ne/toy2/internal/textbuf"
+	"github.com/eu-ge-ne/toy2/internal/segbuf/textbuf"
 	"github.com/eu-ge-ne/toy2/internal/vt"
 )
 
