@@ -1,17 +1,17 @@
-package app
+package command
 
 import (
 	"github.com/eu-ge-ne/toy2/internal/key"
 	"github.com/eu-ge-ne/toy2/internal/palette"
 )
 
-type PasteCommand struct {
-	app    *App
+type Paste struct {
+	app    App
 	option palette.Option
 }
 
-func NewPasteCommand(app *App) *PasteCommand {
-	return &PasteCommand{
+func NewPaste(app App) *Paste {
+	return &Paste{
 		app: app,
 		option: palette.NewOption(
 			"Paste",
@@ -21,16 +21,14 @@ func NewPasteCommand(app *App) *PasteCommand {
 	}
 }
 
-func (c *PasteCommand) Option() *palette.Option {
+func (c *Paste) Option() *palette.Option {
 	return &c.option
 }
 
-func (c *PasteCommand) Match(key.Key) bool {
+func (c *Paste) Match(key.Key) bool {
 	return false
 }
 
-func (c *PasteCommand) Run() {
-	if c.app.editor.Paste() {
-		c.app.editor.Render()
-	}
+func (c *Paste) Run() {
+	c.app.Paste()
 }

@@ -1,17 +1,17 @@
-package app
+package command
 
 import (
 	"github.com/eu-ge-ne/toy2/internal/key"
 	"github.com/eu-ge-ne/toy2/internal/palette"
 )
 
-type UndoCommand struct {
-	app    *App
+type Undo struct {
+	app    App
 	option palette.Option
 }
 
-func NewUndoCommand(app *App) *UndoCommand {
-	return &UndoCommand{
+func NewUndo(app App) *Undo {
+	return &Undo{
 		app: app,
 		option: palette.NewOption(
 			"Undo",
@@ -21,16 +21,14 @@ func NewUndoCommand(app *App) *UndoCommand {
 	}
 }
 
-func (c *UndoCommand) Option() *palette.Option {
+func (c *Undo) Option() *palette.Option {
 	return &c.option
 }
 
-func (c *UndoCommand) Match(key.Key) bool {
+func (c *Undo) Match(key.Key) bool {
 	return false
 }
 
-func (c *UndoCommand) Run() {
-	if c.app.editor.Undo() {
-		c.app.editor.Render()
-	}
+func (c *Undo) Run() {
+	c.app.Undo()
 }
