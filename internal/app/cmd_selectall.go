@@ -30,10 +30,7 @@ func (c *SelectAllCommand) Match(key.Key) bool {
 }
 
 func (c *SelectAllCommand) Run() {
-	if !c.app.editor.Enabled {
-		return
+	if c.app.editor.SelectAll() {
+		c.app.editor.Render()
 	}
-
-	c.app.editor.SelectAll()
-	c.app.editor.Render()
 }

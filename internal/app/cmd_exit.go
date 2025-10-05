@@ -26,7 +26,7 @@ func (c *ExitCommand) Match(k key.Key) bool {
 }
 
 func (c *ExitCommand) Run() {
-	c.app.editor.Enabled = false
+	c.app.editor.Enable(false)
 
 	if c.app.editor.HasChanges() {
 		save := make(chan bool)

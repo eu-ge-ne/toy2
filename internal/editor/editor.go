@@ -5,12 +5,12 @@ import (
 	"time"
 
 	"github.com/eu-ge-ne/toy2/internal/editor/cursor"
+	"github.com/eu-ge-ne/toy2/internal/editor/handler"
 	"github.com/eu-ge-ne/toy2/internal/editor/history"
 	"github.com/eu-ge-ne/toy2/internal/editor/syntax"
 	"github.com/eu-ge-ne/toy2/internal/textbuf"
 	"github.com/eu-ge-ne/toy2/internal/theme"
 	"github.com/eu-ge-ne/toy2/internal/ui"
-	"github.com/eu-ge-ne/toy2/internal/vt"
 )
 
 type Editor struct {
@@ -21,11 +21,11 @@ type Editor struct {
 
 	multiLine bool
 	area      ui.Area
-	Enabled   bool
+	enabled   bool
 	clipboard string
 
-	IndexEnabled      bool
-	WhitespaceEnabled bool
+	indexEnabled      bool
+	whitespaceEnabled bool
 	wrapEnabled       bool
 
 	indexWidth int
@@ -39,7 +39,7 @@ type Editor struct {
 	cursor   *cursor.Cursor
 	history  *history.History
 	syntax   *syntax.Syntax
-	handlers []Handler
+	handlers []handler.Handler
 
 	colors colors
 }
@@ -68,26 +68,26 @@ func New(multiLine bool) *Editor {
 	ed.history.OnChanged = ed.OnChanged
 
 	ed.handlers = append(ed.handlers,
-		&TextHandler{editor: &ed},
-		&BackspaceHandler{editor: &ed},
-		&BottomHandler{editor: &ed},
-		&CopyHandler{editor: &ed},
-		&CutHandler{editor: &ed},
-		&DeleteHandler{editor: &ed},
-		&DownHandler{editor: &ed},
-		&EndHandler{editor: &ed},
-		&EnterHandler{editor: &ed},
-		&HomeHandler{editor: &ed},
-		&LeftHandler{editor: &ed},
-		&PageDownHandler{editor: &ed},
-		&PageUpHandler{editor: &ed},
-		&PasteHandler{editor: &ed},
-		&RedoHandler{editor: &ed},
-		&RightHandler{editor: &ed},
-		&SelectAllHandler{editor: &ed},
-		&TopHandler{editor: &ed},
-		&UndoHandler{editor: &ed},
-		&UpHandler{editor: &ed},
+		&handler.Insert{Editor: &ed},
+		&handler.Backspace{Editor: &ed},
+		&handler.Bottom{Editor: &ed},
+		&handler.Copy{Editor: &ed},
+		&handler.Cut{Editor: &ed},
+		&handler.Delete{Editor: &ed},
+		&handler.Down{Editor: &ed},
+		&handler.End{Editor: &ed},
+		&handler.Enter{Editor: &ed},
+		&handler.Home{Editor: &ed},
+		&handler.Left{Editor: &ed},
+		&handler.PageDown{Editor: &ed},
+		&handler.PageUp{Editor: &ed},
+		&handler.Paste{Editor: &ed},
+		&handler.Redo{Editor: &ed},
+		&handler.Right{Editor: &ed},
+		&handler.SelectAll{Editor: &ed},
+		&handler.Top{Editor: &ed},
+		&handler.Undo{Editor: &ed},
+		&handler.Up{Editor: &ed},
 	)
 
 	return &ed
@@ -127,62 +127,26 @@ func (ed *Editor) ResetCursor() {
 	}
 }
 
-func (ed *Editor) Copy() bool {
-	c := ed.cursor
-
-	if c.Selecting {
-		ed.clipboard = ed.buffer.ReadSegPosRange(c.FromLn, c.FromCol, c.ToLn, c.ToCol+1)
-		c.Set(c.Ln, c.Col, false)
-	} else {
-		ed.clipboard = ed.buffer.ReadSegPosRange(c.Ln, c.Col, c.Ln, c.Col+1)
-	}
-
-	vt.CopyToClipboard(vt.Sync, ed.clipboard)
-
-	return false
-}
-
-func (ed *Editor) Cut() bool {
-	c := ed.cursor
-
-	if c.Selecting {
-		ed.clipboard = ed.buffer.ReadSegPosRange(c.FromLn, c.FromCol, c.ToLn, c.ToCol+1)
-		ed.deleteSelection()
-	} else {
-		ed.clipboard = ed.buffer.ReadSegPosRange(c.Ln, c.Col, c.Ln, c.Col+1)
-		ed.deleteChar()
-	}
-
-	vt.CopyToClipboard(vt.Sync, ed.clipboard)
-
-	return true
-}
-
-func (ed *Editor) Paste() bool {
-	if len(ed.clipboard) == 0 {
-		return false
-	}
-
-	ed.insert(ed.clipboard)
-
-	return true
-}
-
-func (ed *Editor) Undo() bool {
-	return ed.history.Undo()
-}
-
-func (ed *Editor) Redo() bool {
-	return ed.history.Redo()
-}
-
 func (ed *Editor) HasChanges() bool {
 	return !ed.history.IsEmpty()
 }
 
-func (ed *Editor) SelectAll() {
-	ed.cursor.Set(0, 0, false)
-	ed.cursor.Set(math.MaxInt, math.MaxInt, true)
+func (ed *Editor) Enable(enable bool) {
+	ed.enabled = enable
+}
+
+func (ed *Editor) EnableIndex(enable bool) {
+	ed.indexEnabled = enable
+}
+
+func (ed *Editor) EnableWhitespace(enable bool) {
+	ed.whitespaceEnabled = enable
+}
+
+func (ed *Editor) ToggleWhitespace() {
+	ed.whitespaceEnabled = !ed.whitespaceEnabled
+
+	ed.cursor.Home(false)
 }
 
 func (ed *Editor) EnableWrap(enable bool) {
@@ -205,4 +169,43 @@ func (ed *Editor) LoadFromFile(filePath string) error {
 
 func (ed *Editor) SaveToFile(filePath string) error {
 	return ed.buffer.SaveToFile(filePath)
+}
+
+func (ed *Editor) deleteSelection() {
+	ed.buffer.DeleteSegPosRange(ed.cursor.FromLn, ed.cursor.FromCol, ed.cursor.Ln, ed.cursor.Col+1)
+
+	ed.cursor.Set(ed.cursor.FromLn, ed.cursor.FromCol, false)
+
+	ed.history.Push()
+}
+
+func (ed *Editor) deleteChar() {
+	ed.buffer.DeleteSegPosRange(ed.cursor.Ln, ed.cursor.Col, ed.cursor.Ln, ed.cursor.Col+1)
+
+	ed.history.Push()
+}
+
+func (ed *Editor) deletePrevChar() {
+	if ed.cursor.Ln > 0 && ed.cursor.Col == 0 {
+		l := 0
+		for range ed.buffer.IterSegLine(ed.cursor.Ln, false) {
+			l += 1
+			if l == 2 {
+				break
+			}
+		}
+
+		if l == 1 {
+			ed.buffer.DeleteSegPosRange(ed.cursor.Ln, ed.cursor.Col, ed.cursor.Ln, ed.cursor.Col+1)
+			ed.cursor.Left(false)
+		} else {
+			ed.cursor.Left(false)
+			ed.buffer.DeleteSegPosRange(ed.cursor.Ln, ed.cursor.Col, ed.cursor.Ln, ed.cursor.Col+1)
+		}
+	} else {
+		ed.buffer.DeleteSegPosRange(ed.cursor.Ln, ed.cursor.Col-1, ed.cursor.Ln, ed.cursor.Col)
+		ed.cursor.Left(false)
+	}
+
+	ed.history.Push()
 }

@@ -30,10 +30,6 @@ func (c *UndoCommand) Match(key.Key) bool {
 }
 
 func (c *UndoCommand) Run() {
-	if !c.app.editor.Enabled {
-		return
-	}
-
 	if c.app.editor.Undo() {
 		c.app.editor.Render()
 	}

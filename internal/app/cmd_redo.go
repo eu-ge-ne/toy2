@@ -30,10 +30,6 @@ func (c *RedoCommand) Match(key.Key) bool {
 }
 
 func (c *RedoCommand) Run() {
-	if !c.app.editor.Enabled {
-		return
-	}
-
 	if c.app.editor.Redo() {
 		c.app.editor.Render()
 	}

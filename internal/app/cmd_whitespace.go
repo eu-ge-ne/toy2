@@ -26,7 +26,7 @@ func (c *WhitespaceCommand) Match(k key.Key) bool {
 }
 
 func (c *WhitespaceCommand) Run() {
-	c.app.editor.WhitespaceEnabled = !c.app.editor.WhitespaceEnabled
+	c.app.editor.ToggleWhitespace()
 
 	c.app.Render()
 }

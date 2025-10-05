@@ -28,7 +28,7 @@ func (ed *Editor) Render() {
 		ed.renderLines()
 	}
 
-	if ed.Enabled {
+	if ed.enabled {
 		vt.SetCursor(vt.Buf, ed.cursorY, ed.cursorX)
 		vt.Buf.Write(vt.ShowCursor)
 	} else {
@@ -50,7 +50,7 @@ func (ed *Editor) Render() {
 }
 
 func (ed *Editor) determineLayout() {
-	if ed.IndexEnabled && ed.buffer.LineCount() > 0 {
+	if ed.indexEnabled && ed.buffer.LineCount() > 0 {
 		ed.indexWidth = int(math.Log10(float64(ed.buffer.LineCount()))) + 3
 	} else {
 		ed.indexWidth = 0
@@ -207,7 +207,7 @@ func (ed *Editor) renderLine(ln int, row int) int {
 			continue
 		}
 
-		color := createCharColor(ed.cursor.IsSelected(ln, i), cell.G.IsVisible, ed.WhitespaceEnabled)
+		color := createCharColor(ed.cursor.IsSelected(ln, i), cell.G.IsVisible, ed.whitespaceEnabled)
 		if color != currentColor {
 			currentColor = color
 			vt.Buf.Write(ed.colors.char[color])
