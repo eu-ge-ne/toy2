@@ -2,14 +2,12 @@ package editor
 
 import (
 	"math"
-	"slices"
 	"time"
 
 	"github.com/eu-ge-ne/toy2/internal/editor/cursor"
 	"github.com/eu-ge-ne/toy2/internal/editor/handler"
 	"github.com/eu-ge-ne/toy2/internal/editor/history"
 	"github.com/eu-ge-ne/toy2/internal/editor/syntax"
-	"github.com/eu-ge-ne/toy2/internal/key"
 	"github.com/eu-ge-ne/toy2/internal/textbuf"
 	"github.com/eu-ge-ne/toy2/internal/theme"
 	"github.com/eu-ge-ne/toy2/internal/ui"
@@ -153,26 +151,6 @@ func (ed *Editor) LoadFromFile(filePath string) error {
 
 func (ed *Editor) SaveToFile(filePath string) error {
 	return ed.buffer.SaveToFile(filePath)
-}
-
-func (ed *Editor) HandleKey(key key.Key) bool {
-	t0 := time.Now()
-
-	i := slices.IndexFunc(ed.handlers, func(h handler.Handler) bool {
-		return h.Match(key)
-	})
-
-	if i < 0 {
-		return false
-	}
-
-	r := ed.handlers[i].Handle(key)
-
-	if ed.OnKeyHandled != nil {
-		ed.OnKeyHandled(time.Since(t0))
-	}
-
-	return r
 }
 
 func (ed *Editor) deleteSelection() {
