@@ -33,7 +33,7 @@ type Editor struct {
 	Buffer       *segbuf.SegBuf
 	Cursor       *cursor.Cursor
 	History      *history.History
-	Syntax       *syntax.Syntax
+	syntax       *syntax.Syntax
 	handlers     []Handler
 	OnKeyHandled func(time.Duration)
 	OnRender     func(time.Duration)
@@ -60,7 +60,7 @@ func New(multiLine bool) *Editor {
 		Buffer:    &b,
 		Cursor:    &c,
 		History:   &h,
-		Syntax:    &s,
+		syntax:    &s,
 	}
 
 	editor.handlers = append(editor.handlers,
@@ -119,7 +119,7 @@ func (ed *Editor) Reset(resetCursor bool) {
 	}
 
 	ed.History.Reset()
-	ed.Syntax.Reset()
+	ed.syntax.Reset()
 }
 
 func (ed *Editor) Copy() bool {
