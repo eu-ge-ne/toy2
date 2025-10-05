@@ -7,6 +7,7 @@ import (
 	"github.com/eu-ge-ne/toy2/internal/cursor"
 	"github.com/eu-ge-ne/toy2/internal/history"
 	"github.com/eu-ge-ne/toy2/internal/segbuf"
+	"github.com/eu-ge-ne/toy2/internal/syntax"
 	"github.com/eu-ge-ne/toy2/internal/theme"
 	"github.com/eu-ge-ne/toy2/internal/ui"
 	"github.com/eu-ge-ne/toy2/internal/vt"
@@ -32,6 +33,7 @@ type Editor struct {
 	Buffer       *segbuf.SegBuf
 	Cursor       *cursor.Cursor
 	History      *history.History
+	syntax       *syntax.Syntax
 	handlers     []Handler
 	OnKeyHandled func(time.Duration)
 	OnRender     func(time.Duration)
@@ -51,12 +53,14 @@ func New(multiLine bool) *Editor {
 	b := segbuf.New()
 	c := cursor.New(&b)
 	h := history.New(&b, &c)
+	s := syntax.New(&b)
 
 	editor := Editor{
 		multiLine: multiLine,
 		Buffer:    &b,
 		Cursor:    &c,
 		History:   &h,
+		syntax:    &s,
 	}
 
 	editor.handlers = append(editor.handlers,
@@ -115,6 +119,7 @@ func (ed *Editor) Reset(resetCursor bool) {
 	}
 
 	ed.History.Reset()
+	ed.syntax.Reset()
 }
 
 func (ed *Editor) Copy() bool {
