@@ -1,8 +1,6 @@
 package editor
 
 import (
-	"math"
-
 	"github.com/eu-ge-ne/toy2/internal/key"
 )
 
@@ -15,8 +13,7 @@ func (h *SelectAllHandler) Match(k key.Key) bool {
 }
 
 func (h *SelectAllHandler) Handle(key.Key) bool {
-	h.editor.Cursor.Set(0, 0, false)
-	h.editor.Cursor.Set(math.MaxInt, math.MaxInt, true)
+	h.editor.SelectAll()
 
 	return true
 }

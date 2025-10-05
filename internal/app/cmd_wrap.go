@@ -26,8 +26,7 @@ func (c *WrapCommand) Match(k key.Key) bool {
 }
 
 func (c *WrapCommand) Run() {
-	c.app.editor.WrapEnabled = !c.app.editor.WrapEnabled
-	c.app.editor.Cursor.Home(false)
+	c.app.editor.ToggleWrap()
 
 	c.app.Render()
 }

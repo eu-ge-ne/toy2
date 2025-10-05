@@ -1,8 +1,6 @@
 package app
 
 import (
-	"math"
-
 	"github.com/eu-ge-ne/toy2/internal/key"
 	"github.com/eu-ge-ne/toy2/internal/palette"
 )
@@ -36,8 +34,6 @@ func (c *SelectAllCommand) Run() {
 		return
 	}
 
-	c.app.editor.Cursor.Set(0, 0, false)
-	c.app.editor.Cursor.Set(math.MaxInt, math.MaxInt, true)
-
+	c.app.editor.SelectAll()
 	c.app.editor.Render()
 }

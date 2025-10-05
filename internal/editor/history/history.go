@@ -1,16 +1,17 @@
 package history
 
 import (
-	"github.com/eu-ge-ne/toy2/internal/cursor"
+	"github.com/eu-ge-ne/toy2/internal/editor/cursor"
 	"github.com/eu-ge-ne/toy2/internal/segbuf"
 )
 
 type History struct {
-	buffer    *segbuf.SegBuf
-	cursor    *cursor.Cursor
-	entries   []entry
-	index     int
 	OnChanged func()
+
+	buffer  *segbuf.SegBuf
+	cursor  *cursor.Cursor
+	entries []entry
+	index   int
 }
 
 type entry struct {
