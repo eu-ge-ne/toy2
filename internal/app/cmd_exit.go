@@ -28,7 +28,7 @@ func (c *ExitCommand) Match(k key.Key) bool {
 func (c *ExitCommand) Run() {
 	c.app.editor.Enabled = false
 
-	if !c.app.editor.History.IsEmpty() {
+	if c.app.editor.HasChanges() {
 		save := make(chan bool)
 		go c.app.ask.Open("Save changes?", save)
 
