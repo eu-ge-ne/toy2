@@ -33,7 +33,7 @@ func (tb TextBuf) findLineStart(ln int) (int, bool) {
 		i += x.Left.TotalLen
 
 		if eolIndex < x.EolsLen {
-			buf := tb.content.Buffers[x.BufIndex]
+			buf := tb.content.Table[x.PieceIndex]
 			eolEnd := buf.Eols[x.EolsStart+eolIndex].End
 			return i + eolEnd - x.Start, true
 		}

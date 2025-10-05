@@ -19,14 +19,14 @@ type Node struct {
 	Right        *Node
 	TotalLen     int
 	TotalEolsLen int
-	BufIndex     int
+	PieceIndex   int
 	Start        int
 	Len          int
 	EolsStart    int
 	EolsLen      int
 }
 
-func Create(bufIndex int, start int, len int, eolsStart int, eolsLen int) *Node {
+func Create(pieceIndex int, start int, len int, eolsStart int, eolsLen int) *Node {
 	return &Node{
 		Red:          true,
 		P:            NIL,
@@ -34,7 +34,7 @@ func Create(bufIndex int, start int, len int, eolsStart int, eolsLen int) *Node 
 		Right:        NIL,
 		TotalLen:     len,
 		TotalEolsLen: eolsLen,
-		BufIndex:     bufIndex,
+		PieceIndex:   pieceIndex,
 		Start:        start,
 		Len:          len,
 		EolsStart:    eolsStart,
@@ -52,7 +52,7 @@ func (nd *Node) Clone(p *Node) *Node {
 		P:            p,
 		TotalLen:     nd.TotalLen,
 		TotalEolsLen: nd.TotalEolsLen,
-		BufIndex:     nd.BufIndex,
+		PieceIndex:   nd.PieceIndex,
 		Start:        nd.Start,
 		Len:          nd.Len,
 		EolsStart:    nd.EolsStart,
