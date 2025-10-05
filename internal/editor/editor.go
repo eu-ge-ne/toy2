@@ -130,10 +130,10 @@ func (ed *Editor) Copy() bool {
 	c := ed.cursor
 
 	if c.Selecting {
-		ed.clipboard = ed.Buffer.Read(c.FromLn, c.FromCol, c.ToLn, c.ToCol+1)
+		ed.clipboard = ed.Buffer.ReadSegPosRange(c.FromLn, c.FromCol, c.ToLn, c.ToCol+1)
 		c.Set(c.Ln, c.Col, false)
 	} else {
-		ed.clipboard = ed.Buffer.Read(c.Ln, c.Col, c.Ln, c.Col+1)
+		ed.clipboard = ed.Buffer.ReadSegPosRange(c.Ln, c.Col, c.Ln, c.Col+1)
 	}
 
 	vt.CopyToClipboard(vt.Sync, ed.clipboard)
@@ -145,10 +145,10 @@ func (ed *Editor) Cut() bool {
 	c := ed.cursor
 
 	if c.Selecting {
-		ed.clipboard = ed.Buffer.Read(c.FromLn, c.FromCol, c.ToLn, c.ToCol+1)
+		ed.clipboard = ed.Buffer.ReadSegPosRange(c.FromLn, c.FromCol, c.ToLn, c.ToCol+1)
 		ed.deleteSelection()
 	} else {
-		ed.clipboard = ed.Buffer.Read(c.Ln, c.Col, c.Ln, c.Col+1)
+		ed.clipboard = ed.Buffer.ReadSegPosRange(c.Ln, c.Col, c.Ln, c.Col+1)
 		ed.deleteChar()
 	}
 
