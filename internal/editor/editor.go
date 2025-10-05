@@ -35,7 +35,7 @@ type Editor struct {
 	scrollLn   int
 	scrollCol  int
 
-	Buffer   *textbuf.TextBuf
+	buffer   *textbuf.TextBuf
 	cursor   *cursor.Cursor
 	history  *history.History
 	syntax   *syntax.Syntax
@@ -59,7 +59,7 @@ func New(multiLine bool) *Editor {
 
 	ed := Editor{
 		multiLine: multiLine,
-		Buffer:    &b,
+		buffer:    &b,
 		cursor:    &c,
 		history:   &h,
 		syntax:    &s,
@@ -113,27 +113,28 @@ func (ed *Editor) Layout(a ui.Area) {
 	ed.area = a
 }
 
-func (ed *Editor) Reset(resetCursor bool) {
-	if resetCursor {
-		if ed.multiLine {
-			ed.cursor.Set(0, 0, false)
-		} else {
-			ed.cursor.Set(math.MaxInt, math.MaxInt, false)
-		}
-	}
-
+func (ed *Editor) Reset(text string) {
+	ed.buffer.Reset(text)
 	ed.history.Reset()
 	ed.syntax.Reset()
+}
+
+func (ed *Editor) ResetCursor() {
+	if ed.multiLine {
+		ed.cursor.Set(0, 0, false)
+	} else {
+		ed.cursor.Set(math.MaxInt, math.MaxInt, false)
+	}
 }
 
 func (ed *Editor) Copy() bool {
 	c := ed.cursor
 
 	if c.Selecting {
-		ed.clipboard = ed.Buffer.ReadSegPosRange(c.FromLn, c.FromCol, c.ToLn, c.ToCol+1)
+		ed.clipboard = ed.buffer.ReadSegPosRange(c.FromLn, c.FromCol, c.ToLn, c.ToCol+1)
 		c.Set(c.Ln, c.Col, false)
 	} else {
-		ed.clipboard = ed.Buffer.ReadSegPosRange(c.Ln, c.Col, c.Ln, c.Col+1)
+		ed.clipboard = ed.buffer.ReadSegPosRange(c.Ln, c.Col, c.Ln, c.Col+1)
 	}
 
 	vt.CopyToClipboard(vt.Sync, ed.clipboard)
@@ -145,10 +146,10 @@ func (ed *Editor) Cut() bool {
 	c := ed.cursor
 
 	if c.Selecting {
-		ed.clipboard = ed.Buffer.ReadSegPosRange(c.FromLn, c.FromCol, c.ToLn, c.ToCol+1)
+		ed.clipboard = ed.buffer.ReadSegPosRange(c.FromLn, c.FromCol, c.ToLn, c.ToCol+1)
 		ed.deleteSelection()
 	} else {
-		ed.clipboard = ed.Buffer.ReadSegPosRange(c.Ln, c.Col, c.Ln, c.Col+1)
+		ed.clipboard = ed.buffer.ReadSegPosRange(c.Ln, c.Col, c.Ln, c.Col+1)
 		ed.deleteChar()
 	}
 
@@ -192,4 +193,16 @@ func (ed *Editor) ToggleWrap() {
 	ed.wrapEnabled = !ed.wrapEnabled
 
 	ed.cursor.Home(false)
+}
+
+func (ed *Editor) Text() string {
+	return ed.buffer.Text()
+}
+
+func (ed *Editor) LoadFromFile(filePath string) error {
+	return ed.buffer.LoadFromFile(filePath)
+}
+
+func (ed *Editor) SaveToFile(filePath string) error {
+	return ed.buffer.SaveToFile(filePath)
 }

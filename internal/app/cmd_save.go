@@ -29,7 +29,7 @@ func (c *SaveCommand) Run() {
 	c.app.editor.Enabled = false
 
 	if c.app.save() {
-		c.app.editor.Reset(false)
+		c.app.editor.ResetCursor()
 	}
 
 	c.app.editor.Enabled = true
