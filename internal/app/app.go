@@ -113,7 +113,7 @@ func (app *App) Run() {
 
 	app.setColors(theme.Zinc{})
 	app.enableZen(false)
-	app.editor.WhitespaceEnabled = true
+	app.editor.EnableWhitespace(true)
 	app.editor.EnableWrap(true)
 
 	app.debug.Enabled = true
@@ -191,7 +191,7 @@ func (app *App) enableZen(enabled bool) {
 
 	app.header.Enabled = !enabled
 	app.footer.Enabled = !enabled
-	app.editor.IndexEnabled = !enabled
+	app.editor.EnableIndex(!enabled)
 }
 
 func (app *App) exit() {

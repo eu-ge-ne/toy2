@@ -24,8 +24,8 @@ type Editor struct {
 	Enabled   bool
 	clipboard string
 
-	IndexEnabled      bool
-	WhitespaceEnabled bool
+	indexEnabled      bool
+	whitespaceEnabled bool
 	wrapEnabled       bool
 
 	indexWidth int
@@ -129,6 +129,20 @@ func (ed *Editor) ResetCursor() {
 
 func (ed *Editor) HasChanges() bool {
 	return !ed.history.IsEmpty()
+}
+
+func (ed *Editor) EnableIndex(enable bool) {
+	ed.indexEnabled = enable
+}
+
+func (ed *Editor) EnableWhitespace(enable bool) {
+	ed.whitespaceEnabled = enable
+}
+
+func (ed *Editor) ToggleWhitespace() {
+	ed.whitespaceEnabled = !ed.whitespaceEnabled
+
+	ed.cursor.Home(false)
 }
 
 func (ed *Editor) EnableWrap(enable bool) {
