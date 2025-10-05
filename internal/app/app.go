@@ -14,7 +14,6 @@ import (
 	"github.com/eu-ge-ne/toy2/internal/ask"
 	"github.com/eu-ge-ne/toy2/internal/debug"
 	"github.com/eu-ge-ne/toy2/internal/editor"
-	"github.com/eu-ge-ne/toy2/internal/file"
 	"github.com/eu-ge-ne/toy2/internal/footer"
 	"github.com/eu-ge-ne/toy2/internal/header"
 	"github.com/eu-ge-ne/toy2/internal/palette"
@@ -245,7 +244,7 @@ func (app *App) processInput() {
 }
 
 func (app *App) open(filePath string) {
-	err := file.Load(app.editor.Buffer, filePath)
+	err := app.editor.Buffer.LoadFromFile(filePath)
 
 	if os.IsNotExist(err) {
 		return
@@ -273,7 +272,7 @@ func (app *App) save() bool {
 }
 
 func (app *App) saveFile() bool {
-	err := file.Save(app.editor.Buffer, app.filePath)
+	err := app.editor.Buffer.SaveToFile(app.filePath)
 	if err == nil {
 		return true
 	}
@@ -295,7 +294,7 @@ func (app *App) saveFileAs() bool {
 			return false
 		}
 
-		err := file.Save(app.editor.Buffer, filePath)
+		err := app.editor.Buffer.SaveToFile(filePath)
 		if err == nil {
 			app.setFilePath(filePath)
 			return true
