@@ -13,5 +13,5 @@ func (h *RedoHandler) Match(k key.Key) bool {
 }
 
 func (h *RedoHandler) Handle(key.Key) bool {
-	return h.editor.History.Redo()
+	return h.editor.Redo()
 }

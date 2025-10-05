@@ -34,7 +34,7 @@ func (c *UndoCommand) Run() {
 		return
 	}
 
-	if c.app.editor.History.Undo() {
+	if c.app.editor.Undo() {
 		c.app.editor.Render()
 	}
 }

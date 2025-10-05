@@ -34,7 +34,7 @@ func (c *RedoCommand) Run() {
 		return
 	}
 
-	if c.app.editor.History.Redo() {
+	if c.app.editor.Redo() {
 		c.app.editor.Render()
 	}
 }

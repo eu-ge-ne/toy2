@@ -13,5 +13,5 @@ func (h *UndoHandler) Match(k key.Key) bool {
 }
 
 func (h *UndoHandler) Handle(key.Key) bool {
-	return h.editor.History.Undo()
+	return h.editor.Undo()
 }

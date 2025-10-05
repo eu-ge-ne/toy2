@@ -14,6 +14,7 @@ import (
 )
 
 type Editor struct {
+	multiLine bool
 	area      ui.Area
 	Enabled   bool
 	clipboard string
@@ -29,15 +30,15 @@ type Editor struct {
 	scrollLn   int
 	scrollCol  int
 
-	multiLine    bool
 	Buffer       *segbuf.SegBuf
 	Cursor       *cursor.Cursor
-	History      *history.History
+	history      *history.History
 	syntax       *syntax.Syntax
 	handlers     []Handler
 	OnKeyHandled func(time.Duration)
 	OnRender     func(time.Duration)
 	OnCursor     func(int, int, int)
+	OnChanged    func()
 
 	colors colors
 }
@@ -55,38 +56,40 @@ func New(multiLine bool) *Editor {
 	h := history.New(&b, &c)
 	s := syntax.New(&b)
 
-	editor := Editor{
+	ed := Editor{
 		multiLine: multiLine,
 		Buffer:    &b,
 		Cursor:    &c,
-		History:   &h,
+		history:   &h,
 		syntax:    &s,
 	}
 
-	editor.handlers = append(editor.handlers,
-		&TextHandler{editor: &editor},
-		&BackspaceHandler{editor: &editor},
-		&BottomHandler{editor: &editor},
-		&CopyHandler{editor: &editor},
-		&CutHandler{editor: &editor},
-		&DeleteHandler{editor: &editor},
-		&DownHandler{editor: &editor},
-		&EndHandler{editor: &editor},
-		&EnterHandler{editor: &editor},
-		&HomeHandler{editor: &editor},
-		&LeftHandler{editor: &editor},
-		&PageDownHandler{editor: &editor},
-		&PageUpHandler{editor: &editor},
-		&PasteHandler{editor: &editor},
-		&RedoHandler{editor: &editor},
-		&RightHandler{editor: &editor},
-		&SelectAllHandler{editor: &editor},
-		&TopHandler{editor: &editor},
-		&UndoHandler{editor: &editor},
-		&UpHandler{editor: &editor},
+	ed.history.OnChanged = ed.OnChanged
+
+	ed.handlers = append(ed.handlers,
+		&TextHandler{editor: &ed},
+		&BackspaceHandler{editor: &ed},
+		&BottomHandler{editor: &ed},
+		&CopyHandler{editor: &ed},
+		&CutHandler{editor: &ed},
+		&DeleteHandler{editor: &ed},
+		&DownHandler{editor: &ed},
+		&EndHandler{editor: &ed},
+		&EnterHandler{editor: &ed},
+		&HomeHandler{editor: &ed},
+		&LeftHandler{editor: &ed},
+		&PageDownHandler{editor: &ed},
+		&PageUpHandler{editor: &ed},
+		&PasteHandler{editor: &ed},
+		&RedoHandler{editor: &ed},
+		&RightHandler{editor: &ed},
+		&SelectAllHandler{editor: &ed},
+		&TopHandler{editor: &ed},
+		&UndoHandler{editor: &ed},
+		&UpHandler{editor: &ed},
 	)
 
-	return &editor
+	return &ed
 }
 
 func (ed *Editor) SetColors(t theme.Tokens) {
@@ -118,7 +121,7 @@ func (ed *Editor) Reset(resetCursor bool) {
 		}
 	}
 
-	ed.History.Reset()
+	ed.history.Reset()
 	ed.syntax.Reset()
 }
 
@@ -161,4 +164,16 @@ func (ed *Editor) Paste() bool {
 	ed.insert(ed.clipboard)
 
 	return true
+}
+
+func (ed *Editor) Undo() bool {
+	return ed.history.Undo()
+}
+
+func (ed *Editor) Redo() bool {
+	return ed.history.Redo()
+}
+
+func (ed *Editor) HasChanges() bool {
+	return !ed.history.IsEmpty()
 }
