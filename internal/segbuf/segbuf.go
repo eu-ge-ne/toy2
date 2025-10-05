@@ -129,8 +129,8 @@ func (sb *SegBuf) LineSlice(ln int, extra bool, start, end int) iter.Seq2[int, S
 }
 
 func (sb *SegBuf) Read(startLn, startCol, endLn, endCol int) string {
-	startCol = sb.col(startLn, startCol)
-	endCol = sb.col(endLn, endCol)
+	startCol = sb.segCol(startLn, startCol)
+	endCol = sb.segCol(endLn, endCol)
 
 	it := sb.textbuf.ReadPosRange(startLn, startCol, endLn, endCol)
 
@@ -138,19 +138,19 @@ func (sb *SegBuf) Read(startLn, startCol, endLn, endCol int) string {
 }
 
 func (sb *SegBuf) Insert(ln, col int, text string) {
-	col = sb.col(ln, col)
+	col = sb.segCol(ln, col)
 
 	sb.textbuf.InsertPos(ln, col, text)
 }
 
 func (sb *SegBuf) Delete(startLn, startCol, endLn, endCol int) {
-	startCol = sb.col(startLn, startCol)
-	endCol = sb.col(endLn, endCol)
+	startCol = sb.segCol(startLn, startCol)
+	endCol = sb.segCol(endLn, endCol)
 
 	sb.textbuf.DeletePosRange(startLn, startCol, endLn, endCol)
 }
 
-func (sb *SegBuf) col(ln, col int) int {
+func (sb *SegBuf) segCol(ln, col int) int {
 	c := 0
 
 	for i, cell := range sb.Line(ln, false) {
