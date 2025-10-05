@@ -14,6 +14,10 @@ import (
 )
 
 func (ed *Editor) HandleKey(key key.Key) bool {
+	if !ed.enabled {
+		return false
+	}
+
 	t0 := time.Now()
 
 	i := slices.IndexFunc(ed.handlers, func(h handler.Handler) bool {
@@ -52,6 +56,10 @@ func (ed *Editor) Bottom(sel bool) bool {
 }
 
 func (ed *Editor) Copy() bool {
+	if !ed.enabled {
+		return false
+	}
+
 	cur := ed.cursor
 
 	if cur.Selecting {
@@ -67,6 +75,10 @@ func (ed *Editor) Copy() bool {
 }
 
 func (ed *Editor) Cut() bool {
+	if !ed.enabled {
+		return false
+	}
+
 	cur := ed.cursor
 
 	if cur.Selecting {
@@ -174,16 +186,22 @@ func (ed *Editor) PageUp(sel bool) bool {
 }
 
 func (ed *Editor) Paste() bool {
+	if !ed.enabled {
+		return false
+	}
+
 	if len(ed.clipboard) == 0 {
 		return false
 	}
 
-	ed.Insert(ed.clipboard)
-
-	return true
+	return ed.Insert(ed.clipboard)
 }
 
 func (ed *Editor) Redo() bool {
+	if !ed.enabled {
+		return false
+	}
+
 	return ed.history.Redo()
 }
 
@@ -192,6 +210,10 @@ func (ed *Editor) Right(sel bool) bool {
 }
 
 func (ed *Editor) SelectAll() bool {
+	if !ed.enabled {
+		return false
+	}
+
 	ed.cursor.Set(0, 0, false)
 	ed.cursor.Set(math.MaxInt, math.MaxInt, true)
 
@@ -207,6 +229,10 @@ func (ed *Editor) Top(sel bool) bool {
 }
 
 func (ed *Editor) Undo() bool {
+	if !ed.enabled {
+		return false
+	}
+
 	return ed.history.Undo()
 }
 

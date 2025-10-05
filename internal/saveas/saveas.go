@@ -76,7 +76,7 @@ func (sv *SaveAs) Render() {
 
 func (sv *SaveAs) Open(filePath string, done chan<- string) {
 	sv.enabled = true
-	sv.editor.Enabled = true
+	sv.editor.Enable(true)
 
 	sv.editor.Reset(filePath)
 	sv.editor.ResetCursor()
@@ -86,7 +86,7 @@ func (sv *SaveAs) Open(filePath string, done chan<- string) {
 	result := sv.processInput()
 
 	sv.enabled = false
-	sv.editor.Enabled = false
+	sv.editor.Enable(false)
 
 	done <- result
 }

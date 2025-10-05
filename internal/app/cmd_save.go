@@ -26,13 +26,13 @@ func (c *SaveCommand) Match(k key.Key) bool {
 }
 
 func (c *SaveCommand) Run() {
-	c.app.editor.Enabled = false
+	c.app.editor.Enable(false)
 
 	if c.app.save() {
 		c.app.editor.ResetCursor()
 	}
 
-	c.app.editor.Enabled = true
+	c.app.editor.Enable(true)
 
 	c.app.editor.Render()
 }

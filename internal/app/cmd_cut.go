@@ -30,9 +30,7 @@ func (c *CutCommand) Match(key.Key) bool {
 }
 
 func (c *CutCommand) Run() {
-	if c.app.editor.Enabled {
-		if c.app.editor.Cut() {
-			c.app.editor.Render()
-		}
+	if c.app.editor.Cut() {
+		c.app.editor.Render()
 	}
 }

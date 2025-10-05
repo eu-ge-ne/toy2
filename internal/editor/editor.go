@@ -21,7 +21,7 @@ type Editor struct {
 
 	multiLine bool
 	area      ui.Area
-	Enabled   bool
+	enabled   bool
 	clipboard string
 
 	indexEnabled      bool
@@ -129,6 +129,10 @@ func (ed *Editor) ResetCursor() {
 
 func (ed *Editor) HasChanges() bool {
 	return !ed.history.IsEmpty()
+}
+
+func (ed *Editor) Enable(enable bool) {
+	ed.enabled = enable
 }
 
 func (ed *Editor) EnableIndex(enable bool) {

@@ -24,7 +24,7 @@ func (c *PaletteCommand) Match(k key.Key) bool {
 }
 
 func (c *PaletteCommand) Run() {
-	c.app.editor.Enabled = false
+	c.app.editor.Enable(false)
 
 	done := make(chan *palette.Option)
 
@@ -32,7 +32,7 @@ func (c *PaletteCommand) Run() {
 
 	option := <-done
 
-	c.app.editor.Enabled = true
+	c.app.editor.Enable(true)
 
 	c.app.editor.Render()
 

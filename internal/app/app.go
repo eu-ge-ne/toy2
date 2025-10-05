@@ -86,7 +86,7 @@ func New() *App {
 	app.palette = palette.New(&app, options)
 	app.saveas = saveas.New()
 
-	app.editor.Enabled = true
+	app.editor.Enable(true)
 	app.editor.OnCursor = app.footer.SetCursorStatus
 	app.editor.OnKeyHandled = app.debug.SetInputTime
 	app.editor.OnRender = app.debug.SetRenderTime
@@ -235,10 +235,8 @@ func (app *App) processInput() {
 			continue
 		}
 
-		if app.editor.Enabled {
-			if app.editor.HandleKey(key) {
-				app.editor.Render()
-			}
+		if app.editor.HandleKey(key) {
+			app.editor.Render()
 		}
 	}
 }

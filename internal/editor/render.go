@@ -28,7 +28,7 @@ func (ed *Editor) Render() {
 		ed.renderLines()
 	}
 
-	if ed.Enabled {
+	if ed.enabled {
 		vt.SetCursor(vt.Buf, ed.cursorY, ed.cursorX)
 		vt.Buf.Write(vt.ShowCursor)
 	} else {

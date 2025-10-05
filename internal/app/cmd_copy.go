@@ -30,9 +30,7 @@ func (c *CopyCommand) Match(key.Key) bool {
 }
 
 func (c *CopyCommand) Run() {
-	if c.app.editor.Enabled {
-		if c.app.editor.Copy() {
-			c.app.editor.Render()
-		}
+	if c.app.editor.Copy() {
+		c.app.editor.Render()
 	}
 }

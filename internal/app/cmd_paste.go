@@ -30,9 +30,7 @@ func (c *PasteCommand) Match(key.Key) bool {
 }
 
 func (c *PasteCommand) Run() {
-	if c.app.editor.Enabled {
-		if c.app.editor.Paste() {
-			c.app.editor.Render()
-		}
+	if c.app.editor.Paste() {
+		c.app.editor.Render()
 	}
 }
