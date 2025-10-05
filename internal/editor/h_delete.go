@@ -13,7 +13,7 @@ func (h *DeleteHandler) Match(k key.Key) bool {
 }
 
 func (h *DeleteHandler) Handle(key.Key) bool {
-	if h.editor.Cursor.Selecting {
+	if h.editor.cursor.Selecting {
 		h.editor.deleteSelection()
 	} else {
 		h.editor.deleteChar()

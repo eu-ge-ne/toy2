@@ -17,5 +17,5 @@ func (h *PageUpHandler) Handle(k key.Key) bool {
 		return false
 	}
 
-	return h.editor.Cursor.Up(h.editor.area.H, k.Mods&key.Shift != 0)
+	return h.editor.cursor.Up(h.editor.area.H, k.Mods&key.Shift != 0)
 }

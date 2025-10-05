@@ -13,5 +13,5 @@ func (h *LeftHandler) Match(k key.Key) bool {
 }
 
 func (h *LeftHandler) Handle(k key.Key) bool {
-	return h.editor.Cursor.Left(k.Mods&key.Shift != 0)
+	return h.editor.cursor.Left(k.Mods&key.Shift != 0)
 }

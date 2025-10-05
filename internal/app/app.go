@@ -115,7 +115,7 @@ func (app *App) Run() {
 	app.setColors(theme.Zinc{})
 	app.enableZen(false)
 	app.editor.WhitespaceEnabled = true
-	app.editor.WrapEnabled = true
+	app.editor.EnableWrap(true)
 
 	app.debug.Enabled = true
 

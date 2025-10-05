@@ -19,5 +19,5 @@ func (h *EndHandler) Match(k key.Key) bool {
 }
 
 func (h *EndHandler) Handle(k key.Key) bool {
-	return h.editor.Cursor.End(k.Mods&key.Shift != 0)
+	return h.editor.cursor.End(k.Mods&key.Shift != 0)
 }

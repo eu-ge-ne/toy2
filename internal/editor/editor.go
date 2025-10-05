@@ -14,6 +14,11 @@ import (
 )
 
 type Editor struct {
+	OnKeyHandled func(time.Duration)
+	OnRender     func(time.Duration)
+	OnCursor     func(int, int, int)
+	OnChanged    func()
+
 	multiLine bool
 	area      ui.Area
 	Enabled   bool
@@ -21,7 +26,7 @@ type Editor struct {
 
 	IndexEnabled      bool
 	WhitespaceEnabled bool
-	WrapEnabled       bool
+	wrapEnabled       bool
 
 	indexWidth int
 	textWidth  int
@@ -30,15 +35,11 @@ type Editor struct {
 	scrollLn   int
 	scrollCol  int
 
-	Buffer       *segbuf.SegBuf
-	Cursor       *cursor.Cursor
-	history      *history.History
-	syntax       *syntax.Syntax
-	handlers     []Handler
-	OnKeyHandled func(time.Duration)
-	OnRender     func(time.Duration)
-	OnCursor     func(int, int, int)
-	OnChanged    func()
+	Buffer   *segbuf.SegBuf
+	cursor   *cursor.Cursor
+	history  *history.History
+	syntax   *syntax.Syntax
+	handlers []Handler
 
 	colors colors
 }
@@ -59,7 +60,7 @@ func New(multiLine bool) *Editor {
 	ed := Editor{
 		multiLine: multiLine,
 		Buffer:    &b,
-		Cursor:    &c,
+		cursor:    &c,
 		history:   &h,
 		syntax:    &s,
 	}
@@ -115,9 +116,9 @@ func (ed *Editor) Layout(a ui.Area) {
 func (ed *Editor) Reset(resetCursor bool) {
 	if resetCursor {
 		if ed.multiLine {
-			ed.Cursor.Set(0, 0, false)
+			ed.cursor.Set(0, 0, false)
 		} else {
-			ed.Cursor.Set(math.MaxInt, math.MaxInt, false)
+			ed.cursor.Set(math.MaxInt, math.MaxInt, false)
 		}
 	}
 
@@ -126,7 +127,7 @@ func (ed *Editor) Reset(resetCursor bool) {
 }
 
 func (ed *Editor) Copy() bool {
-	c := ed.Cursor
+	c := ed.cursor
 
 	if c.Selecting {
 		ed.clipboard = ed.Buffer.Read(c.FromLn, c.FromCol, c.ToLn, c.ToCol+1)
@@ -141,7 +142,7 @@ func (ed *Editor) Copy() bool {
 }
 
 func (ed *Editor) Cut() bool {
-	c := ed.Cursor
+	c := ed.cursor
 
 	if c.Selecting {
 		ed.clipboard = ed.Buffer.Read(c.FromLn, c.FromCol, c.ToLn, c.ToCol+1)
@@ -176,4 +177,19 @@ func (ed *Editor) Redo() bool {
 
 func (ed *Editor) HasChanges() bool {
 	return !ed.history.IsEmpty()
+}
+
+func (ed *Editor) SelectAll() {
+	ed.cursor.Set(0, 0, false)
+	ed.cursor.Set(math.MaxInt, math.MaxInt, true)
+}
+
+func (ed *Editor) EnableWrap(enable bool) {
+	ed.wrapEnabled = enable
+}
+
+func (ed *Editor) ToggleWrap() {
+	ed.wrapEnabled = !ed.wrapEnabled
+
+	ed.cursor.Home(false)
 }

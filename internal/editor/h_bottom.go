@@ -17,5 +17,5 @@ func (h *BottomHandler) Handle(k key.Key) bool {
 		return false
 	}
 
-	return h.editor.Cursor.Bottom(k.Mods&key.Shift != 0)
+	return h.editor.cursor.Bottom(k.Mods&key.Shift != 0)
 }
