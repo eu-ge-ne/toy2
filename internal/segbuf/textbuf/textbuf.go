@@ -45,10 +45,10 @@ func (tb *TextBuf) Restore(s Snapshot) {
 }
 
 func (tb *TextBuf) Reset(text string) {
-	tb.Delete(0)
+	tb.DeleteIndex(0)
 
 	if len(text) > 0 {
-		tb.Insert(0, text)
+		tb.InsertIndex(0, text)
 	}
 }
 

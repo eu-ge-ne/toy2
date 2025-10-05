@@ -50,11 +50,11 @@ func (sb *SegBuf) Append(text string) {
 }
 
 func (sb *SegBuf) Iter() iter.Seq[string] {
-	return sb.textbuf.Read(0)
+	return sb.textbuf.ReadIndex(0)
 }
 
 func (sb *SegBuf) Text() string {
-	it := sb.textbuf.Read(0)
+	it := sb.textbuf.ReadIndex(0)
 
 	return strings.Join(slices.Collect(it), "")
 }
@@ -71,7 +71,7 @@ func (sb *SegBuf) Line(ln int, extra bool) iter.Seq2[int, Cell] {
 		c := Cell{}
 		w := 0
 
-		for chunk := range sb.textbuf.Read2Range(ln, 0, ln+1, 0) {
+		for chunk := range sb.textbuf.ReadPosRange(ln, 0, ln+1, 0) {
 			gr := uniseg.NewGraphemes(chunk)
 
 			for gr.Next() {
@@ -132,7 +132,7 @@ func (sb *SegBuf) Read(startLn, startCol, endLn, endCol int) string {
 	startCol = sb.col(startLn, startCol)
 	endCol = sb.col(endLn, endCol)
 
-	it := sb.textbuf.Read2Range(startLn, startCol, endLn, endCol)
+	it := sb.textbuf.ReadPosRange(startLn, startCol, endLn, endCol)
 
 	return strings.Join(slices.Collect(it), "")
 }
@@ -140,14 +140,14 @@ func (sb *SegBuf) Read(startLn, startCol, endLn, endCol int) string {
 func (sb *SegBuf) Insert(ln, col int, text string) {
 	col = sb.col(ln, col)
 
-	sb.textbuf.Insert2(ln, col, text)
+	sb.textbuf.InsertPos(ln, col, text)
 }
 
 func (sb *SegBuf) Delete(startLn, startCol, endLn, endCol int) {
 	startCol = sb.col(startLn, startCol)
 	endCol = sb.col(endLn, endCol)
 
-	sb.textbuf.Delete2Range(startLn, startCol, endLn, endCol)
+	sb.textbuf.DeletePosRange(startLn, startCol, endLn, endCol)
 }
 
 func (sb *SegBuf) col(ln, col int) int {

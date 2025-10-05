@@ -5,7 +5,7 @@ import (
 	"math"
 )
 
-func (tb *TextBuf) ReadRange(start int, end int) iter.Seq[string] {
+func (tb *TextBuf) ReadIndexRange(start int, end int) iter.Seq[string] {
 	x, offset := tb.tree.Root.Find(start)
 	if x == nil {
 		return none
@@ -14,11 +14,11 @@ func (tb *TextBuf) ReadRange(start int, end int) iter.Seq[string] {
 	return tb.content.Read(x, offset, end-start)
 }
 
-func (tb *TextBuf) Read(start int) iter.Seq[string] {
-	return tb.ReadRange(start, math.MaxInt)
+func (tb *TextBuf) ReadIndex(start int) iter.Seq[string] {
+	return tb.ReadIndexRange(start, math.MaxInt)
 }
 
-func (tb *TextBuf) Read2Range(startLn, startCol, endLn, endCol int) iter.Seq[string] {
+func (tb *TextBuf) ReadPosRange(startLn, startCol, endLn, endCol int) iter.Seq[string] {
 	start_i, ok := tb.posToIndex(startLn, startCol)
 	if !ok {
 		return none
@@ -29,16 +29,16 @@ func (tb *TextBuf) Read2Range(startLn, startCol, endLn, endCol int) iter.Seq[str
 		end_i = math.MaxInt
 	}
 
-	return tb.ReadRange(start_i, end_i)
+	return tb.ReadIndexRange(start_i, end_i)
 }
 
-func (tb *TextBuf) Read2(startLn, startCol int) iter.Seq[string] {
+func (tb *TextBuf) ReadPos(startLn, startCol int) iter.Seq[string] {
 	start_i, ok := tb.posToIndex(startLn, startCol)
 	if !ok {
 		return none
 	}
 
-	return tb.ReadRange(start_i, math.MaxInt)
+	return tb.ReadIndexRange(start_i, math.MaxInt)
 }
 
 func none(yield func(string) bool) {

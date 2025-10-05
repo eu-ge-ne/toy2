@@ -6,7 +6,7 @@ import (
 	"github.com/eu-ge-ne/toy2/internal/segbuf/textbuf/node"
 )
 
-func (tb *TextBuf) DeleteRange(start int, end int) {
+func (tb *TextBuf) DeleteIndexRange(start int, end int) {
 	n, offset := tb.tree.Root.Find(start)
 	if n == nil {
 		return
@@ -58,11 +58,11 @@ func (tb *TextBuf) DeleteRange(start int, end int) {
 	}
 }
 
-func (tb *TextBuf) Delete(start int) {
-	tb.DeleteRange(start, math.MaxInt)
+func (tb *TextBuf) DeleteIndex(start int) {
+	tb.DeleteIndexRange(start, math.MaxInt)
 }
 
-func (tb *TextBuf) Delete2Range(startLn, startCol, endLn, endCol int) {
+func (tb *TextBuf) DeletePosRange(startLn, startCol, endLn, endCol int) {
 	start_i, ok := tb.posToIndex(startLn, startCol)
 	if !ok {
 		return
@@ -73,14 +73,14 @@ func (tb *TextBuf) Delete2Range(startLn, startCol, endLn, endCol int) {
 		end_i = math.MaxInt
 	}
 
-	tb.DeleteRange(start_i, end_i)
+	tb.DeleteIndexRange(start_i, end_i)
 }
 
-func (tb *TextBuf) Delete2(startLn, startCol int) {
+func (tb *TextBuf) DeletePos(startLn, startCol int) {
 	start_i, ok := tb.posToIndex(startLn, startCol)
 	if !ok {
 		return
 	}
 
-	tb.DeleteRange(start_i, math.MaxInt)
+	tb.DeleteIndexRange(start_i, math.MaxInt)
 }
