@@ -5,8 +5,8 @@ import (
 	"math"
 	"time"
 
-	"github.com/eu-ge-ne/toy2/internal/textbuf"
 	"github.com/eu-ge-ne/toy2/internal/std"
+	"github.com/eu-ge-ne/toy2/internal/textbuf"
 	"github.com/eu-ge-ne/toy2/internal/vt"
 )
 
@@ -41,7 +41,7 @@ func (ed *Editor) Render() {
 	vt.Sync.Esu()
 
 	if ed.OnCursor != nil {
-		ed.OnCursor(ed.cursor.Ln, ed.cursor.Col, ed.Buffer.LineCount())
+		ed.OnCursor(ed.cursor.Ln, ed.cursor.Col, ed.buffer.LineCount())
 	}
 
 	if ed.OnRender != nil {
@@ -50,8 +50,8 @@ func (ed *Editor) Render() {
 }
 
 func (ed *Editor) determineLayout() {
-	if ed.IndexEnabled && ed.Buffer.LineCount() > 0 {
-		ed.indexWidth = int(math.Log10(float64(ed.Buffer.LineCount()))) + 3
+	if ed.IndexEnabled && ed.buffer.LineCount() > 0 {
+		ed.indexWidth = int(math.Log10(float64(ed.buffer.LineCount()))) + 3
 	} else {
 		ed.indexWidth = 0
 	}
@@ -59,16 +59,16 @@ func (ed *Editor) determineLayout() {
 	ed.textWidth = ed.area.W - ed.indexWidth
 
 	if ed.wrapEnabled {
-		ed.Buffer.WrapWidth = ed.textWidth
+		ed.buffer.WrapWidth = ed.textWidth
 	} else {
-		ed.Buffer.WrapWidth = math.MaxInt
+		ed.buffer.WrapWidth = math.MaxInt
 	}
 
 	ed.cursorY = ed.area.Y
 	ed.cursorX = ed.area.X + ed.indexWidth
 
-	ed.Buffer.MeasureY = ed.area.Y
-	ed.Buffer.MeasureX = ed.area.X + ed.indexWidth
+	ed.buffer.MeasureY = ed.area.Y
+	ed.buffer.MeasureX = ed.area.X + ed.indexWidth
 }
 
 func (ed *Editor) scrollV() {
@@ -89,7 +89,7 @@ func (ed *Editor) scrollV() {
 	xs := make([]int, ed.cursor.Ln+1-ed.scrollLn)
 	for i := 0; i < len(xs); i += 1 {
 		xs[i] = 1
-		for j, cell := range ed.Buffer.IterSegLine(ed.scrollLn+i, false) {
+		for j, cell := range ed.buffer.IterSegLine(ed.scrollLn+i, false) {
 			if j > 0 && cell.Col == 0 {
 				xs[i] += 1
 			}
@@ -113,7 +113,7 @@ func (ed *Editor) scrollV() {
 
 func (ed *Editor) scrollH() {
 	var cell *textbuf.Seg = nil
-	for _, c := range ed.Buffer.IterSegLineSlice(ed.cursor.Ln, true, ed.cursor.Col, math.MaxInt) {
+	for _, c := range ed.buffer.IterSegLineSlice(ed.cursor.Ln, true, ed.cursor.Col, math.MaxInt) {
 		cell = &c
 		break
 	}
@@ -138,7 +138,7 @@ func (ed *Editor) scrollH() {
 	// After?
 
 	xs := make([]int, deltaCol)
-	for i, c := range ed.Buffer.IterSegLineSlice(ed.cursor.Ln, true, ed.cursor.Col-deltaCol, ed.cursor.Col) {
+	for i, c := range ed.buffer.IterSegLineSlice(ed.cursor.Ln, true, ed.cursor.Col-deltaCol, ed.cursor.Col) {
 		xs[i] = c.G.Width
 	}
 
@@ -160,7 +160,7 @@ func (ed *Editor) renderLines() {
 	row := ed.area.Y
 
 	for ln := ed.scrollLn; ; ln += 1 {
-		if ln < ed.Buffer.LineCount() {
+		if ln < ed.buffer.LineCount() {
 			row = ed.renderLine(ln, row)
 		} else {
 			vt.SetCursor(vt.Buf, row, ed.area.X)
@@ -179,7 +179,7 @@ func (ed *Editor) renderLine(ln int, row int) int {
 	availableW := 0
 	currentColor := charColorUndefined
 
-	for i, cell := range ed.Buffer.IterSegLine(ln, false) {
+	for i, cell := range ed.buffer.IterSegLine(ln, false) {
 		if cell.Col == 0 {
 			if i > 0 {
 				row += 1

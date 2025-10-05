@@ -126,7 +126,7 @@ func (app *App) Run() {
 		app.open(flag.Arg(0))
 	}
 
-	app.editor.Reset(true)
+	app.editor.ResetCursor()
 	app.editor.Render()
 
 	vt.ListenStdin()
@@ -244,7 +244,7 @@ func (app *App) processInput() {
 }
 
 func (app *App) open(filePath string) {
-	err := app.editor.Buffer.LoadFromFile(filePath)
+	err := app.editor.LoadFromFile(filePath)
 
 	if os.IsNotExist(err) {
 		return
@@ -272,7 +272,7 @@ func (app *App) save() bool {
 }
 
 func (app *App) saveFile() bool {
-	err := app.editor.Buffer.SaveToFile(app.filePath)
+	err := app.editor.SaveToFile(app.filePath)
 	if err == nil {
 		return true
 	}
@@ -294,7 +294,7 @@ func (app *App) saveFileAs() bool {
 			return false
 		}
 
-		err := app.editor.Buffer.SaveToFile(filePath)
+		err := app.editor.SaveToFile(filePath)
 		if err == nil {
 			app.setFilePath(filePath)
 			return true

@@ -50,8 +50,8 @@ func (p *Palette) Open(done chan<- *Option) {
 	p.enabled = true
 	p.editor.Enabled = true
 
-	p.editor.Buffer.Reset("")
-	p.editor.Reset(false)
+	p.editor.Reset("")
+	p.editor.ResetCursor()
 
 	p.filter()
 	p.parent.Render()
@@ -67,7 +67,7 @@ func (p *Palette) Open(done chan<- *Option) {
 func (p *Palette) filter() {
 	p.selectedIndex = 0
 
-	text := strings.ToUpper(p.editor.Buffer.Text())
+	text := strings.ToUpper(p.editor.Text())
 
 	if len(text) == 0 {
 		p.filteredOptions = p.options

@@ -78,8 +78,8 @@ func (sv *SaveAs) Open(filePath string, done chan<- string) {
 	sv.enabled = true
 	sv.editor.Enabled = true
 
-	sv.editor.Buffer.Reset(filePath)
-	sv.editor.Reset(false)
+	sv.editor.Reset(filePath)
+	sv.editor.ResetCursor()
 
 	sv.Render()
 
@@ -99,7 +99,7 @@ func (sv *SaveAs) processInput() string {
 		case "ESC":
 			return ""
 		case "ENTER":
-			fp := sv.editor.Buffer.Text()
+			fp := sv.editor.Text()
 			if len(fp) > 0 {
 				return fp
 			}
