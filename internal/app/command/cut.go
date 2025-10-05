@@ -1,17 +1,17 @@
-package app
+package command
 
 import (
 	"github.com/eu-ge-ne/toy2/internal/key"
 	"github.com/eu-ge-ne/toy2/internal/palette"
 )
 
-type CutCommand struct {
-	app    *App
+type Cut struct {
+	app    App
 	option palette.Option
 }
 
-func NewCutCommand(app *App) *CutCommand {
-	return &CutCommand{
+func NewCut(app App) *Cut {
+	return &Cut{
 		app: app,
 		option: palette.NewOption(
 			"Cut",
@@ -21,16 +21,14 @@ func NewCutCommand(app *App) *CutCommand {
 	}
 }
 
-func (c *CutCommand) Option() *palette.Option {
+func (c *Cut) Option() *palette.Option {
 	return &c.option
 }
 
-func (c *CutCommand) Match(key.Key) bool {
+func (c *Cut) Match(key.Key) bool {
 	return false
 }
 
-func (c *CutCommand) Run() {
-	if c.app.editor.Cut() {
-		c.app.editor.Render()
-	}
+func (c *Cut) Run() {
+	c.app.Cut()
 }

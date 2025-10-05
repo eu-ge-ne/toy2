@@ -1,17 +1,17 @@
-package app
+package command
 
 import (
 	"github.com/eu-ge-ne/toy2/internal/key"
 	"github.com/eu-ge-ne/toy2/internal/palette"
 )
 
-type CopyCommand struct {
-	app    *App
+type Copy struct {
+	app    App
 	option palette.Option
 }
 
-func NewCopyCommand(app *App) *CopyCommand {
-	return &CopyCommand{
+func NewCopy(app App) *Copy {
+	return &Copy{
 		app: app,
 		option: palette.NewOption(
 			"Copy",
@@ -21,16 +21,14 @@ func NewCopyCommand(app *App) *CopyCommand {
 	}
 }
 
-func (c *CopyCommand) Option() *palette.Option {
+func (c *Copy) Option() *palette.Option {
 	return &c.option
 }
 
-func (c *CopyCommand) Match(key.Key) bool {
+func (c *Copy) Match(key.Key) bool {
 	return false
 }
 
-func (c *CopyCommand) Run() {
-	if c.app.editor.Copy() {
-		c.app.editor.Render()
-	}
+func (c *Copy) Run() {
+	c.app.Copy()
 }

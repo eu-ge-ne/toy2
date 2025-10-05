@@ -1,17 +1,17 @@
-package app
+package command
 
 import (
 	"github.com/eu-ge-ne/toy2/internal/key"
 	"github.com/eu-ge-ne/toy2/internal/palette"
 )
 
-type RedoCommand struct {
-	app    *App
+type Redo struct {
+	app    App
 	option palette.Option
 }
 
-func NewRedoCommand(app *App) *RedoCommand {
-	return &RedoCommand{
+func NewRedo(app App) *Redo {
+	return &Redo{
 		app: app,
 		option: palette.NewOption(
 			"Redo",
@@ -21,16 +21,14 @@ func NewRedoCommand(app *App) *RedoCommand {
 	}
 }
 
-func (c *RedoCommand) Option() *palette.Option {
+func (c *Redo) Option() *palette.Option {
 	return &c.option
 }
 
-func (c *RedoCommand) Match(key.Key) bool {
+func (c *Redo) Match(key.Key) bool {
 	return false
 }
 
-func (c *RedoCommand) Run() {
-	if c.app.editor.Redo() {
-		c.app.editor.Render()
-	}
+func (c *Redo) Run() {
+	c.app.Redo()
 }

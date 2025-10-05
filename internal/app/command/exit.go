@@ -1,0 +1,30 @@
+package command
+
+import (
+	"github.com/eu-ge-ne/toy2/internal/key"
+	"github.com/eu-ge-ne/toy2/internal/palette"
+)
+
+type Exit struct {
+	app    App
+	option palette.Option
+}
+
+func NewExit(app App) *Exit {
+	return &Exit{
+		app:    app,
+		option: palette.NewOption("Exit", "Global: Exit", []key.Key{{Name: "F10"}}),
+	}
+}
+
+func (c *Exit) Option() *palette.Option {
+	return &c.option
+}
+
+func (c *Exit) Match(k key.Key) bool {
+	return k.Name == "F10"
+}
+
+func (c *Exit) Run() {
+	c.app.Exit()
+}
