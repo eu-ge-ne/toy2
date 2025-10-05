@@ -1,12 +1,18 @@
 package textbuf
 
 import (
-	"github.com/eu-ge-ne/toy2/internal/segbuf/textbuf/content"
-	"github.com/eu-ge-ne/toy2/internal/segbuf/textbuf/node"
-	"github.com/eu-ge-ne/toy2/internal/segbuf/textbuf/tree"
+	"math"
+
+	"github.com/eu-ge-ne/toy2/internal/textbuf/content"
+	"github.com/eu-ge-ne/toy2/internal/textbuf/node"
+	"github.com/eu-ge-ne/toy2/internal/textbuf/tree"
 )
 
 type TextBuf struct {
+	WrapWidth int
+	MeasureY  int
+	MeasureX  int
+
 	content content.Content
 	tree    tree.Tree
 }
@@ -17,6 +23,8 @@ type Snapshot struct {
 
 func New() TextBuf {
 	return TextBuf{
+		WrapWidth: math.MaxInt,
+
 		content: content.Content{},
 		tree:    tree.Tree{Root: node.NIL},
 	}

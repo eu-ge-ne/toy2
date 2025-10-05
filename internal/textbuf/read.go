@@ -3,7 +3,19 @@ package textbuf
 import (
 	"iter"
 	"math"
+	"slices"
+	"strings"
 )
+
+func (tb *TextBuf) Iter() iter.Seq[string] {
+	return tb.ReadIndex(0)
+}
+
+func (tb *TextBuf) Text() string {
+	it := tb.ReadIndex(0)
+
+	return strings.Join(slices.Collect(it), "")
+}
 
 func (tb *TextBuf) ReadIndexRange(start int, end int) iter.Seq[string] {
 	x, offset := tb.tree.Root.Find(start)

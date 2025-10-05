@@ -3,7 +3,7 @@ package textbuf
 import (
 	"math"
 
-	"github.com/eu-ge-ne/toy2/internal/segbuf/textbuf/node"
+	"github.com/eu-ge-ne/toy2/internal/textbuf/node"
 )
 
 func (tb *TextBuf) DeleteIndexRange(start int, end int) {

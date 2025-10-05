@@ -5,7 +5,7 @@ import (
 	"math"
 	"time"
 
-	"github.com/eu-ge-ne/toy2/internal/segbuf"
+	"github.com/eu-ge-ne/toy2/internal/textbuf"
 	"github.com/eu-ge-ne/toy2/internal/std"
 	"github.com/eu-ge-ne/toy2/internal/vt"
 )
@@ -112,7 +112,7 @@ func (ed *Editor) scrollV() {
 }
 
 func (ed *Editor) scrollH() {
-	var cell *segbuf.Seg = nil
+	var cell *textbuf.Seg = nil
 	for _, c := range ed.Buffer.IterSegLineSlice(ed.cursor.Ln, true, ed.cursor.Col, math.MaxInt) {
 		cell = &c
 		break

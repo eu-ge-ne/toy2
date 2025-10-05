@@ -3,7 +3,7 @@ package cursor
 import (
 	"math"
 
-	"github.com/eu-ge-ne/toy2/internal/segbuf"
+	"github.com/eu-ge-ne/toy2/internal/textbuf"
 	"github.com/eu-ge-ne/toy2/internal/std"
 )
 
@@ -18,10 +18,10 @@ type Cursor struct {
 	ToLn      int
 	ToCol     int
 
-	buffer *segbuf.SegBuf
+	buffer *textbuf.TextBuf
 }
 
-func New(buffer *segbuf.SegBuf) Cursor {
+func New(buffer *textbuf.TextBuf) Cursor {
 	return Cursor{buffer: buffer}
 }
 

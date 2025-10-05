@@ -1,7 +1,7 @@
 package textbuf
 
 import (
-	"github.com/eu-ge-ne/toy2/internal/segbuf/textbuf/node"
+	"github.com/eu-ge-ne/toy2/internal/textbuf/node"
 )
 
 func (tb TextBuf) posToIndex(ln, col int) (int, bool) {

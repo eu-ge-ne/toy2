@@ -5,10 +5,10 @@ import (
 	"os"
 	"unicode/utf8"
 
-	"github.com/eu-ge-ne/toy2/internal/segbuf"
+	"github.com/eu-ge-ne/toy2/internal/textbuf"
 )
 
-func Load(buffer *segbuf.SegBuf, filePath string) error {
+func Load(buffer *textbuf.TextBuf, filePath string) error {
 	f, err := os.Open(filePath)
 	if err != nil {
 		return err
@@ -39,7 +39,7 @@ func Load(buffer *segbuf.SegBuf, filePath string) error {
 	return nil
 }
 
-func Save(buffer *segbuf.SegBuf, filePath string) error {
+func Save(buffer *textbuf.TextBuf, filePath string) error {
 	f, err := os.OpenFile(filePath, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
 	if err != nil {
 		return err

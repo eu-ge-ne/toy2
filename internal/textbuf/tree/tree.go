@@ -1,7 +1,7 @@
 package tree
 
 import (
-	"github.com/eu-ge-ne/toy2/internal/segbuf/textbuf/node"
+	"github.com/eu-ge-ne/toy2/internal/textbuf/node"
 )
 
 type Tree struct {
