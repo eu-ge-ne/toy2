@@ -66,7 +66,7 @@ func (ed *Editor) insert(text string) {
 func (ed *Editor) backspace() {
 	if ed.cursor.Ln > 0 && ed.cursor.Col == 0 {
 		l := 0
-		for range ed.Buffer.Line(ed.cursor.Ln, false) {
+		for range ed.Buffer.IterSegLine(ed.cursor.Ln, false) {
 			l += 1
 			if l == 2 {
 				break

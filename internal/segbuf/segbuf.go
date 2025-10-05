@@ -65,7 +65,7 @@ type Seg struct {
 	Col int
 }
 
-func (sb *SegBuf) Line(ln int, extra bool) iter.Seq2[int, Seg] {
+func (sb *SegBuf) IterSegLine(ln int, extra bool) iter.Seq2[int, Seg] {
 	return func(yield func(int, Seg) bool) {
 		i := 0
 		c := Seg{}
@@ -114,10 +114,10 @@ func (sb *SegBuf) Line(ln int, extra bool) iter.Seq2[int, Seg] {
 	}
 }
 
-func (sb *SegBuf) LineSlice(ln int, extra bool, start, end int) iter.Seq2[int, Seg] {
+func (sb *SegBuf) IterSegLineSlice(ln int, extra bool, start, end int) iter.Seq2[int, Seg] {
 	return func(yield func(int, Seg) bool) {
 		i := 0
-		for j, c := range sb.Line(ln, extra) {
+		for j, c := range sb.IterSegLine(ln, extra) {
 			if j >= start && j < end {
 				if !yield(i, c) {
 					return
@@ -153,7 +153,7 @@ func (sb *SegBuf) DeleteSegPosRange(startLn, startCol, endLn, endCol int) {
 func (sb *SegBuf) segCol(ln, col int) int {
 	c := 0
 
-	for i, cell := range sb.Line(ln, false) {
+	for i, cell := range sb.IterSegLine(ln, false) {
 		if i == col {
 			break
 		}
