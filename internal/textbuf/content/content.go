@@ -3,24 +3,24 @@ package content
 import (
 	"iter"
 
-	"github.com/eu-ge-ne/toy2/internal/textbuf/buffer"
 	"github.com/eu-ge-ne/toy2/internal/textbuf/node"
+	"github.com/eu-ge-ne/toy2/internal/textbuf/piece"
 )
 
 type Content struct {
-	Buffers []*buffer.Buffer
+	Table []*piece.Piece
 }
 
 func (c *Content) Create(text string) *node.Node {
-	buffer := buffer.Create(text)
-	c.Buffers = append(c.Buffers, &buffer)
-	BufIndex := len(c.Buffers) - 1
+	buffer := piece.Create(text)
+	c.Table = append(c.Table, &buffer)
+	BufIndex := len(c.Table) - 1
 
 	return node.Create(BufIndex, 0, buffer.Len, 0, len(buffer.Eols))
 }
 
 func (c *Content) Split(x *node.Node, index int, gap int) *node.Node {
-	buf := c.Buffers[x.BufIndex]
+	buf := c.Table[x.PieceIndex]
 
 	start := x.Start + index + gap
 	len := x.Len - index - gap
@@ -32,7 +32,7 @@ func (c *Content) Split(x *node.Node, index int, gap int) *node.Node {
 	eols_end := buf.FindEolIndex(start+len, eols_start)
 	eols_len := eols_end - eols_start
 
-	return node.Create(x.BufIndex, start, len, eols_start, eols_len)
+	return node.Create(x.PieceIndex, start, len, eols_start, eols_len)
 }
 
 func (c *Content) Read(x *node.Node, offset int, n int) iter.Seq[string] {
@@ -40,7 +40,7 @@ func (c *Content) Read(x *node.Node, offset int, n int) iter.Seq[string] {
 		for x != node.NIL && (n > 0) {
 			count := min(x.Len-offset, n)
 
-			if !yield(c.Buffers[x.BufIndex].Read(x.Start+offset, x.Start+offset+count)) {
+			if !yield(c.Table[x.PieceIndex].Read(x.Start+offset, x.Start+offset+count)) {
 				return
 			}
 
@@ -52,19 +52,19 @@ func (c *Content) Read(x *node.Node, offset int, n int) iter.Seq[string] {
 }
 
 func (c *Content) Growable(x *node.Node) bool {
-	buf := c.Buffers[x.BufIndex]
+	buf := c.Table[x.PieceIndex]
 
 	return (buf.Len < 100) && (x.Start+x.Len == buf.Len)
 }
 
 func (c *Content) Grow(x *node.Node, text string) {
-	c.Buffers[x.BufIndex].Append(text)
+	c.Table[x.PieceIndex].Append(text)
 
 	c.resize(x, x.Len+len(text))
 }
 
 func (c *Content) TrimStart(x *node.Node, n int) {
-	buf := c.Buffers[x.BufIndex]
+	buf := c.Table[x.PieceIndex]
 
 	x.Start += n
 	x.Len -= n
@@ -81,7 +81,7 @@ func (c *Content) TrimEnd(x *node.Node, n int) {
 }
 
 func (c *Content) resize(x *node.Node, len int) {
-	buf := c.Buffers[x.BufIndex]
+	buf := c.Table[x.PieceIndex]
 
 	x.Len = len
 

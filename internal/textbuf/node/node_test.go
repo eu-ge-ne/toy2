@@ -14,7 +14,7 @@ func TestNIL(t *testing.T) {
 		Right:        NIL,
 		TotalLen:     0,
 		TotalEolsLen: 0,
-		BufIndex:     0,
+		PieceIndex:   0,
 		Start:        0,
 		Len:          0,
 		EolsStart:    0,

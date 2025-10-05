@@ -1,6 +1,6 @@
-package buffer
+package piece
 
-type Buffer struct {
+type Piece struct {
 	text string
 	Len  int
 	Eols []Eol
@@ -11,8 +11,8 @@ type Eol struct {
 	End   int
 }
 
-func Create(text string) Buffer {
-	x := Buffer{}
+func Create(text string) Piece {
+	x := Piece{}
 
 	x.appendEols(text)
 	x.text = text
@@ -21,18 +21,18 @@ func Create(text string) Buffer {
 	return x
 }
 
-func (buf *Buffer) Append(text string) {
+func (buf *Piece) Append(text string) {
 	buf.appendEols(text)
 
 	buf.text += text
 	buf.Len += len(text)
 }
 
-func (buf *Buffer) Read(start int, end int) string {
+func (buf *Piece) Read(start int, end int) string {
 	return buf.text[start:end]
 }
 
-func (buf *Buffer) FindEolIndex(index int, a int) int {
+func (buf *Piece) FindEolIndex(index int, a int) int {
 	b := len(buf.Eols) - 1
 
 outer:
@@ -57,7 +57,7 @@ outer:
 	return a
 }
 
-func (buf *Buffer) appendEols(text string) {
+func (buf *Piece) appendEols(text string) {
 	var p rune
 
 	for i, r := range text {
