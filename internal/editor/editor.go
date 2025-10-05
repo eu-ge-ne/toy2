@@ -4,8 +4,8 @@ import (
 	"math"
 	"time"
 
-	"github.com/eu-ge-ne/toy2/internal/cursor"
-	"github.com/eu-ge-ne/toy2/internal/history"
+	"github.com/eu-ge-ne/toy2/internal/editor/cursor"
+	"github.com/eu-ge-ne/toy2/internal/editor/history"
 	"github.com/eu-ge-ne/toy2/internal/segbuf"
 	"github.com/eu-ge-ne/toy2/internal/syntax"
 	"github.com/eu-ge-ne/toy2/internal/theme"
