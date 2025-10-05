@@ -3,7 +3,7 @@ package cursor
 import (
 	"math"
 
-	"github.com/eu-ge-ne/toy2/internal/segbuf"
+	"github.com/eu-ge-ne/toy2/internal/textbuf"
 	"github.com/eu-ge-ne/toy2/internal/std"
 )
 
@@ -18,10 +18,10 @@ type Cursor struct {
 	ToLn      int
 	ToCol     int
 
-	buffer *segbuf.SegBuf
+	buffer *textbuf.TextBuf
 }
 
-func New(buffer *segbuf.SegBuf) Cursor {
+func New(buffer *textbuf.TextBuf) Cursor {
 	return Cursor{buffer: buffer}
 }
 
@@ -121,7 +121,7 @@ func (cur *Cursor) setLn(ln int) {
 func (cur *Cursor) setCol(col int) {
 	len := 0
 
-	for _, c := range cur.buffer.Line(cur.Ln, false) {
+	for _, c := range cur.buffer.IterSegLine(cur.Ln, false) {
 		if c.G.IsEol {
 			break
 		}

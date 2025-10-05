@@ -12,7 +12,7 @@ func TestCreateEmpty(t *testing.T) {
 	buf := textbuf.New()
 
 	assert.Equal(t, "",
-		iterToStr(buf.Read(0)))
+		iterToStr(buf.ReadIndex(0)))
 	assert.Equal(t, 0, buf.Count())
 	assert.Equal(t, 0, buf.LineCount())
 

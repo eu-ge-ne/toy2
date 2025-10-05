@@ -11,26 +11,26 @@ import (
 func TestInsertInto0Line(t *testing.T) {
 	buf := textbuf.New()
 
-	buf.Insert2(0, 0, "Lorem ipsum")
+	buf.InsertPos(0, 0, "Lorem ipsum")
 
 	assert.Equal(t, "Lorem ipsum",
-		iterToStr(buf.Read(0)))
+		iterToStr(buf.ReadIndex(0)))
 	assert.Equal(t, "Lorem ipsum",
-		iterToStr(buf.Read2Range(0, 0, 1, 0)))
+		iterToStr(buf.ReadPosRange(0, 0, 1, 0)))
 
 	buf.Validate()
 }
 
 func TestInsertIntoALine(t *testing.T) {
 	buf := textbuf.New()
-	buf.Insert(0, "Lorem")
+	buf.InsertIndex(0, "Lorem")
 
-	buf.Insert2(0, 5, " ipsum")
+	buf.InsertPos(0, 5, " ipsum")
 
 	assert.Equal(t, "Lorem ipsum",
-		iterToStr(buf.Read(0)))
+		iterToStr(buf.ReadIndex(0)))
 	assert.Equal(t, "Lorem ipsum",
-		iterToStr(buf.Read2Range(0, 0, 1, 0)))
+		iterToStr(buf.ReadPosRange(0, 0, 1, 0)))
 
 	buf.Validate()
 }
@@ -38,12 +38,12 @@ func TestInsertIntoALine(t *testing.T) {
 func TestInsertIntoALineWhichDoesNotExist(t *testing.T) {
 	buf := textbuf.New()
 
-	buf.Insert2(1, 0, "Lorem ipsum")
+	buf.InsertPos(1, 0, "Lorem ipsum")
 
 	assert.Equal(t, "",
-		iterToStr(buf.Read(0)))
+		iterToStr(buf.ReadIndex(0)))
 	assert.Equal(t, "",
-		iterToStr(buf.Read2Range(0, 0, 1, 0)))
+		iterToStr(buf.ReadPosRange(0, 0, 1, 0)))
 
 	buf.Validate()
 }
@@ -51,12 +51,12 @@ func TestInsertIntoALineWhichDoesNotExist(t *testing.T) {
 func TestInsertIntoAColumnWhichDoesNotExist(t *testing.T) {
 	buf := textbuf.New()
 
-	buf.Insert2(0, 1, "Lorem ipsum")
+	buf.InsertPos(0, 1, "Lorem ipsum")
 
 	assert.Equal(t, "",
-		iterToStr(buf.Read(0)))
+		iterToStr(buf.ReadIndex(0)))
 	assert.Equal(t, "",
-		iterToStr(buf.Read2Range(0, 0, 1, 0)))
+		iterToStr(buf.ReadPosRange(0, 0, 1, 0)))
 
 	buf.Validate()
 }

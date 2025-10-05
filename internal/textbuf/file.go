@@ -1,14 +1,12 @@
-package file
+package textbuf
 
 import (
 	"io"
 	"os"
 	"unicode/utf8"
-
-	"github.com/eu-ge-ne/toy2/internal/segbuf"
 )
 
-func Load(buffer *segbuf.SegBuf, filePath string) error {
+func (tb *TextBuf) LoadFromFile(filePath string) error {
 	f, err := os.Open(filePath)
 	if err != nil {
 		return err
@@ -33,13 +31,13 @@ func Load(buffer *segbuf.SegBuf, filePath string) error {
 			panic("invalid utf8 chunk")
 		}
 
-		buffer.Append(string(chunk))
+		tb.Append(string(chunk))
 	}
 
 	return nil
 }
 
-func Save(buffer *segbuf.SegBuf, filePath string) error {
+func (tb *TextBuf) SaveToFile(filePath string) error {
 	f, err := os.OpenFile(filePath, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
@@ -47,7 +45,7 @@ func Save(buffer *segbuf.SegBuf, filePath string) error {
 
 	defer f.Close()
 
-	for text := range buffer.Iter() {
+	for text := range tb.Iter() {
 		_, err := f.WriteString(text)
 		if err != nil {
 			return err

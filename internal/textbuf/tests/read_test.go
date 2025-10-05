@@ -12,7 +12,7 @@ func TestReadEmpty(t *testing.T) {
 	buf := textbuf.New()
 
 	assert.Equal(t, "",
-		iterToStr(buf.Read(0)))
+		iterToStr(buf.ReadIndex(0)))
 	buf.Validate()
 }
 
@@ -21,7 +21,7 @@ func TestRead(t *testing.T) {
 	buf.Append("Lorem ipsum dolor")
 
 	assert.Equal(t, "ipsum ",
-		iterToStr(buf.ReadRange(6, 12)))
+		iterToStr(buf.ReadIndexRange(6, 12)))
 	buf.Validate()
 }
 
@@ -30,11 +30,11 @@ func TestReadAtStartGTECount(t *testing.T) {
 	buf.Append("Lorem")
 
 	assert.Equal(t, "m",
-		iterToStr(buf.Read(4)))
+		iterToStr(buf.ReadIndex(4)))
 	assert.Equal(t, "",
-		iterToStr(buf.Read(5)))
+		iterToStr(buf.ReadIndex(5)))
 	assert.Equal(t, "",
-		iterToStr(buf.Read(6)))
+		iterToStr(buf.ReadIndex(6)))
 
 	buf.Validate()
 }
@@ -44,11 +44,11 @@ func TestReadAtStartLT0(t *testing.T) {
 	buf.Append("Lorem")
 
 	assert.Equal(t, "Lorem",
-		iterToStr(buf.Read(0)))
+		iterToStr(buf.ReadIndex(0)))
 	assert.Equal(t, "m",
-		iterToStr(buf.Read(buf.Count()-1)))
+		iterToStr(buf.ReadIndex(buf.Count()-1)))
 	assert.Equal(t, "em",
-		iterToStr(buf.Read(buf.Count()-2)))
+		iterToStr(buf.ReadIndex(buf.Count()-2)))
 
 	buf.Validate()
 }

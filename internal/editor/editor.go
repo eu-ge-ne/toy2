@@ -7,7 +7,7 @@ import (
 	"github.com/eu-ge-ne/toy2/internal/editor/cursor"
 	"github.com/eu-ge-ne/toy2/internal/editor/history"
 	"github.com/eu-ge-ne/toy2/internal/editor/syntax"
-	"github.com/eu-ge-ne/toy2/internal/segbuf"
+	"github.com/eu-ge-ne/toy2/internal/textbuf"
 	"github.com/eu-ge-ne/toy2/internal/theme"
 	"github.com/eu-ge-ne/toy2/internal/ui"
 	"github.com/eu-ge-ne/toy2/internal/vt"
@@ -35,7 +35,7 @@ type Editor struct {
 	scrollLn   int
 	scrollCol  int
 
-	Buffer   *segbuf.SegBuf
+	Buffer   *textbuf.TextBuf
 	cursor   *cursor.Cursor
 	history  *history.History
 	syntax   *syntax.Syntax
@@ -52,7 +52,7 @@ type colors struct {
 }
 
 func New(multiLine bool) *Editor {
-	b := segbuf.New()
+	b := textbuf.New()
 	c := cursor.New(&b)
 	h := history.New(&b, &c)
 	s := syntax.New(&b)
@@ -130,10 +130,10 @@ func (ed *Editor) Copy() bool {
 	c := ed.cursor
 
 	if c.Selecting {
-		ed.clipboard = ed.Buffer.Read(c.FromLn, c.FromCol, c.ToLn, c.ToCol+1)
+		ed.clipboard = ed.Buffer.ReadSegPosRange(c.FromLn, c.FromCol, c.ToLn, c.ToCol+1)
 		c.Set(c.Ln, c.Col, false)
 	} else {
-		ed.clipboard = ed.Buffer.Read(c.Ln, c.Col, c.Ln, c.Col+1)
+		ed.clipboard = ed.Buffer.ReadSegPosRange(c.Ln, c.Col, c.Ln, c.Col+1)
 	}
 
 	vt.CopyToClipboard(vt.Sync, ed.clipboard)
@@ -145,10 +145,10 @@ func (ed *Editor) Cut() bool {
 	c := ed.cursor
 
 	if c.Selecting {
-		ed.clipboard = ed.Buffer.Read(c.FromLn, c.FromCol, c.ToLn, c.ToCol+1)
+		ed.clipboard = ed.Buffer.ReadSegPosRange(c.FromLn, c.FromCol, c.ToLn, c.ToCol+1)
 		ed.deleteSelection()
 	} else {
-		ed.clipboard = ed.Buffer.Read(c.Ln, c.Col, c.Ln, c.Col+1)
+		ed.clipboard = ed.Buffer.ReadSegPosRange(c.Ln, c.Col, c.Ln, c.Col+1)
 		ed.deleteChar()
 	}
 
