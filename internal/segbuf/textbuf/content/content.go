@@ -3,8 +3,8 @@ package content
 import (
 	"iter"
 
-	"github.com/eu-ge-ne/toy2/internal/textbuf/internal/buffer"
-	"github.com/eu-ge-ne/toy2/internal/textbuf/internal/node"
+	"github.com/eu-ge-ne/toy2/internal/segbuf/textbuf/buffer"
+	"github.com/eu-ge-ne/toy2/internal/segbuf/textbuf/node"
 )
 
 type Content struct {

@@ -1,9 +1,9 @@
 package textbuf
 
 import (
-	"github.com/eu-ge-ne/toy2/internal/textbuf/internal/content"
-	"github.com/eu-ge-ne/toy2/internal/textbuf/internal/node"
-	"github.com/eu-ge-ne/toy2/internal/textbuf/internal/tree"
+	"github.com/eu-ge-ne/toy2/internal/segbuf/textbuf/content"
+	"github.com/eu-ge-ne/toy2/internal/segbuf/textbuf/node"
+	"github.com/eu-ge-ne/toy2/internal/segbuf/textbuf/tree"
 )
 
 type TextBuf struct {
