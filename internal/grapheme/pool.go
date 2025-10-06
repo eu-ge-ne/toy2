@@ -25,15 +25,14 @@ func (p GraphemePool) IterText(text string) iter.Seq2[int, *Grapheme] {
 	return func(yield func(int, *Grapheme) bool) {
 		var (
 			i     = 0
-			c     string
 			state = -1
+			seg   string
 		)
 
 		for len(text) > 0 {
-			c, text, _, state = uniseg.StepString(text, state)
-			g := p.Get(c)
+			seg, text, _, state = uniseg.StepString(text, state)
 
-			if !yield(i, g) {
+			if !yield(i, p.Get(seg)) {
 				return
 			}
 
@@ -46,16 +45,15 @@ func (p GraphemePool) Iter(it iter.Seq[string]) iter.Seq2[int, *Grapheme] {
 	return func(yield func(int, *Grapheme) bool) {
 		var (
 			i     = 0
-			c     string
 			state = -1
+			seg   string
 		)
 
 		for text := range it {
 			for len(text) > 0 {
-				c, text, _, state = uniseg.StepString(text, state)
-				g := p.Get(c)
+				seg, text, _, state = uniseg.StepString(text, state)
 
-				if !yield(i, g) {
+				if !yield(i, p.Get(seg)) {
 					return
 				}
 
