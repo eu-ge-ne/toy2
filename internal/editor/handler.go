@@ -5,10 +5,7 @@ import (
 	"slices"
 	"time"
 
-	"github.com/rivo/uniseg"
-
 	"github.com/eu-ge-ne/toy2/internal/editor/handler"
-	"github.com/eu-ge-ne/toy2/internal/grapheme"
 	"github.com/eu-ge-ne/toy2/internal/key"
 	"github.com/eu-ge-ne/toy2/internal/vt"
 )
@@ -41,7 +38,7 @@ func (ed *Editor) Backspace() bool {
 	if ed.cursor.Selecting {
 		ed.deleteSelection()
 	} else {
-		ed.deletePrevChar()
+		ed.deletePrevSeg()
 	}
 
 	return true
@@ -86,7 +83,7 @@ func (ed *Editor) Cut() bool {
 		ed.deleteSelection()
 	} else {
 		ed.clipboard = ed.buffer.ReadSegPosRange(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
-		ed.deleteChar()
+		ed.deleteSeg()
 	}
 
 	vt.CopyToClipboard(vt.Sync, ed.clipboard)
@@ -98,7 +95,7 @@ func (ed *Editor) Delete() bool {
 	if ed.cursor.Selecting {
 		ed.deleteSelection()
 	} else {
-		ed.deleteChar()
+		ed.deleteSeg()
 	}
 
 	return true
@@ -121,9 +118,7 @@ func (ed *Editor) Enter() bool {
 		return false
 	}
 
-	ed.Insert("\n")
-
-	return true
+	return ed.Insert("\n")
 }
 
 func (ed *Editor) Home(sel bool) bool {
@@ -131,36 +126,7 @@ func (ed *Editor) Home(sel bool) bool {
 }
 
 func (ed *Editor) Insert(text string) bool {
-	if ed.cursor.Selecting {
-		ed.buffer.DeleteSegPosRange(ed.cursor.FromLn, ed.cursor.FromCol, ed.cursor.ToLn, ed.cursor.ToCol+1)
-		ed.cursor.Set(ed.cursor.FromLn, ed.cursor.FromCol, false)
-	}
-
-	ed.buffer.InsertSegPos(ed.cursor.Ln, ed.cursor.Col, text)
-
-	eolCount := 0
-	lastEolIndex := 0
-
-	gs := uniseg.NewGraphemes(text)
-	i := 0
-	for gs.Next() {
-		g := grapheme.Graphemes.Get(gs.Str())
-		if g.IsEol {
-			eolCount += 1
-			lastEolIndex = i
-		}
-		i += 1
-	}
-
-	if eolCount == 0 {
-		ed.cursor.Forward(uniseg.GraphemeClusterCount(text))
-	} else {
-		col := uniseg.GraphemeClusterCount(text) - lastEolIndex - 1
-
-		ed.cursor.Set(ed.cursor.Ln+eolCount, col, false)
-	}
-
-	ed.history.Push()
+	ed.insertText(text)
 
 	return true
 }
