@@ -3,9 +3,6 @@ package cursor
 import (
 	"math"
 
-	"github.com/rivo/uniseg"
-
-	"github.com/eu-ge-ne/toy2/internal/grapheme"
 	"github.com/eu-ge-ne/toy2/internal/std"
 	"github.com/eu-ge-ne/toy2/internal/textbuf"
 )
@@ -93,30 +90,16 @@ func (cur *Cursor) Forward(n int) bool {
 }
 
 func (cur *Cursor) ForwardText(text string) bool {
-	i := 0
-	eolCount := 0
-	lastEolIndex := 0
-
-	gg := uniseg.NewGraphemes(text)
-
-	for gg.Next() {
-		g := grapheme.Graphemes.Get(gg.Str())
-
-		if g.IsEol {
-			eolCount += 1
-			lastEolIndex = i
-		}
-
-		i += 1
-	}
+	count, eolCount, lastEolIndex := std.MeasureText(text)
 
 	if eolCount == 0 {
-		return cur.Forward(uniseg.GraphemeClusterCount(text))
-	} else {
-		col := uniseg.GraphemeClusterCount(text) - lastEolIndex - 1
-
-		return cur.Set(cur.Ln+eolCount, col, false)
+		return cur.Forward(count)
 	}
+
+	ln := cur.Ln + eolCount
+	col := count - lastEolIndex - 1
+
+	return cur.Set(ln, col, false)
 }
 
 func (cur *Cursor) IsSelected(ln, col int) bool {
