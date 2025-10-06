@@ -10,3 +10,10 @@ func Clamp(x, min, max int) int {
 		return x
 	}
 }
+
+func Sum(arr []int) (sum int) {
+	for _, v := range arr {
+		sum += v
+	}
+	return
+}
