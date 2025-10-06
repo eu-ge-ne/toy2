@@ -4,13 +4,10 @@ import (
 	"math"
 	"time"
 
-	"github.com/rivo/uniseg"
-
 	"github.com/eu-ge-ne/toy2/internal/editor/cursor"
 	"github.com/eu-ge-ne/toy2/internal/editor/handler"
 	"github.com/eu-ge-ne/toy2/internal/editor/history"
 	"github.com/eu-ge-ne/toy2/internal/editor/syntax"
-	"github.com/eu-ge-ne/toy2/internal/grapheme"
 	"github.com/eu-ge-ne/toy2/internal/textbuf"
 	"github.com/eu-ge-ne/toy2/internal/theme"
 	"github.com/eu-ge-ne/toy2/internal/ui"
@@ -228,27 +225,7 @@ func (ed *Editor) insertText(text string) {
 
 	ed.buffer.InsertSegPos(cur.Ln, cur.Col, text)
 
-	eolCount := 0
-	lastEolIndex := 0
-
-	gs := uniseg.NewGraphemes(text)
-	i := 0
-	for gs.Next() {
-		g := grapheme.Graphemes.Get(gs.Str())
-		if g.IsEol {
-			eolCount += 1
-			lastEolIndex = i
-		}
-		i += 1
-	}
-
-	if eolCount == 0 {
-		cur.Forward(uniseg.GraphemeClusterCount(text))
-	} else {
-		col := uniseg.GraphemeClusterCount(text) - lastEolIndex - 1
-
-		cur.Set(cur.Ln+eolCount, col, false)
-	}
+	cur.ForwardText(text)
 
 	ed.history.Push()
 }

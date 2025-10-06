@@ -3,8 +3,11 @@ package cursor
 import (
 	"math"
 
-	"github.com/eu-ge-ne/toy2/internal/textbuf"
+	"github.com/rivo/uniseg"
+
+	"github.com/eu-ge-ne/toy2/internal/grapheme"
 	"github.com/eu-ge-ne/toy2/internal/std"
+	"github.com/eu-ge-ne/toy2/internal/textbuf"
 )
 
 type Cursor struct {
@@ -87,6 +90,30 @@ func (cur *Cursor) Right(sel bool) bool {
 
 func (cur *Cursor) Forward(n int) bool {
 	return cur.Set(cur.Ln, cur.Col+n, false)
+}
+
+func (cur *Cursor) ForwardText(text string) bool {
+	eolCount := 0
+	lastEolIndex := 0
+
+	gs := uniseg.NewGraphemes(text)
+	i := 0
+	for gs.Next() {
+		g := grapheme.Graphemes.Get(gs.Str())
+		if g.IsEol {
+			eolCount += 1
+			lastEolIndex = i
+		}
+		i += 1
+	}
+
+	if eolCount == 0 {
+		return cur.Forward(uniseg.GraphemeClusterCount(text))
+	} else {
+		col := uniseg.GraphemeClusterCount(text) - lastEolIndex - 1
+
+		return cur.Set(cur.Ln+eolCount, col, false)
+	}
 }
 
 func (cur *Cursor) IsSelected(ln, col int) bool {
