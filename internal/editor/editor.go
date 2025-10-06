@@ -175,7 +175,7 @@ func (ed *Editor) deleteSelection() {
 	cur := ed.cursor
 
 	ed.buffer.DeleteSegPosRange(cur.StartLn, cur.StartCol, cur.Ln, cur.Col+1)
-	ed.syntax.Edit(cur.StartLn, cur.StartCol, cur.Ln, cur.Col+1)
+	ed.syntax.Delete(cur.StartLn, cur.StartCol, cur.Ln, cur.Col+1)
 	ed.cursor.Set(cur.StartLn, cur.StartCol, false)
 
 	ed.history.Push()
@@ -185,7 +185,7 @@ func (ed *Editor) deleteChar() {
 	cur := ed.cursor
 
 	ed.buffer.DeleteSegPosRange(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
-	ed.syntax.Edit(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
+	ed.syntax.Delete(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
 
 	ed.history.Push()
 }
@@ -204,16 +204,16 @@ func (ed *Editor) deletePrevChar() {
 
 		if l == 1 {
 			ed.buffer.DeleteSegPosRange(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
-			ed.syntax.Edit(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
+			ed.syntax.Delete(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
 			cur.Left(false)
 		} else {
 			cur.Left(false)
 			ed.buffer.DeleteSegPosRange(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
-			ed.syntax.Edit(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
+			ed.syntax.Delete(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
 		}
 	} else {
 		ed.buffer.DeleteSegPosRange(cur.Ln, cur.Col-1, cur.Ln, cur.Col)
-		ed.syntax.Edit(cur.Ln, cur.Col-1, cur.Ln, cur.Col)
+		ed.syntax.Delete(cur.Ln, cur.Col-1, cur.Ln, cur.Col)
 		cur.Left(false)
 	}
 
@@ -225,12 +225,12 @@ func (ed *Editor) insertText(text string) {
 
 	if cur.Selecting {
 		ed.buffer.DeleteSegPosRange(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol+1)
-		ed.syntax.Edit(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol+1)
+		ed.syntax.Delete(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol+1)
 		cur.Set(cur.StartLn, cur.StartCol, false)
 	}
 
 	ed.buffer.InsertSegPos(cur.Ln, cur.Col, text)
-	ed.syntax.Edit(cur.Ln, cur.Col, cur.Ln, cur.Col+1) // TODO
+	ed.syntax.Insert(cur.Ln, cur.Col, text)
 	cur.ForwardText(text)
 
 	ed.history.Push()

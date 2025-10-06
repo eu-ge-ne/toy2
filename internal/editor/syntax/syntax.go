@@ -25,7 +25,7 @@ func (s *Syntax) Reset() {
 	s.tree = s.parser.Parse([]byte(s.buffer.Text()), nil)
 }
 
-func (s *Syntax) Edit(startLn, startCol, endLn, endCol int) {
+func (s *Syntax) Delete(startLn, startCol, endLn, endCol int) {
 	/*
 		s.tree.Edit(&treeSitter.InputEdit{
 			StartByte:      startByte,
@@ -38,4 +38,7 @@ func (s *Syntax) Edit(startLn, startCol, endLn, endCol int) {
 
 		s.tree = s.parser.Parse([]byte(s.buffer.Text()), s.tree)
 	*/
+}
+
+func (s *Syntax) Insert(startLn, startCol int, text string) {
 }
