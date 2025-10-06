@@ -21,7 +21,7 @@ func (app *App) Cut() {
 }
 
 func (app *App) Debug() {
-	app.debug.Enabled = !app.debug.Enabled
+	app.debug.ToggleEnabled()
 
 	app.editor.Render()
 }

@@ -15,7 +15,7 @@ const mib = 1024 * 1024
 
 type Debug struct {
 	area    ui.Area
-	Enabled bool
+	enabled bool
 
 	inputTime  time.Duration
 	renderTime time.Duration
@@ -26,6 +26,14 @@ type Debug struct {
 
 func New() *Debug {
 	return &Debug{}
+}
+
+func (d *Debug) Enable(enable bool) {
+	d.enabled = enable
+}
+
+func (d *Debug) ToggleEnabled() {
+	d.enabled = !d.enabled
 }
 
 func (d *Debug) SetColors(t theme.Tokens) {
@@ -46,7 +54,7 @@ func (d *Debug) Layout(a ui.Area) {
 }
 
 func (d *Debug) Render() {
-	if !d.Enabled {
+	if !d.enabled {
 		return
 	}
 
@@ -78,7 +86,7 @@ func (d *Debug) Render() {
 func (d *Debug) SetInputTime(elapsed time.Duration) {
 	d.inputTime = elapsed
 
-	if d.Enabled {
+	if d.enabled {
 		d.Render()
 	}
 }
@@ -86,7 +94,7 @@ func (d *Debug) SetInputTime(elapsed time.Duration) {
 func (d *Debug) SetRenderTime(elapsed time.Duration) {
 	d.renderTime = elapsed
 
-	if d.Enabled {
+	if d.enabled {
 		d.Render()
 	}
 }
