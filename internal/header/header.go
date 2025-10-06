@@ -11,7 +11,7 @@ type Header struct {
 	area     ui.Area
 	filePath string
 	flag     bool
-	Enabled  bool
+	enabled  bool
 
 	colorBackground []byte
 	colorFilePath   []byte
@@ -20,6 +20,10 @@ type Header struct {
 
 func New() *Header {
 	return &Header{}
+}
+
+func (h *Header) Enable(enable bool) {
+	h.enabled = enable
 }
 
 func (h *Header) SetColors(t theme.Tokens) {
@@ -38,7 +42,7 @@ func (h *Header) Layout(a ui.Area) {
 }
 
 func (h *Header) Render() {
-	if !h.Enabled {
+	if !h.enabled {
 		return
 	}
 
