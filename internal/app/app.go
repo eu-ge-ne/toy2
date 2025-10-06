@@ -117,7 +117,7 @@ func (app *App) Run() {
 	app.editor.EnableWhitespace(true)
 	app.editor.EnableWrap(true)
 
-	app.debug.Enabled = true
+	app.debug.Enable(true)
 
 	app.refresh()
 
