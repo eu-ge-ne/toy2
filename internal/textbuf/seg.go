@@ -5,8 +5,6 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/rivo/uniseg"
-
 	"github.com/eu-ge-ne/toy2/internal/grapheme"
 	"github.com/eu-ge-ne/toy2/internal/vt"
 )
@@ -19,47 +17,44 @@ type Seg struct {
 
 func (tb *TextBuf) IterSegLine(ln int, extra bool) iter.Seq2[int, Seg] {
 	return func(yield func(int, Seg) bool) {
-		i := 0
-		c := Seg{}
+		seg := Seg{}
+
+		n := 0
 		w := 0
 
-		for chunk := range tb.ReadPosRange(ln, 0, ln+1, 0) {
-			gr := uniseg.NewGraphemes(chunk)
+		for i, g := range grapheme.Graphemes.Iter(tb.ReadPosRange(ln, 0, ln+1, 0)) {
+			seg.G = g
 
-			for gr.Next() {
-				c.G = grapheme.Graphemes.Get(gr.Str())
-
-				if c.G.Width < 0 {
-					c.G.Width = vt.Wchar(tb.MeasureY, tb.MeasureX, c.G.Bytes)
-				}
-
-				w += c.G.Width
-				if w > tb.WrapWidth {
-					w = c.G.Width
-					c.Ln += 1
-					c.Col = 0
-				}
-
-				if !yield(i, c) {
-					return
-				}
-
-				i += 1
-				c.Col += 1
+			if seg.G.Width < 0 {
+				seg.G.Width = vt.Wchar(tb.MeasureY, tb.MeasureX, seg.G.Bytes)
 			}
+
+			w += seg.G.Width
+			if w > tb.WrapWidth {
+				w = seg.G.Width
+				seg.Ln += 1
+				seg.Col = 0
+			}
+
+			if !yield(n, seg) {
+				return
+			}
+
+			seg.Col += 1
+			n = i
 		}
 
 		if extra {
-			c.G = grapheme.Graphemes.Get(" ")
+			seg.G = grapheme.Graphemes.Get(" ")
 
-			w += c.G.Width
+			w += seg.G.Width
 			if w > tb.WrapWidth {
-				w = c.G.Width
-				c.Ln += 1
-				c.Col = 0
+				w = seg.G.Width
+				seg.Ln += 1
+				seg.Col = 0
 			}
 
-			if !yield(i, c) {
+			if !yield(n, seg) {
 				return
 			}
 		}

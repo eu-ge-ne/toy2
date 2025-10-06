@@ -23,15 +23,42 @@ func (p GraphemePool) Get(seg string) *Grapheme {
 
 func (p GraphemePool) IterText(text string) iter.Seq2[int, *Grapheme] {
 	return func(yield func(int, *Grapheme) bool) {
-		i := 0
-		gg := uniseg.NewGraphemes(text)
+		var (
+			i     = 0
+			state = -1
+			seg   string
+		)
 
-		for gg.Next() {
-			if !yield(i, p.Get(gg.Str())) {
+		for len(text) > 0 {
+			seg, text, _, state = uniseg.StepString(text, state)
+
+			if !yield(i, p.Get(seg)) {
 				return
 			}
 
 			i += 1
+		}
+	}
+}
+
+func (p GraphemePool) Iter(it iter.Seq[string]) iter.Seq2[int, *Grapheme] {
+	return func(yield func(int, *Grapheme) bool) {
+		var (
+			i     = 0
+			state = -1
+			seg   string
+		)
+
+		for text := range it {
+			for len(text) > 0 {
+				seg, text, _, state = uniseg.StepString(text, state)
+
+				if !yield(i, p.Get(seg)) {
+					return
+				}
+
+				i += 1
+			}
 		}
 	}
 }
