@@ -24,3 +24,9 @@ func (s *Syntax) Reset() {
 	tree := parser.Parse([]byte(s.buffer.Text()), nil)
 	defer tree.Close()
 }
+
+func (s *Syntax) Delete(fromLn, fromCol, toLn, toCol int) {
+}
+
+func (s *Syntax) Insert(ln, col int, text string) {
+}

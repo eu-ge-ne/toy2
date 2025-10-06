@@ -38,7 +38,7 @@ func (ed *Editor) Backspace() bool {
 	if ed.cursor.Selecting {
 		ed.deleteSelection()
 	} else {
-		ed.deletePrevSeg()
+		ed.deletePrevChar()
 	}
 
 	return true
@@ -83,7 +83,7 @@ func (ed *Editor) Cut() bool {
 		ed.deleteSelection()
 	} else {
 		ed.clipboard = ed.buffer.ReadSegPosRange(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
-		ed.deleteSeg()
+		ed.deleteChar()
 	}
 
 	vt.CopyToClipboard(vt.Sync, ed.clipboard)
@@ -95,7 +95,7 @@ func (ed *Editor) Delete() bool {
 	if ed.cursor.Selecting {
 		ed.deleteSelection()
 	} else {
-		ed.deleteSeg()
+		ed.deleteChar()
 	}
 
 	return true
