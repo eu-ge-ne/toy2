@@ -27,11 +27,33 @@ func (p GraphemePool) IterText(text string) iter.Seq2[int, *Grapheme] {
 		gg := uniseg.NewGraphemes(text)
 
 		for gg.Next() {
-			if !yield(i, p.Get(gg.Str())) {
+			g := p.Get(gg.Str())
+
+			if !yield(i, g) {
 				return
 			}
 
 			i += 1
+		}
+	}
+}
+
+func (p GraphemePool) Iter(it iter.Seq[string]) iter.Seq2[int, *Grapheme] {
+	return func(yield func(int, *Grapheme) bool) {
+		i := 0
+
+		for text := range it {
+			gg := uniseg.NewGraphemes(text)
+
+			for gg.Next() {
+				g := p.Get(gg.Str())
+
+				if !yield(i, g) {
+					return
+				}
+
+				i += 1
+			}
 		}
 	}
 }
