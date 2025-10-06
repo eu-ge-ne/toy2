@@ -9,17 +9,17 @@ import (
 )
 
 type Cursor struct {
-	ln0       int
-	col0      int
 	Ln        int
 	Col       int
 	Selecting bool
-	FromLn    int
-	FromCol   int
-	ToLn      int
-	ToCol     int
+	StartLn   int
+	StartCol  int
+	EndLn     int
+	EndCol    int
 
 	buffer *textbuf.TextBuf
+	ln0    int
+	col0   int
 }
 
 func New(buffer *textbuf.TextBuf) Cursor {
@@ -115,15 +115,15 @@ func (cur *Cursor) IsSelected(ln, col int) bool {
 		return false
 	}
 
-	if ln < cur.FromLn || ln > cur.ToLn {
+	if ln < cur.StartLn || ln > cur.EndLn {
 		return false
 	}
 
-	if ln == cur.FromLn && col < cur.FromCol {
+	if ln == cur.StartLn && col < cur.StartCol {
 		return false
 	}
 
-	if ln == cur.ToLn && col > cur.ToCol {
+	if ln == cur.EndLn && col > cur.EndCol {
 		return false
 	}
 
@@ -168,14 +168,14 @@ func (cur *Cursor) setSelection(ln, col int, sel bool) {
 
 func (cur *Cursor) setRange() {
 	if (cur.ln0 > cur.Ln) || (cur.ln0 == cur.Ln && cur.col0 > cur.Col) {
-		cur.FromLn = cur.Ln
-		cur.FromCol = cur.Col
-		cur.ToLn = cur.ln0
-		cur.ToCol = cur.col0
+		cur.StartLn = cur.Ln
+		cur.StartCol = cur.Col
+		cur.EndLn = cur.ln0
+		cur.EndCol = cur.col0
 	} else {
-		cur.FromLn = cur.ln0
-		cur.FromCol = cur.col0
-		cur.ToLn = cur.Ln
-		cur.ToCol = cur.Col
+		cur.StartLn = cur.ln0
+		cur.StartCol = cur.col0
+		cur.EndLn = cur.Ln
+		cur.EndCol = cur.Col
 	}
 }

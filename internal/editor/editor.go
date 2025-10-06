@@ -174,9 +174,9 @@ func (ed *Editor) SaveToFile(filePath string) error {
 func (ed *Editor) deleteSelection() {
 	cur := ed.cursor
 
-	ed.buffer.DeleteSegPosRange(cur.FromLn, cur.FromCol, cur.Ln, cur.Col+1)
-	ed.syntax.Edit(cur.FromLn, cur.FromCol, cur.Ln, cur.Col+1)
-	ed.cursor.Set(cur.FromLn, cur.FromCol, false)
+	ed.buffer.DeleteSegPosRange(cur.StartLn, cur.StartCol, cur.Ln, cur.Col+1)
+	ed.syntax.Edit(cur.StartLn, cur.StartCol, cur.Ln, cur.Col+1)
+	ed.cursor.Set(cur.StartLn, cur.StartCol, false)
 
 	ed.history.Push()
 }
@@ -224,9 +224,9 @@ func (ed *Editor) insertText(text string) {
 	cur := ed.cursor
 
 	if cur.Selecting {
-		ed.buffer.DeleteSegPosRange(cur.FromLn, cur.FromCol, cur.ToLn, cur.ToCol+1)
-		ed.syntax.Edit(cur.FromLn, cur.FromCol, cur.ToLn, cur.ToCol+1)
-		cur.Set(cur.FromLn, cur.FromCol, false)
+		ed.buffer.DeleteSegPosRange(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol+1)
+		ed.syntax.Edit(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol+1)
+		cur.Set(cur.StartLn, cur.StartCol, false)
 	}
 
 	ed.buffer.InsertSegPos(cur.Ln, cur.Col, text)
