@@ -9,6 +9,8 @@ import (
 
 type Syntax struct {
 	buffer *textbuf.TextBuf
+	parser *treeSitter.Parser
+	tree   *treeSitter.Tree
 }
 
 func New(buffer *textbuf.TextBuf) Syntax {
@@ -16,17 +18,24 @@ func New(buffer *textbuf.TextBuf) Syntax {
 }
 
 func (s *Syntax) Reset() {
-	parser := treeSitter.NewParser()
-	defer parser.Close()
+	s.parser = treeSitter.NewParser()
 
-	parser.SetLanguage(treeSitter.NewLanguage(treeSitterTs.LanguageTypescript()))
+	s.parser.SetLanguage(treeSitter.NewLanguage(treeSitterTs.LanguageTypescript()))
 
-	tree := parser.Parse([]byte(s.buffer.Text()), nil)
-	defer tree.Close()
+	s.tree = s.parser.Parse([]byte(s.buffer.Text()), nil)
 }
 
-func (s *Syntax) Delete(fromLn, fromCol, toLn, toCol int) {
-}
+func (s *Syntax) Edit(startLn, startCol, endLn, endCol int) {
+	/*
+		s.tree.Edit(&treeSitter.InputEdit{
+			StartByte:      startByte,
+			OldEndByte:     oldEndByte,
+			NewEndByte:     newEndByte,
+			StartPosition:  treeSitter.NewPoint(startPosLn, startPosCol),
+			OldEndPosition: treeSitter.NewPoint(oldEndPosLn, oldEndPosCol),
+			NewEndPosition: treeSitter.NewPoint(newEndPosLn, newEndPosCol),
+		})
 
-func (s *Syntax) Insert(ln, col int, text string) {
+		s.tree = s.parser.Parse([]byte(s.buffer.Text()), s.tree)
+	*/
 }
