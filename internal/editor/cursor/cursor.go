@@ -3,8 +3,9 @@ package cursor
 import (
 	"math"
 
-	"github.com/eu-ge-ne/toy2/internal/textbuf"
+	"github.com/eu-ge-ne/toy2/internal/grapheme"
 	"github.com/eu-ge-ne/toy2/internal/std"
+	"github.com/eu-ge-ne/toy2/internal/textbuf"
 )
 
 type Cursor struct {
@@ -87,6 +88,26 @@ func (cur *Cursor) Right(sel bool) bool {
 
 func (cur *Cursor) Forward(n int) bool {
 	return cur.Set(cur.Ln, cur.Col+n, false)
+}
+
+func (cur *Cursor) ForwardText(text string) bool {
+	var count, eolCount, lastEolIndex int
+	for i, g := range grapheme.Graphemes.IterText(text) {
+		if g.IsEol {
+			eolCount += 1
+			lastEolIndex = i
+		}
+		count = i + 1
+	}
+
+	if eolCount == 0 {
+		return cur.Forward(count)
+	}
+
+	ln := cur.Ln + eolCount
+	col := count - lastEolIndex - 1
+
+	return cur.Set(ln, col, false)
 }
 
 func (cur *Cursor) IsSelected(ln, col int) bool {
