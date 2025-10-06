@@ -190,8 +190,8 @@ func (app *App) setColors(t theme.Tokens) {
 func (app *App) enableZen(enabled bool) {
 	app.zenEnabled = enabled
 
-	app.header.Enabled = !enabled
-	app.footer.Enabled = !enabled
+	app.header.Enable(!enabled)
+	app.footer.Enable(!enabled)
 	app.editor.EnableIndex(!enabled)
 }
 

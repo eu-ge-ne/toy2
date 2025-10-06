@@ -12,7 +12,7 @@ import (
 type Footer struct {
 	area         ui.Area
 	cursorStatus string
-	Enabled      bool
+	enabled      bool
 
 	colorBackground []byte
 	colorText       []byte
@@ -20,6 +20,10 @@ type Footer struct {
 
 func New() *Footer {
 	return &Footer{}
+}
+
+func (f *Footer) Enable(enable bool) {
+	f.enabled = enable
 }
 
 func (f *Footer) SetColors(t theme.Tokens) {
@@ -37,7 +41,7 @@ func (f *Footer) Layout(a ui.Area) {
 }
 
 func (f *Footer) Render() {
-	if !f.Enabled {
+	if !f.enabled {
 		return
 	}
 
