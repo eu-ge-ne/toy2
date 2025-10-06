@@ -93,17 +93,20 @@ func (cur *Cursor) Forward(n int) bool {
 }
 
 func (cur *Cursor) ForwardText(text string) bool {
+	i := 0
 	eolCount := 0
 	lastEolIndex := 0
 
-	gs := uniseg.NewGraphemes(text)
-	i := 0
-	for gs.Next() {
-		g := grapheme.Graphemes.Get(gs.Str())
+	gg := uniseg.NewGraphemes(text)
+
+	for gg.Next() {
+		g := grapheme.Graphemes.Get(gg.Str())
+
 		if g.IsEol {
 			eolCount += 1
 			lastEolIndex = i
 		}
+
 		i += 1
 	}
 
