@@ -69,11 +69,6 @@ func (buf *TextBuf) Insert(index int, text string) {
 }
 
 func (buf *TextBuf) Insert2(ln, col int, text string) {
-	if ln == 0 && col == 0 {
-		buf.Insert(0, text)
-		return
-	}
-
 	index, ok := buf.lnIndex(ln)
 	if !ok {
 		index = buf.LineCount() - 1
