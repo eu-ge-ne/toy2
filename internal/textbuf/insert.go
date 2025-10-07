@@ -2,7 +2,7 @@ package textbuf
 
 import "github.com/eu-ge-ne/toy2/internal/textbuf/node"
 
-func (tb *TextBuf) InsertIndex(i int, text string) {
+func (tb *TextBuf) Insert(i int, text string) {
 	if i > tb.Count() {
 		return
 	}
@@ -66,15 +66,15 @@ func (tb *TextBuf) InsertIndex(i int, text string) {
 	}
 }
 
-func (tb *TextBuf) InsertPos(ln, col int, text string) {
-	i, ok := tb.posToIndex(ln, col)
+func (tb *TextBuf) Insert2(ln, col int, text string) {
+	index, ok := tb.lnColToIndex(ln, col)
 	if !ok {
 		return
 	}
 
-	tb.InsertIndex(i, text)
+	tb.Insert(index, text)
 }
 
 func (tb *TextBuf) Append(text string) {
-	tb.InsertIndex(tb.Count(), text)
+	tb.Insert(tb.Count(), text)
 }

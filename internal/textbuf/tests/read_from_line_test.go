@@ -1,6 +1,7 @@
 package textbuf_test
 
 import (
+	"math"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -13,15 +14,15 @@ func TestLineAtValidIndex(t *testing.T) {
 	buf.Append("Lorem\nipsum\ndolor\nsit\namet")
 
 	assert.Equal(t, "Lorem\nipsum\ndolor\nsit\namet",
-		iterToStr(buf.ReadPos(0, 0)))
+		buf.ReadSlice2(0, 0, math.MaxInt, math.MaxInt))
 	assert.Equal(t, "ipsum\ndolor\nsit\namet",
-		iterToStr(buf.ReadPos(1, 0)))
+		buf.ReadSlice2(1, 0, math.MaxInt, math.MaxInt))
 	assert.Equal(t, "dolor\nsit\namet",
-		iterToStr(buf.ReadPos(2, 0)))
+		buf.ReadSlice2(2, 0, math.MaxInt, math.MaxInt))
 	assert.Equal(t, "sit\namet",
-		iterToStr(buf.ReadPos(3, 0)))
+		buf.ReadSlice2(3, 0, math.MaxInt, math.MaxInt))
 	assert.Equal(t, "amet",
-		iterToStr(buf.ReadPos(4, 0)))
+		buf.ReadSlice2(4, 0, math.MaxInt, math.MaxInt))
 
 	buf.Validate()
 }
@@ -31,11 +32,11 @@ func TestLineAtIndexGTELineCount(t *testing.T) {
 	buf.Append("Lorem\nipsum\ndolor\nsit\namet")
 
 	assert.Equal(t, "amet",
-		iterToStr(buf.ReadPos(4, 0)))
+		buf.ReadSlice2(4, 0, math.MaxInt, math.MaxInt))
 	assert.Equal(t, "",
-		iterToStr(buf.ReadPos(5, 0)))
+		buf.ReadSlice2(5, 0, math.MaxInt, math.MaxInt))
 	assert.Equal(t, "",
-		iterToStr(buf.ReadPos(6, 0)))
+		buf.ReadSlice2(6, 0, math.MaxInt, math.MaxInt))
 
 	buf.Validate()
 }
@@ -45,11 +46,11 @@ func TestLineAtIndexLT0(t *testing.T) {
 	buf.Append("Lorem\nipsum\ndolor\nsit\namet")
 
 	assert.Equal(t, "Lorem\nipsum\ndolor\nsit\namet",
-		iterToStr(buf.ReadPos(0, 0)))
+		buf.ReadSlice2(0, 0, math.MaxInt, math.MaxInt))
 	assert.Equal(t, "amet",
-		iterToStr(buf.ReadPos(buf.LineCount()-1, 0)))
+		buf.ReadSlice2(buf.LineCount()-1, 0, math.MaxInt, math.MaxInt))
 	assert.Equal(t, "sit\namet",
-		iterToStr(buf.ReadPos(buf.LineCount()-2, 0)))
+		buf.ReadSlice2(buf.LineCount()-2, 0, math.MaxInt, math.MaxInt))
 
 	buf.Validate()
 }

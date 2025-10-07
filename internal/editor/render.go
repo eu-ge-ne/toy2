@@ -89,7 +89,7 @@ func (ed *Editor) scrollV() {
 	xs := make([]int, ed.cursor.Ln+1-ed.scrollLn)
 	for i := 0; i < len(xs); i += 1 {
 		xs[i] = 1
-		for j, cell := range ed.buffer.IterSegLine(ed.scrollLn+i, false) {
+		for j, cell := range ed.buffer.IterLine(ed.scrollLn+i, false) {
 			if j > 0 && cell.Col == 0 {
 				xs[i] += 1
 			}
@@ -112,8 +112,8 @@ func (ed *Editor) scrollV() {
 }
 
 func (ed *Editor) scrollH() {
-	var cell *textbuf.Seg = nil
-	for _, c := range ed.buffer.IterSegLineSlice(ed.cursor.Ln, true, ed.cursor.Col, math.MaxInt) {
+	var cell *textbuf.LineCell = nil
+	for _, c := range ed.buffer.IterLineSlice(ed.cursor.Ln, true, ed.cursor.Col, math.MaxInt) {
 		cell = &c
 		break
 	}
@@ -138,7 +138,7 @@ func (ed *Editor) scrollH() {
 	// After?
 
 	xs := make([]int, deltaCol)
-	for i, c := range ed.buffer.IterSegLineSlice(ed.cursor.Ln, true, ed.cursor.Col-deltaCol, ed.cursor.Col) {
+	for i, c := range ed.buffer.IterLineSlice(ed.cursor.Ln, true, ed.cursor.Col-deltaCol, ed.cursor.Col) {
 		xs[i] = c.G.Width
 	}
 
@@ -179,7 +179,7 @@ func (ed *Editor) renderLine(ln int, row int) int {
 	availableW := 0
 	currentColor := charColorUndefined
 
-	for i, cell := range ed.buffer.IterSegLine(ln, false) {
+	for i, cell := range ed.buffer.IterLine(ln, false) {
 		if cell.Col == 0 {
 			if i > 0 {
 				row += 1

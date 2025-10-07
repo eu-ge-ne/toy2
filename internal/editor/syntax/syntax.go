@@ -47,10 +47,12 @@ func (s *Syntax) Insert(startLn, startCol int, text string) {
 
 func (s *Syntax) parse() {
 	//s.tree = s.parser.Parse([]byte(s.buffer.Text()), nil)
+	/*
 	s.tree = s.parser.ParseWithOptions(func(i int, p treeSitter.Point) []byte {
 		for text := range s.buffer.ReadPos(int(p.Row), int(p.Column)) {
 			return []byte(text)
 		}
 		return make([]byte, 0)
 	}, s.tree, nil)
+	*/
 }

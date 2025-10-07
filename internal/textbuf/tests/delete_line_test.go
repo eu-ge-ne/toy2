@@ -1,6 +1,7 @@
 package textbuf_test
 
 import (
+	"math"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -14,34 +15,34 @@ func TestDeleteLine(t *testing.T) {
 
 	assert.Equal(t, 5, buf.LineCount())
 
-	buf.DeletePosRange(4, 0, 5, 0)
+	buf.DeleteSlice2(4, 0, 5, 0)
 
 	assert.Equal(t, "Lorem \nipsum \ndolor \nsit \n",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 26, buf.Count())
 	assert.Equal(t, 5, buf.LineCount())
 	buf.Validate()
 
-	buf.DeletePosRange(3, 0, 4, 0)
+	buf.DeleteSlice2(3, 0, 4, 0)
 
 	assert.Equal(t, "Lorem \nipsum \ndolor \n",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 21, buf.Count())
 	assert.Equal(t, 4, buf.LineCount())
 	buf.Validate()
 
-	buf.DeletePosRange(2, 0, 3, 0)
+	buf.DeleteSlice2(2, 0, 3, 0)
 
 	assert.Equal(t, "Lorem \nipsum \n",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 14, buf.Count())
 	assert.Equal(t, 3, buf.LineCount())
 	buf.Validate()
 
-	buf.DeletePosRange(1, 0, 2, 0)
+	buf.DeleteSlice2(1, 0, 2, 0)
 
 	assert.Equal(t, "Lorem \n",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 7, buf.Count())
 	assert.Equal(t, 2, buf.LineCount())
 	buf.Validate()

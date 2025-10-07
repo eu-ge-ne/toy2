@@ -35,11 +35,10 @@ func (tb *TextBuf) Count() int {
 }
 
 func (tb *TextBuf) LineCount() int {
-	if tb.tree.Root.TotalLen == 0 {
+	if tb.Count() == 0 {
 		return 0
-	} else {
-		return tb.tree.Root.TotalEolsLen + 1
 	}
+	return tb.tree.Root.TotalEolsLen + 1
 }
 
 func (tb *TextBuf) Save() Snapshot {
@@ -53,10 +52,10 @@ func (tb *TextBuf) Restore(s Snapshot) {
 }
 
 func (tb *TextBuf) Reset(text string) {
-	tb.DeleteIndex(0)
+	tb.DeleteSlice(0, math.MaxInt)
 
 	if len(text) > 0 {
-		tb.InsertIndex(0, text)
+		tb.Insert(0, text)
 	}
 }
 
@@ -64,17 +63,11 @@ func (tb *TextBuf) Validate() {
 	tb.tree.Root.Validate()
 }
 
-func (tb TextBuf) posToIndex(ln, col int) (int, bool) {
-	i, ok := tb.findLineStart(ln)
-
-	if !ok {
+func (tb TextBuf) lnToIndex(ln int) (int, bool) {
+	if tb.Count() == 0 {
 		return 0, false
 	}
 
-	return i + col, true
-}
-
-func (tb TextBuf) findLineStart(ln int) (int, bool) {
 	if ln == 0 {
 		return 0, true
 	}
@@ -101,6 +94,25 @@ func (tb TextBuf) findLineStart(ln int) (int, bool) {
 		eolIndex -= x.EolsLen
 		i += x.Len
 		x = x.Right
+	}
+
+	return 0, false
+}
+
+func (tb *TextBuf) lnColToIndex(ln, col int) (int, bool) {
+	lnIndex, ok := tb.lnToIndex(ln)
+	if !ok {
+		return 0, false
+	}
+
+	colIndex := 0
+
+	for i, cell := range tb.IterLine(ln, false) {
+		if i == col {
+			return lnIndex + colIndex, true
+		}
+
+		colIndex += len(cell.G.Seg)
 	}
 
 	return 0, false

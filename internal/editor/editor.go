@@ -160,7 +160,7 @@ func (ed *Editor) ToggleWrap() {
 }
 
 func (ed *Editor) Text() string {
-	return ed.buffer.Text()
+	return ed.buffer.Read()
 }
 
 func (ed *Editor) LoadFromFile(filePath string) error {
@@ -174,7 +174,7 @@ func (ed *Editor) SaveToFile(filePath string) error {
 func (ed *Editor) deleteSelection() {
 	cur := ed.cursor
 
-	ed.buffer.DeleteSegPosRange(cur.StartLn, cur.StartCol, cur.Ln, cur.Col+1)
+	ed.buffer.DeleteSlice2(cur.StartLn, cur.StartCol, cur.Ln, cur.Col+1)
 	ed.syntax.Delete(cur.StartLn, cur.StartCol, cur.Ln, cur.Col+1)
 	ed.cursor.Set(cur.StartLn, cur.StartCol, false)
 
@@ -184,7 +184,7 @@ func (ed *Editor) deleteSelection() {
 func (ed *Editor) deleteChar() {
 	cur := ed.cursor
 
-	ed.buffer.DeleteSegPosRange(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
+	ed.buffer.DeleteSlice2(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
 	ed.syntax.Delete(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
 
 	ed.history.Push()
@@ -195,7 +195,7 @@ func (ed *Editor) deletePrevChar() {
 
 	if cur.Ln > 0 && cur.Col == 0 {
 		l := 0
-		for range ed.buffer.IterSegLine(cur.Ln, false) {
+		for range ed.buffer.IterLine(cur.Ln, false) {
 			l += 1
 			if l == 2 {
 				break
@@ -203,16 +203,16 @@ func (ed *Editor) deletePrevChar() {
 		}
 
 		if l == 1 {
-			ed.buffer.DeleteSegPosRange(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
+			ed.buffer.DeleteSlice2(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
 			ed.syntax.Delete(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
 			cur.Left(false)
 		} else {
 			cur.Left(false)
-			ed.buffer.DeleteSegPosRange(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
+			ed.buffer.DeleteSlice2(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
 			ed.syntax.Delete(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
 		}
 	} else {
-		ed.buffer.DeleteSegPosRange(cur.Ln, cur.Col-1, cur.Ln, cur.Col)
+		ed.buffer.DeleteSlice2(cur.Ln, cur.Col-1, cur.Ln, cur.Col)
 		ed.syntax.Delete(cur.Ln, cur.Col-1, cur.Ln, cur.Col)
 		cur.Left(false)
 	}
@@ -224,12 +224,12 @@ func (ed *Editor) insertText(text string) {
 	cur := ed.cursor
 
 	if cur.Selecting {
-		ed.buffer.DeleteSegPosRange(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol+1)
+		ed.buffer.DeleteSlice2(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol+1)
 		ed.syntax.Delete(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol+1)
 		cur.Set(cur.StartLn, cur.StartCol, false)
 	}
 
-	ed.buffer.InsertSegPos(cur.Ln, cur.Col, text)
+	ed.buffer.Insert2(cur.Ln, cur.Col, text)
 	ed.syntax.Insert(cur.Ln, cur.Col, text)
 	cur.ForwardText(text)
 

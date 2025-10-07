@@ -1,6 +1,7 @@
 package textbuf_test
 
 import (
+	"math"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -11,117 +12,117 @@ import (
 func TestInsertIntoTheEnd(t *testing.T) {
 	buf := textbuf.New()
 
-	buf.InsertIndex(buf.Count(), "Lorem")
+	buf.Insert(buf.Count(), "Lorem")
 	assert.Equal(t, "Lorem",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 5, buf.Count())
 	buf.Validate()
 
-	buf.InsertIndex(buf.Count(), " ipsum")
+	buf.Insert(buf.Count(), " ipsum")
 	assert.Equal(t, "Lorem ipsum",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 11, buf.Count())
 	buf.Validate()
 
-	buf.InsertIndex(buf.Count(), " dolor")
+	buf.Insert(buf.Count(), " dolor")
 	assert.Equal(t, "Lorem ipsum dolor",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 17, buf.Count())
 	buf.Validate()
 
-	buf.InsertIndex(buf.Count(), " sit")
+	buf.Insert(buf.Count(), " sit")
 	assert.Equal(t, "Lorem ipsum dolor sit",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 21, buf.Count())
 	buf.Validate()
 
-	buf.InsertIndex(buf.Count(), " amet,")
+	buf.Insert(buf.Count(), " amet,")
 	assert.Equal(t, "Lorem ipsum dolor sit amet,",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 27, buf.Count())
 	buf.Validate()
 
-	buf.InsertIndex(buf.Count(), " consectetur")
+	buf.Insert(buf.Count(), " consectetur")
 	assert.Equal(t, "Lorem ipsum dolor sit amet, consectetur",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 39, buf.Count())
 	buf.Validate()
 
-	buf.InsertIndex(buf.Count(), " adipiscing")
+	buf.Insert(buf.Count(), " adipiscing")
 	assert.Equal(t, "Lorem ipsum dolor sit amet, consectetur adipiscing",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 50, buf.Count())
 	buf.Validate()
 
-	buf.InsertIndex(buf.Count(), " elit,")
+	buf.Insert(buf.Count(), " elit,")
 	assert.Equal(t, "Lorem ipsum dolor sit amet, consectetur adipiscing elit,",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 56, buf.Count())
 	buf.Validate()
 
-	buf.InsertIndex(buf.Count(), " sed")
+	buf.Insert(buf.Count(), " sed")
 	assert.Equal(t, "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 60, buf.Count())
 	buf.Validate()
 
-	buf.InsertIndex(buf.Count(), " do")
+	buf.Insert(buf.Count(), " do")
 	assert.Equal(t, "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 63, buf.Count())
 	buf.Validate()
 
-	buf.InsertIndex(buf.Count(), " eiusmod")
+	buf.Insert(buf.Count(), " eiusmod")
 	assert.Equal(t, "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 71, buf.Count())
 	buf.Validate()
 
-	buf.InsertIndex(buf.Count(), " tempor")
+	buf.Insert(buf.Count(), " tempor")
 	assert.Equal(t, "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 78, buf.Count())
 	buf.Validate()
 
-	buf.InsertIndex(buf.Count(), " incididunt")
+	buf.Insert(buf.Count(), " incididunt")
 	assert.Equal(t, "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 89, buf.Count())
 	buf.Validate()
 
-	buf.InsertIndex(buf.Count(), " ut")
+	buf.Insert(buf.Count(), " ut")
 	assert.Equal(t, "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 92, buf.Count())
 	buf.Validate()
 
-	buf.InsertIndex(buf.Count(), " labore")
+	buf.Insert(buf.Count(), " labore")
 	assert.Equal(t, "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 99, buf.Count())
 	buf.Validate()
 
-	buf.InsertIndex(buf.Count(), " et")
+	buf.Insert(buf.Count(), " et")
 	assert.Equal(t, "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 102, buf.Count())
 	buf.Validate()
 
-	buf.InsertIndex(buf.Count(), " dolore")
+	buf.Insert(buf.Count(), " dolore")
 	assert.Equal(t, "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 109, buf.Count())
 	buf.Validate()
 
-	buf.InsertIndex(buf.Count(), " magna")
+	buf.Insert(buf.Count(), " magna")
 	assert.Equal(t, "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 115, buf.Count())
 	buf.Validate()
 
-	buf.InsertIndex(buf.Count(), " aliqua.")
+	buf.Insert(buf.Count(), " aliqua.")
 	assert.Equal(t, "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 123, buf.Count())
 	buf.Validate()
 }
@@ -129,117 +130,117 @@ func TestInsertIntoTheEnd(t *testing.T) {
 func TestInsertIntoTheBeginning(t *testing.T) {
 	buf := textbuf.New()
 
-	buf.InsertIndex(0, " aliqua.")
+	buf.Insert(0, " aliqua.")
 	assert.Equal(t, " aliqua.",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 8, buf.Count())
 	buf.Validate()
 
-	buf.InsertIndex(0, " magna")
+	buf.Insert(0, " magna")
 	assert.Equal(t, " magna aliqua.",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 14, buf.Count())
 	buf.Validate()
 
-	buf.InsertIndex(0, " dolore")
+	buf.Insert(0, " dolore")
 	assert.Equal(t, " dolore magna aliqua.",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 21, buf.Count())
 	buf.Validate()
 
-	buf.InsertIndex(0, " et")
+	buf.Insert(0, " et")
 	assert.Equal(t, " et dolore magna aliqua.",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 24, buf.Count())
 	buf.Validate()
 
-	buf.InsertIndex(0, " labore")
+	buf.Insert(0, " labore")
 	assert.Equal(t, " labore et dolore magna aliqua.",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 31, buf.Count())
 	buf.Validate()
 
-	buf.InsertIndex(0, " ut")
+	buf.Insert(0, " ut")
 	assert.Equal(t, " ut labore et dolore magna aliqua.",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 34, buf.Count())
 	buf.Validate()
 
-	buf.InsertIndex(0, " incididunt")
+	buf.Insert(0, " incididunt")
 	assert.Equal(t, " incididunt ut labore et dolore magna aliqua.",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 45, buf.Count())
 	buf.Validate()
 
-	buf.InsertIndex(0, " tempor")
+	buf.Insert(0, " tempor")
 	assert.Equal(t, " tempor incididunt ut labore et dolore magna aliqua.",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 52, buf.Count())
 	buf.Validate()
 
-	buf.InsertIndex(0, " eiusmod")
+	buf.Insert(0, " eiusmod")
 	assert.Equal(t, " eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 60, buf.Count())
 	buf.Validate()
 
-	buf.InsertIndex(0, " do")
+	buf.Insert(0, " do")
 	assert.Equal(t, " do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 63, buf.Count())
 	buf.Validate()
 
-	buf.InsertIndex(0, " sed")
+	buf.Insert(0, " sed")
 	assert.Equal(t, " sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 67, buf.Count())
 	buf.Validate()
 
-	buf.InsertIndex(0, " elit,")
+	buf.Insert(0, " elit,")
 	assert.Equal(t, " elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 73, buf.Count())
 	buf.Validate()
 
-	buf.InsertIndex(0, " adipiscing")
+	buf.Insert(0, " adipiscing")
 	assert.Equal(t, " adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 84, buf.Count())
 	buf.Validate()
 
-	buf.InsertIndex(0, " consectetur")
+	buf.Insert(0, " consectetur")
 	assert.Equal(t, " consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 96, buf.Count())
 	buf.Validate()
 
-	buf.InsertIndex(0, " amet,")
+	buf.Insert(0, " amet,")
 	assert.Equal(t, " amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 102, buf.Count())
 	buf.Validate()
 
-	buf.InsertIndex(0, " sit")
+	buf.Insert(0, " sit")
 	assert.Equal(t, " sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 106, buf.Count())
 	buf.Validate()
 
-	buf.InsertIndex(0, " dolor")
+	buf.Insert(0, " dolor")
 	assert.Equal(t, " dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 112, buf.Count())
 	buf.Validate()
 
-	buf.InsertIndex(0, " ipsum")
+	buf.Insert(0, " ipsum")
 	assert.Equal(t, " ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 118, buf.Count())
 	buf.Validate()
 
-	buf.InsertIndex(0, "Lorem")
+	buf.Insert(0, "Lorem")
 	assert.Equal(t, "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 123, buf.Count())
 	buf.Validate()
 }
@@ -247,63 +248,63 @@ func TestInsertIntoTheBeginning(t *testing.T) {
 func TestInsertSplittingNodes(t *testing.T) {
 	buf := textbuf.New()
 
-	buf.InsertIndex(0, "Lorem aliqua.")
+	buf.Insert(0, "Lorem aliqua.")
 	assert.Equal(t, "Lorem aliqua.",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 13, buf.Count())
 	buf.Validate()
 
-	buf.InsertIndex(5, " ipsum magna")
+	buf.Insert(5, " ipsum magna")
 	assert.Equal(t, "Lorem ipsum magna aliqua.",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 25, buf.Count())
 	buf.Validate()
 
-	buf.InsertIndex(11, " dolor dolore")
+	buf.Insert(11, " dolor dolore")
 	assert.Equal(t, "Lorem ipsum dolor dolore magna aliqua.",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 38, buf.Count())
 	buf.Validate()
 
-	buf.InsertIndex(17, " sit et")
+	buf.Insert(17, " sit et")
 	assert.Equal(t, "Lorem ipsum dolor sit et dolore magna aliqua.",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 45, buf.Count())
 	buf.Validate()
 
-	buf.InsertIndex(21, " amet, labore")
+	buf.Insert(21, " amet, labore")
 	assert.Equal(t, "Lorem ipsum dolor sit amet, labore et dolore magna aliqua.",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 58, buf.Count())
 	buf.Validate()
 
-	buf.InsertIndex(27, " consectetur ut")
+	buf.Insert(27, " consectetur ut")
 	assert.Equal(t, "Lorem ipsum dolor sit amet, consectetur ut labore et dolore magna aliqua.",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 73, buf.Count())
 	buf.Validate()
 
-	buf.InsertIndex(39, " adipiscing incididunt")
+	buf.Insert(39, " adipiscing incididunt")
 	assert.Equal(t, "Lorem ipsum dolor sit amet, consectetur adipiscing incididunt ut labore et dolore magna aliqua.",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 95, buf.Count())
 	buf.Validate()
 
-	buf.InsertIndex(50, " elit, tempor")
+	buf.Insert(50, " elit, tempor")
 	assert.Equal(t, "Lorem ipsum dolor sit amet, consectetur adipiscing elit, tempor incididunt ut labore et dolore magna aliqua.",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 108, buf.Count())
 	buf.Validate()
 
-	buf.InsertIndex(56, " sed eiusmod")
+	buf.Insert(56, " sed eiusmod")
 	assert.Equal(t, "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 120, buf.Count())
 	buf.Validate()
 
-	buf.InsertIndex(60, " do")
+	buf.Insert(60, " do")
 	assert.Equal(t, "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 123, buf.Count())
 	buf.Validate()
 }
@@ -311,21 +312,21 @@ func TestInsertSplittingNodes(t *testing.T) {
 func TestInsertAtTheNegativeIndex(t *testing.T) {
 	buf := textbuf.New()
 
-	buf.InsertIndex(0, "ipsum")
+	buf.Insert(0, "ipsum")
 	assert.Equal(t, "ipsum",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 5, buf.Count())
 	buf.Validate()
 
-	buf.InsertIndex(-5, " ")
+	buf.Insert(-5, " ")
 	assert.Equal(t, " ipsum",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 6, buf.Count())
 	buf.Validate()
 
-	buf.InsertIndex(-6, "Lorem")
+	buf.Insert(-6, "Lorem")
 	assert.Equal(t, "Lorem ipsum",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 11, buf.Count())
 	buf.Validate()
 }
@@ -333,21 +334,21 @@ func TestInsertAtTheNegativeIndex(t *testing.T) {
 func TestInsertSplittingNodeWithFixup(t *testing.T) {
 	buf := textbuf.New()
 
-	buf.InsertIndex(0, "11")
-	buf.InsertIndex(2, "22")
+	buf.Insert(0, "11")
+	buf.Insert(2, "22")
 
-	buf.InsertIndex(2, "3")
-	buf.InsertIndex(3, "3")
+	buf.Insert(2, "3")
+	buf.Insert(3, "3")
 
-	buf.InsertIndex(4, "4")
-	buf.InsertIndex(5, "4")
+	buf.Insert(4, "4")
+	buf.Insert(5, "4")
 
 	assert.Equal(t, "11334422",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 
-	buf.InsertIndex(4, "-")
+	buf.Insert(4, "-")
 
 	assert.Equal(t, "1133-4422",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	buf.Validate()
 }

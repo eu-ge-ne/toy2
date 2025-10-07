@@ -1,6 +1,7 @@
 package textbuf_test
 
 import (
+	"math"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -11,26 +12,26 @@ import (
 func TestInsertInto0Line(t *testing.T) {
 	buf := textbuf.New()
 
-	buf.InsertPos(0, 0, "Lorem ipsum")
+	buf.Insert2(0, 0, "Lorem ipsum")
 
 	assert.Equal(t, "Lorem ipsum",
-		iterToStr(buf.ReadIndex(0)))
+		buf.Read())
 	assert.Equal(t, "Lorem ipsum",
-		iterToStr(buf.ReadPosRange(0, 0, 1, 0)))
+		buf.ReadSlice2(0, 0, 1, 0))
 
 	buf.Validate()
 }
 
 func TestInsertIntoALine(t *testing.T) {
 	buf := textbuf.New()
-	buf.InsertIndex(0, "Lorem")
+	buf.Insert(0, "Lorem")
 
-	buf.InsertPos(0, 5, " ipsum")
+	buf.Insert2(0, 5, " ipsum")
 
 	assert.Equal(t, "Lorem ipsum",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, "Lorem ipsum",
-		iterToStr(buf.ReadPosRange(0, 0, 1, 0)))
+		buf.ReadSlice2(0, 0, 1, 0))
 
 	buf.Validate()
 }
@@ -38,12 +39,12 @@ func TestInsertIntoALine(t *testing.T) {
 func TestInsertIntoALineWhichDoesNotExist(t *testing.T) {
 	buf := textbuf.New()
 
-	buf.InsertPos(1, 0, "Lorem ipsum")
+	buf.Insert2(1, 0, "Lorem ipsum")
 
 	assert.Equal(t, "",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, "",
-		iterToStr(buf.ReadPosRange(0, 0, 1, 0)))
+		buf.ReadSlice2(0, 0, 1, 0))
 
 	buf.Validate()
 }
@@ -51,12 +52,12 @@ func TestInsertIntoALineWhichDoesNotExist(t *testing.T) {
 func TestInsertIntoAColumnWhichDoesNotExist(t *testing.T) {
 	buf := textbuf.New()
 
-	buf.InsertPos(0, 1, "Lorem ipsum")
+	buf.Insert2(0, 1, "Lorem ipsum")
 
 	assert.Equal(t, "",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, "",
-		iterToStr(buf.ReadPosRange(0, 0, 1, 0)))
+		buf.ReadSlice2(0, 0, 1, 0))
 
 	buf.Validate()
 }

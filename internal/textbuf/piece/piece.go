@@ -2,7 +2,7 @@ package piece
 
 type Piece struct {
 	text string
-	Len  int
+	Len  int // TODO: drop
 	Eols []Eol
 }
 

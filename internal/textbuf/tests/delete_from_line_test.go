@@ -1,6 +1,7 @@
 package textbuf_test
 
 import (
+	"math"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -14,18 +15,18 @@ func TestDeleteFromLine(t *testing.T) {
 
 	assert.Equal(t, 5, buf.LineCount())
 
-	buf.DeletePos(3, 0)
+	buf.DeleteSlice2(3, 0, math.MaxInt, math.MaxInt)
 
 	assert.Equal(t, "Lorem \nipsum \ndolor \n",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 21, buf.Count())
 	assert.Equal(t, 4, buf.LineCount())
 	buf.Validate()
 
-	buf.DeletePos(1, 0)
+	buf.DeleteSlice2(1, 0, math.MaxInt, math.MaxInt)
 
 	assert.Equal(t, "Lorem \n",
-		iterToStr(buf.ReadIndex(0)))
+		iterToStr(buf.ReadSlice(0, math.MaxInt)))
 	assert.Equal(t, 7, buf.Count())
 	assert.Equal(t, 2, buf.LineCount())
 	buf.Validate()
