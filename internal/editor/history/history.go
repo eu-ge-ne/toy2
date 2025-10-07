@@ -21,32 +21,19 @@ type entry struct {
 }
 
 func New(buffer *textbuf.TextBuf, cursor *cursor.Cursor) History {
-	h := History{
+	return History{
 		buffer: buffer,
 		cursor: cursor,
+		entries: []entry{{
+			ln:       cursor.Ln,
+			col:      cursor.Col,
+			snapshot: buffer.Save(),
+		}},
 	}
-
-	h.Reset()
-
-	return h
 }
 
 func (h *History) IsEmpty() bool {
 	return h.index == 0
-}
-
-func (h *History) Reset() {
-	h.entries = []entry{{
-		ln:       h.cursor.Ln,
-		col:      h.cursor.Col,
-		snapshot: h.buffer.Save(),
-	}}
-
-	h.index = 0
-
-	if h.OnChanged != nil {
-		h.OnChanged()
-	}
 }
 
 func (h *History) Push() {

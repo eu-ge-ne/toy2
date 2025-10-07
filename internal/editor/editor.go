@@ -113,9 +113,8 @@ func (ed *Editor) Layout(a ui.Area) {
 	ed.area = a
 }
 
-func (ed *Editor) Reset(text string) {
+func (ed *Editor) SetText(text string) {
 	ed.buffer.Reset(text)
-	ed.history.Reset()
 }
 
 func (ed *Editor) ResetCursor() {

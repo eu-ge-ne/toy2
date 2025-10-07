@@ -50,7 +50,7 @@ func (p *Palette) Open(done chan<- *Option) {
 	p.enabled = true
 	p.editor.Enable(true)
 
-	p.editor.Reset("")
+	p.editor.SetText("")
 	p.editor.ResetCursor()
 
 	p.filter()

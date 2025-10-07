@@ -78,7 +78,7 @@ func (sv *SaveAs) Open(filePath string, done chan<- string) {
 	sv.enabled = true
 	sv.editor.Enable(true)
 
-	sv.editor.Reset(filePath)
+	sv.editor.SetText(filePath)
 	sv.editor.ResetCursor()
 
 	sv.Render()
