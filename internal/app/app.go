@@ -127,6 +127,7 @@ func (app *App) Run() {
 		app.open(flag.Arg(0))
 	}
 
+	app.editor.ResetSyntax()
 	app.editor.ResetCursor()
 	app.editor.Render()
 

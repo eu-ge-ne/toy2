@@ -116,7 +116,6 @@ func (ed *Editor) Layout(a ui.Area) {
 func (ed *Editor) Reset(text string) {
 	ed.buffer.Reset(text)
 	ed.history.Reset()
-	ed.syntax.Reset()
 }
 
 func (ed *Editor) ResetCursor() {
@@ -125,6 +124,10 @@ func (ed *Editor) ResetCursor() {
 	} else {
 		ed.cursor.Set(math.MaxInt, math.MaxInt, false)
 	}
+}
+
+func (ed *Editor) ResetSyntax() {
+	ed.syntax.SetLanguage()
 }
 
 func (ed *Editor) HasChanges() bool {

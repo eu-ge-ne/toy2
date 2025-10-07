@@ -20,23 +20,34 @@ func New(buffer *textbuf.TextBuf) Syntax {
 	}
 }
 
-func (s *Syntax) Reset() {
-	s.parser.SetLanguage(treeSitter.NewLanguage(treeSitterTs.LanguageTypescript()))
+func (s *Syntax) SetLanguage() {
+	err := s.parser.SetLanguage(treeSitter.NewLanguage(treeSitterTs.LanguageTypescript()))
+	if err != nil {
+		panic(err)
+	}
 
 	s.parse()
 }
 
 func (s *Syntax) Delete(startLn, startCol, endLn, endCol int) {
-	/*
-		s.tree.Edit(&treeSitter.InputEdit{
-			StartByte:      startByte,
-			OldEndByte:     oldEndByte,
-			NewEndByte:     newEndByte,
-			StartPosition:  treeSitter.NewPoint(startPosLn, startPosCol),
-			OldEndPosition: treeSitter.NewPoint(oldEndPosLn, oldEndPosCol),
-			NewEndPosition: treeSitter.NewPoint(newEndPosLn, newEndPosCol),
-		})
-	*/
+	startByte, ok := s.buffer.Index(startLn, startCol)
+	if !ok {
+		panic("in Syntax.Delete")
+	}
+
+	oldEndByte, ok := s.buffer.Index(endLn, endCol)
+	if !ok {
+		panic("in Syntax.Delete")
+	}
+
+	s.tree.Edit(&treeSitter.InputEdit{
+		StartByte:      uint(startByte),
+		OldEndByte:     uint(oldEndByte),
+		NewEndByte:     uint(startByte + 1),
+		StartPosition:  treeSitter.NewPoint(uint(startLn), uint(startCol)),
+		OldEndPosition: treeSitter.NewPoint(uint(endLn), uint(endCol)),
+		NewEndPosition: treeSitter.NewPoint(uint(startLn), uint(startCol+1)),
+	})
 
 	s.parse()
 }
@@ -46,8 +57,6 @@ func (s *Syntax) Insert(startLn, startCol int, text string) {
 }
 
 func (s *Syntax) parse() {
-	//s.tree = s.parser.Parse([]byte(s.buffer.Text()), nil)
-
 	s.tree = s.parser.ParseWithOptions(func(i int, p treeSitter.Point) []byte {
 		return []byte(s.buffer.Chunk(i))
 	}, s.tree, nil)
