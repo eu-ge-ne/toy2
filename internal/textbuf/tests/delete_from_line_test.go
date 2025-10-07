@@ -17,16 +17,14 @@ func TestDeleteFromLine(t *testing.T) {
 
 	buf.DeleteSlice2(3, 0, math.MaxInt, math.MaxInt)
 
-	assert.Equal(t, "Lorem \nipsum \ndolor \n",
-		iterToStr(buf.ReadSlice(0, math.MaxInt)))
+	assert.Equal(t, "Lorem \nipsum \ndolor \n", buf.Read())
 	assert.Equal(t, 21, buf.Count())
 	assert.Equal(t, 4, buf.LineCount())
 	buf.Validate()
 
 	buf.DeleteSlice2(1, 0, math.MaxInt, math.MaxInt)
 
-	assert.Equal(t, "Lorem \n",
-		iterToStr(buf.ReadSlice(0, math.MaxInt)))
+	assert.Equal(t, "Lorem \n", buf.Read())
 	assert.Equal(t, 7, buf.Count())
 	assert.Equal(t, 2, buf.LineCount())
 	buf.Validate()

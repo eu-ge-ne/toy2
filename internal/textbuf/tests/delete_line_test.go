@@ -1,7 +1,6 @@
 package textbuf_test
 
 import (
-	"math"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -17,32 +16,28 @@ func TestDeleteLine(t *testing.T) {
 
 	buf.DeleteSlice2(4, 0, 5, 0)
 
-	assert.Equal(t, "Lorem \nipsum \ndolor \nsit \n",
-		iterToStr(buf.ReadSlice(0, math.MaxInt)))
+	assert.Equal(t, "Lorem \nipsum \ndolor \nsit \n", buf.Read())
 	assert.Equal(t, 26, buf.Count())
 	assert.Equal(t, 5, buf.LineCount())
 	buf.Validate()
 
 	buf.DeleteSlice2(3, 0, 4, 0)
 
-	assert.Equal(t, "Lorem \nipsum \ndolor \n",
-		iterToStr(buf.ReadSlice(0, math.MaxInt)))
+	assert.Equal(t, "Lorem \nipsum \ndolor \n", buf.Read())
 	assert.Equal(t, 21, buf.Count())
 	assert.Equal(t, 4, buf.LineCount())
 	buf.Validate()
 
 	buf.DeleteSlice2(2, 0, 3, 0)
 
-	assert.Equal(t, "Lorem \nipsum \n",
-		iterToStr(buf.ReadSlice(0, math.MaxInt)))
+	assert.Equal(t, "Lorem \nipsum \n", buf.Read())
 	assert.Equal(t, 14, buf.Count())
 	assert.Equal(t, 3, buf.LineCount())
 	buf.Validate()
 
 	buf.DeleteSlice2(1, 0, 2, 0)
 
-	assert.Equal(t, "Lorem \n",
-		iterToStr(buf.ReadSlice(0, math.MaxInt)))
+	assert.Equal(t, "Lorem \n", buf.Read())
 	assert.Equal(t, 7, buf.Count())
 	assert.Equal(t, 2, buf.LineCount())
 	buf.Validate()
