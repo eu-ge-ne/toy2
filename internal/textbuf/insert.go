@@ -2,8 +2,8 @@ package textbuf
 
 import "github.com/eu-ge-ne/toy2/internal/textbuf/node"
 
-func (tb *TextBuf) Insert(i int, text string) {
-	if i > tb.Count() {
+func (tb *TextBuf) Insert(index int, text string) {
+	if index > tb.Count() {
 		return
 	}
 
@@ -20,23 +20,23 @@ func (tb *TextBuf) Insert(i int, text string) {
 	x := tb.tree.Root
 
 	for x != node.NIL {
-		if i <= x.Left.TotalLen {
+		if index <= x.Left.TotalLen {
 			insertCase = InsertLeft
 			p = x
 			x = x.Left
 			continue
 		}
 
-		i -= x.Left.TotalLen
+		index -= x.Left.TotalLen
 
-		if i < x.Len {
+		if index < x.Len {
 			insertCase = InsertSplit
 			p = x
 			x = node.NIL
 			continue
 		}
 
-		i -= x.Len
+		index -= x.Len
 
 		insertCase = InsertRight
 		p = x
@@ -60,7 +60,7 @@ func (tb *TextBuf) Insert(i int, text string) {
 	case InsertRight:
 		tb.tree.InsertRight(p, child)
 	case InsertSplit:
-		y := tb.content.Split(p, i, 0)
+		y := tb.content.Split(p, index, 0)
 		tb.tree.InsertAfter(p, y)
 		tb.tree.InsertBefore(y, child)
 	}
