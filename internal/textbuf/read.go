@@ -15,6 +15,16 @@ func (buf *TextBuf) Read() string {
 	return strings.Join(slices.Collect(buf.Iter()), "")
 }
 
+func (buf *TextBuf) Chunk(i int) string {
+	x, offset := buf.tree.Root.Find(i)
+
+	if x == nil {
+		return ""
+	}
+
+	return buf.content.Chunk(x, offset)
+}
+
 func (buf *TextBuf) ReadSlice(start int, end int) iter.Seq[string] {
 	x, offset := buf.tree.Root.Find(start)
 	if x == nil {

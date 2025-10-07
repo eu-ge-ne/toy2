@@ -1,8 +1,6 @@
 package syntax
 
 import (
-	"math"
-
 	"github.com/eu-ge-ne/toy2/internal/textbuf"
 
 	treeSitter "github.com/tree-sitter/go-tree-sitter"
@@ -51,9 +49,6 @@ func (s *Syntax) parse() {
 	//s.tree = s.parser.Parse([]byte(s.buffer.Text()), nil)
 
 	s.tree = s.parser.ParseWithOptions(func(i int, p treeSitter.Point) []byte {
-		for text := range s.buffer.ReadSlice(i, math.MaxInt) {
-			return []byte(text)
-		}
-		return make([]byte, 0)
+		return []byte(s.buffer.Chunk(i))
 	}, s.tree, nil)
 }

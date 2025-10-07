@@ -12,15 +12,15 @@ type Content struct {
 }
 
 func (c *Content) Create(text string) *node.Node {
-	buffer := piece.Create(text)
-	c.Table = append(c.Table, &buffer)
-	BufIndex := len(c.Table) - 1
+	piece := piece.Create(text)
+	c.Table = append(c.Table, &piece)
+	pieceIndex := len(c.Table) - 1
 
-	return node.Create(BufIndex, 0, buffer.Len, 0, len(buffer.Eols))
+	return node.Create(pieceIndex, 0, piece.Len, 0, len(piece.Eols))
 }
 
 func (c *Content) Split(x *node.Node, index int, gap int) *node.Node {
-	buf := c.Table[x.PieceIndex]
+	piece := c.Table[x.PieceIndex]
 
 	start := x.Start + index + gap
 	len := x.Len - index - gap
@@ -28,8 +28,8 @@ func (c *Content) Split(x *node.Node, index int, gap int) *node.Node {
 	c.resize(x, index)
 	node.Bubble(x)
 
-	eols_start := buf.FindEolIndex(start, x.EolsStart+x.EolsLen)
-	eols_end := buf.FindEolIndex(start+len, eols_start)
+	eols_start := piece.FindEolIndex(start, x.EolsStart+x.EolsLen)
+	eols_end := piece.FindEolIndex(start+len, eols_start)
 	eols_len := eols_end - eols_start
 
 	return node.Create(x.PieceIndex, start, len, eols_start, eols_len)
@@ -51,10 +51,16 @@ func (c *Content) Read(x *node.Node, offset int, n int) iter.Seq[string] {
 	}
 }
 
-func (c *Content) Growable(x *node.Node) bool {
-	buf := c.Table[x.PieceIndex]
+func (c *Content) Chunk(x *node.Node, offset int) string {
+	count := x.Len - offset
 
-	return (buf.Len < 100) && (x.Start+x.Len == buf.Len)
+	return c.Table[x.PieceIndex].Read(x.Start+offset, x.Start+offset+count)
+}
+
+func (c *Content) Growable(x *node.Node) bool {
+	piece := c.Table[x.PieceIndex]
+
+	return (piece.Len < 100) && (x.Start+x.Len == piece.Len)
 }
 
 func (c *Content) Grow(x *node.Node, text string) {
@@ -64,14 +70,14 @@ func (c *Content) Grow(x *node.Node, text string) {
 }
 
 func (c *Content) TrimStart(x *node.Node, n int) {
-	buf := c.Table[x.PieceIndex]
+	piece := c.Table[x.PieceIndex]
 
 	x.Start += n
 	x.Len -= n
 
-	x.EolsStart = buf.FindEolIndex(x.Start, x.EolsStart)
+	x.EolsStart = piece.FindEolIndex(x.Start, x.EolsStart)
 
-	eols_end := buf.FindEolIndex(x.Start+x.Len, x.EolsStart)
+	eols_end := piece.FindEolIndex(x.Start+x.Len, x.EolsStart)
 
 	x.EolsLen = eols_end - x.EolsStart
 }
@@ -81,11 +87,11 @@ func (c *Content) TrimEnd(x *node.Node, n int) {
 }
 
 func (c *Content) resize(x *node.Node, len int) {
-	buf := c.Table[x.PieceIndex]
+	piece := c.Table[x.PieceIndex]
 
 	x.Len = len
 
-	eols_end := buf.FindEolIndex(x.Start+x.Len, x.EolsStart)
+	eols_end := piece.FindEolIndex(x.Start+x.Len, x.EolsStart)
 
 	x.EolsLen = eols_end - x.EolsStart
 }
