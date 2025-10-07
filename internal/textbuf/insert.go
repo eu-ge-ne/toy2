@@ -70,8 +70,13 @@ func (buf *TextBuf) Insert(index int, text string) {
 
 func (buf *TextBuf) Insert2(ln, col int, text string) {
 	index, ok := buf.lnIndex(ln)
+
 	if !ok {
-		index = max(0, buf.LineCount()-1)
+		if ln == 0 {
+			index = 0
+		} else {
+			index = max(0, buf.LineCount()-1)
+		}
 	}
 
 	for i, cell := range buf.IterLine(ln, false) {
