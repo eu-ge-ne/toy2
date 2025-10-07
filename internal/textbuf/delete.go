@@ -59,12 +59,12 @@ func (buf *TextBuf) DeleteSlice(start int, end int) {
 }
 
 func (buf *TextBuf) DeleteSlice2(startLn, startCol, endLn, endCol int) {
-	start, ok := buf.lnColIndex(startLn, startCol)
+	start, ok := buf.Index(startLn, startCol)
 	if !ok {
 		return
 	}
 
-	end, ok := buf.lnColIndex(endLn, endCol)
+	end, ok := buf.Index(endLn, endCol)
 	if !ok {
 		end = math.MaxInt
 	}

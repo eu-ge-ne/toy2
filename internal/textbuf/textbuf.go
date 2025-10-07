@@ -63,6 +63,25 @@ func (buf *TextBuf) Validate() {
 	buf.tree.Root.Validate()
 }
 
+func (buf *TextBuf) Index(ln, col int) (int, bool) {
+	lnIndex, ok := buf.lnIndex(ln)
+	if !ok {
+		return 0, false
+	}
+
+	colIndex := 0
+
+	for i, cell := range buf.IterLine(ln, false) {
+		if i == col {
+			return lnIndex + colIndex, true
+		}
+
+		colIndex += len(cell.G.Seg)
+	}
+
+	return 0, false
+}
+
 func (buf TextBuf) lnIndex(ln int) (int, bool) {
 	if buf.Count() == 0 {
 		return 0, false
@@ -94,25 +113,6 @@ func (buf TextBuf) lnIndex(ln int) (int, bool) {
 		eolIndex -= x.EolsLen
 		i += x.Len
 		x = x.Right
-	}
-
-	return 0, false
-}
-
-func (buf *TextBuf) lnColIndex(ln, col int) (int, bool) {
-	lnIndex, ok := buf.lnIndex(ln)
-	if !ok {
-		return 0, false
-	}
-
-	colIndex := 0
-
-	for i, cell := range buf.IterLine(ln, false) {
-		if i == col {
-			return lnIndex + colIndex, true
-		}
-
-		colIndex += len(cell.G.Seg)
 	}
 
 	return 0, false
