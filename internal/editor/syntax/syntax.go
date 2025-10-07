@@ -14,15 +14,16 @@ type Syntax struct {
 }
 
 func New(buffer *textbuf.TextBuf) Syntax {
-	return Syntax{buffer: buffer}
+	return Syntax{
+		buffer: buffer,
+		parser: treeSitter.NewParser(),
+	}
 }
 
 func (s *Syntax) Reset() {
-	s.parser = treeSitter.NewParser()
-
 	s.parser.SetLanguage(treeSitter.NewLanguage(treeSitterTs.LanguageTypescript()))
 
-	s.tree = s.parser.Parse([]byte(s.buffer.Text()), nil)
+	s.parse()
 }
 
 func (s *Syntax) Delete(startLn, startCol, endLn, endCol int) {
@@ -35,10 +36,21 @@ func (s *Syntax) Delete(startLn, startCol, endLn, endCol int) {
 			OldEndPosition: treeSitter.NewPoint(oldEndPosLn, oldEndPosCol),
 			NewEndPosition: treeSitter.NewPoint(newEndPosLn, newEndPosCol),
 		})
-
-		s.tree = s.parser.Parse([]byte(s.buffer.Text()), s.tree)
 	*/
+
+	s.parse()
 }
 
 func (s *Syntax) Insert(startLn, startCol int, text string) {
+	s.parse()
+}
+
+func (s *Syntax) parse() {
+	//s.tree = s.parser.Parse([]byte(s.buffer.Text()), nil)
+	s.tree = s.parser.ParseWithOptions(func(i int, p treeSitter.Point) []byte {
+		for text := range s.buffer.ReadPos(int(p.Row), int(p.Column)) {
+			return []byte(text)
+		}
+		return make([]byte, 0)
+	}, s.tree, nil)
 }
