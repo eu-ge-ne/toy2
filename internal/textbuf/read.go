@@ -7,35 +7,35 @@ import (
 	"strings"
 )
 
-func (tb *TextBuf) Iter() iter.Seq[string] {
-	return tb.ReadSlice(0, math.MaxInt)
+func (buf *TextBuf) Iter() iter.Seq[string] {
+	return buf.ReadSlice(0, math.MaxInt)
 }
 
-func (tb *TextBuf) Read() string {
-	return strings.Join(slices.Collect(tb.Iter()), "")
+func (buf *TextBuf) Read() string {
+	return strings.Join(slices.Collect(buf.Iter()), "")
 }
 
-func (tb *TextBuf) ReadSlice(start int, end int) iter.Seq[string] {
-	x, offset := tb.tree.Root.Find(start)
+func (buf *TextBuf) ReadSlice(start int, end int) iter.Seq[string] {
+	x, offset := buf.tree.Root.Find(start)
 	if x == nil {
 		return none
 	}
 
-	return tb.content.Read(x, offset, end-start)
+	return buf.content.Read(x, offset, end-start)
 }
 
-func (tb *TextBuf) ReadSlice2(startLn, startCol, endLn, endCol int) string {
-	start, ok := tb.lnColToIndex(startLn, startCol)
+func (buf *TextBuf) ReadSlice2(startLn, startCol, endLn, endCol int) string {
+	start, ok := buf.lnColIndex(startLn, startCol)
 	if !ok {
 		return ""
 	}
 
-	end, ok := tb.lnColToIndex(endLn, endCol)
+	end, ok := buf.lnColIndex(endLn, endCol)
 	if !ok {
 		end = math.MaxInt
 	}
 
-	it := tb.ReadSlice(start, end)
+	it := buf.ReadSlice(start, end)
 
 	return strings.Join(slices.Collect(it), "")
 }

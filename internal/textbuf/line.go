@@ -14,14 +14,14 @@ type LineCell struct {
 	Col int
 }
 
-func (tb *TextBuf) IterLine(ln int, extra bool) iter.Seq2[int, LineCell] {
+func (buf *TextBuf) IterLine(ln int, extra bool) iter.Seq2[int, LineCell] {
 	return func(yield func(int, LineCell) bool) {
-		start, ok := tb.lnIndex(ln)
+		start, ok := buf.lnIndex(ln)
 		if !ok {
 			return
 		}
 
-		end, ok := tb.lnIndex(ln + 1)
+		end, ok := buf.lnIndex(ln + 1)
 		if !ok {
 			end = math.MaxInt
 		}
@@ -31,15 +31,15 @@ func (tb *TextBuf) IterLine(ln int, extra bool) iter.Seq2[int, LineCell] {
 		n := 0
 		w := 0
 
-		for i, g := range grapheme.Graphemes.Iter(tb.ReadSlice(start, end)) {
+		for i, g := range grapheme.Graphemes.Iter(buf.ReadSlice(start, end)) {
 			cell.G = g
 
 			if cell.G.Width < 0 {
-				cell.G.Width = vt.Wchar(tb.MeasureY, tb.MeasureX, cell.G.Bytes)
+				cell.G.Width = vt.Wchar(buf.MeasureY, buf.MeasureX, cell.G.Bytes)
 			}
 
 			w += cell.G.Width
-			if w > tb.WrapWidth {
+			if w > buf.WrapWidth {
 				w = cell.G.Width
 				cell.Ln += 1
 				cell.Col = 0
@@ -57,7 +57,7 @@ func (tb *TextBuf) IterLine(ln int, extra bool) iter.Seq2[int, LineCell] {
 			cell.G = grapheme.Graphemes.Get(" ")
 
 			w += cell.G.Width
-			if w > tb.WrapWidth {
+			if w > buf.WrapWidth {
 				w = cell.G.Width
 				cell.Ln += 1
 				cell.Col = 0
@@ -70,10 +70,10 @@ func (tb *TextBuf) IterLine(ln int, extra bool) iter.Seq2[int, LineCell] {
 	}
 }
 
-func (tb *TextBuf) IterLineSlice(ln int, extra bool, start, end int) iter.Seq2[int, LineCell] {
+func (buf *TextBuf) IterLineSlice(ln int, extra bool, start, end int) iter.Seq2[int, LineCell] {
 	return func(yield func(int, LineCell) bool) {
 		i := 0
-		for j, c := range tb.IterLine(ln, extra) {
+		for j, c := range buf.IterLine(ln, extra) {
 			if j >= start && j < end {
 				if !yield(i, c) {
 					return

@@ -9,46 +9,46 @@ import (
 )
 
 func TestInsertInto0Line(t *testing.T) {
-	tb := textbuf.New()
+	buf := textbuf.New()
 
-	tb.Insert2(0, 0, "Lorem ipsum")
+	buf.Insert2(0, 0, "Lorem ipsum")
 
-	assert.Equal(t, "Lorem ipsum", tb.Read())
-	assert.Equal(t, "Lorem ipsum", tb.ReadSlice2(0, 0, 1, 0))
+	assert.Equal(t, "Lorem ipsum", buf.Read())
+	assert.Equal(t, "Lorem ipsum", buf.ReadSlice2(0, 0, 1, 0))
 
-	tb.Validate()
+	buf.Validate()
 }
 
 func TestInsertIntoALine(t *testing.T) {
-	tb := textbuf.New()
-	tb.Insert(0, "Lorem")
+	buf := textbuf.New()
+	buf.Insert(0, "Lorem")
 
-	tb.Insert2(0, 5, " ipsum")
+	buf.Insert2(0, 5, " ipsum")
 
-	assert.Equal(t, "Lorem ipsum", tb.Read())
-	assert.Equal(t, "Lorem ipsum", tb.ReadSlice2(0, 0, 1, 0))
+	assert.Equal(t, "Lorem ipsum", buf.Read())
+	assert.Equal(t, "Lorem ipsum", buf.ReadSlice2(0, 0, 1, 0))
 
-	tb.Validate()
+	buf.Validate()
 }
 
 func TestInsertIntoALineWhichDoesNotExist(t *testing.T) {
-	tb := textbuf.New()
+	buf := textbuf.New()
 
-	tb.Insert2(1, 0, "Lorem ipsum")
+	buf.Insert2(1, 0, "Lorem ipsum")
 
-	assert.Equal(t, "", tb.Read())
-	assert.Equal(t, "", tb.ReadSlice2(0, 0, 1, 0))
+	assert.Equal(t, "", buf.Read())
+	assert.Equal(t, "", buf.ReadSlice2(0, 0, 1, 0))
 
-	tb.Validate()
+	buf.Validate()
 }
 
 func TestInsertIntoAColumnWhichDoesNotExist(t *testing.T) {
-	tb := textbuf.New()
+	buf := textbuf.New()
 
-	tb.Insert2(0, 1, "Lorem ipsum")
+	buf.Insert2(0, 1, "Lorem ipsum")
 
-	assert.Equal(t, "", tb.Read())
-	assert.Equal(t, "", tb.ReadSlice2(0, 0, 1, 0))
+	assert.Equal(t, "", buf.Read())
+	assert.Equal(t, "", buf.ReadSlice2(0, 0, 1, 0))
 
-	tb.Validate()
+	buf.Validate()
 }

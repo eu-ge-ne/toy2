@@ -30,41 +30,41 @@ func New() TextBuf {
 	}
 }
 
-func (tb *TextBuf) Count() int {
-	return tb.tree.Root.TotalLen
+func (buf *TextBuf) Count() int {
+	return buf.tree.Root.TotalLen
 }
 
-func (tb *TextBuf) LineCount() int {
-	if tb.Count() == 0 {
+func (buf *TextBuf) LineCount() int {
+	if buf.Count() == 0 {
 		return 0
 	}
-	return tb.tree.Root.TotalEolsLen + 1
+	return buf.tree.Root.TotalEolsLen + 1
 }
 
-func (tb *TextBuf) Save() Snapshot {
+func (buf *TextBuf) Save() Snapshot {
 	return Snapshot{
-		node: tb.tree.Root.Clone(node.NIL),
+		node: buf.tree.Root.Clone(node.NIL),
 	}
 }
 
-func (tb *TextBuf) Restore(s Snapshot) {
-	tb.tree.Root = s.node.Clone(node.NIL)
+func (buf *TextBuf) Restore(s Snapshot) {
+	buf.tree.Root = s.node.Clone(node.NIL)
 }
 
-func (tb *TextBuf) Reset(text string) {
-	tb.DeleteSlice(0, math.MaxInt)
+func (buf *TextBuf) Reset(text string) {
+	buf.DeleteSlice(0, math.MaxInt)
 
 	if len(text) > 0 {
-		tb.Insert(0, text)
+		buf.Insert(0, text)
 	}
 }
 
-func (tb *TextBuf) Validate() {
-	tb.tree.Root.Validate()
+func (buf *TextBuf) Validate() {
+	buf.tree.Root.Validate()
 }
 
-func (tb TextBuf) lnIndex(ln int) (int, bool) {
-	if tb.Count() == 0 {
+func (buf TextBuf) lnIndex(ln int) (int, bool) {
+	if buf.Count() == 0 {
 		return 0, false
 	}
 
@@ -73,7 +73,7 @@ func (tb TextBuf) lnIndex(ln int) (int, bool) {
 	}
 
 	eolIndex := ln - 1
-	x := tb.tree.Root
+	x := buf.tree.Root
 	i := 0
 
 	for x != node.NIL {
@@ -86,7 +86,7 @@ func (tb TextBuf) lnIndex(ln int) (int, bool) {
 		i += x.Left.TotalLen
 
 		if eolIndex < x.EolsLen {
-			buf := tb.content.Table[x.PieceIndex]
+			buf := buf.content.Table[x.PieceIndex]
 			eolEnd := buf.Eols[x.EolsStart+eolIndex].End
 			return i + eolEnd - x.Start, true
 		}
@@ -99,15 +99,15 @@ func (tb TextBuf) lnIndex(ln int) (int, bool) {
 	return 0, false
 }
 
-func (tb *TextBuf) lnColToIndex(ln, col int) (int, bool) {
-	lnIndex, ok := tb.lnIndex(ln)
+func (buf *TextBuf) lnColIndex(ln, col int) (int, bool) {
+	lnIndex, ok := buf.lnIndex(ln)
 	if !ok {
 		return 0, false
 	}
 
 	colIndex := 0
 
-	for i, cell := range tb.IterLine(ln, false) {
+	for i, cell := range buf.IterLine(ln, false) {
 		if i == col {
 			return lnIndex + colIndex, true
 		}

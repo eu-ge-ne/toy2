@@ -37,7 +37,7 @@ func (tb *TextBuf) LoadFromFile(filePath string) error {
 	return nil
 }
 
-func (tb *TextBuf) SaveToFile(filePath string) error {
+func (buf *TextBuf) SaveToFile(filePath string) error {
 	f, err := os.OpenFile(filePath, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
@@ -45,7 +45,7 @@ func (tb *TextBuf) SaveToFile(filePath string) error {
 
 	defer f.Close()
 
-	for text := range tb.Iter() {
+	for text := range buf.Iter() {
 		_, err := f.WriteString(text)
 		if err != nil {
 			return err
