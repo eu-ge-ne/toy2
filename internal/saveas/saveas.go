@@ -99,7 +99,7 @@ func (sv *SaveAs) processInput() string {
 		case "ESC":
 			return ""
 		case "ENTER":
-			fp := sv.editor.Text()
+			fp := sv.editor.GetText()
 			if len(fp) > 0 {
 				return fp
 			}

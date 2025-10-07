@@ -67,7 +67,7 @@ func (p *Palette) Open(done chan<- *Option) {
 func (p *Palette) filter() {
 	p.selectedIndex = 0
 
-	text := strings.ToUpper(p.editor.Text())
+	text := strings.ToUpper(p.editor.GetText())
 
 	if len(text) == 0 {
 		p.filteredOptions = p.options

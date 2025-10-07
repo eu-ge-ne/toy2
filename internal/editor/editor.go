@@ -113,10 +113,6 @@ func (ed *Editor) Layout(a ui.Area) {
 	ed.area = a
 }
 
-func (ed *Editor) SetText(text string) {
-	ed.buffer.Reset(text)
-}
-
 func (ed *Editor) ResetCursor() {
 	if ed.multiLine {
 		ed.cursor.Set(0, 0, false)
@@ -161,7 +157,11 @@ func (ed *Editor) ToggleWrap() {
 	ed.cursor.Home(false)
 }
 
-func (ed *Editor) Text() string {
+func (ed *Editor) SetText(text string) {
+	ed.buffer.Reset(text)
+}
+
+func (ed *Editor) GetText() string {
 	return ed.buffer.Read()
 }
 
