@@ -67,6 +67,11 @@ func (tb *TextBuf) Insert(i int, text string) {
 }
 
 func (tb *TextBuf) Insert2(ln, col int, text string) {
+	if ln == 0 && col == 0 {
+		tb.Insert(0, text)
+		return
+	}
+
 	index, ok := tb.lnColToIndex(ln, col)
 	if !ok {
 		return
