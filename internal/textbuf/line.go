@@ -1,0 +1,85 @@
+package textbuf
+
+import (
+	"iter"
+	"math"
+
+	"github.com/eu-ge-ne/toy2/internal/grapheme"
+	"github.com/eu-ge-ne/toy2/internal/vt"
+)
+
+type LineCell struct {
+	G   *grapheme.Grapheme
+	Ln  int
+	Col int
+}
+
+func (tb *TextBuf) IterLine(ln int, extra bool) iter.Seq2[int, LineCell] {
+	return func(yield func(int, LineCell) bool) {
+		start, ok := tb.lnIndex(ln)
+		if !ok {
+			return
+		}
+
+		end, ok := tb.lnIndex(ln + 1)
+		if !ok {
+			end = math.MaxInt
+		}
+
+		cell := LineCell{}
+
+		n := 0
+		w := 0
+
+		for i, g := range grapheme.Graphemes.Iter(tb.ReadSlice(start, end)) {
+			cell.G = g
+
+			if cell.G.Width < 0 {
+				cell.G.Width = vt.Wchar(tb.MeasureY, tb.MeasureX, cell.G.Bytes)
+			}
+
+			w += cell.G.Width
+			if w > tb.WrapWidth {
+				w = cell.G.Width
+				cell.Ln += 1
+				cell.Col = 0
+			}
+
+			if !yield(i, cell) {
+				return
+			}
+
+			cell.Col += 1
+			n = i
+		}
+
+		if extra {
+			cell.G = grapheme.Graphemes.Get(" ")
+
+			w += cell.G.Width
+			if w > tb.WrapWidth {
+				w = cell.G.Width
+				cell.Ln += 1
+				cell.Col = 0
+			}
+
+			if !yield(n, cell) {
+				return
+			}
+		}
+	}
+}
+
+func (tb *TextBuf) IterLineSlice(ln int, extra bool, start, end int) iter.Seq2[int, LineCell] {
+	return func(yield func(int, LineCell) bool) {
+		i := 0
+		for j, c := range tb.IterLine(ln, extra) {
+			if j >= start && j < end {
+				if !yield(i, c) {
+					return
+				}
+				i += 1
+			}
+		}
+	}
+}

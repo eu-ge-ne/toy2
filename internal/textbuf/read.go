@@ -5,9 +5,6 @@ import (
 	"math"
 	"slices"
 	"strings"
-
-	"github.com/eu-ge-ne/toy2/internal/grapheme"
-	"github.com/eu-ge-ne/toy2/internal/vt"
 )
 
 func (tb *TextBuf) Iter() iter.Seq[string] {
@@ -44,80 +41,4 @@ func (tb *TextBuf) ReadSlice2(startLn, startCol, endLn, endCol int) string {
 }
 
 func none(yield func(string) bool) {
-}
-
-type LineCell struct {
-	G   *grapheme.Grapheme
-	Ln  int
-	Col int
-}
-
-func (tb *TextBuf) IterLine(ln int, extra bool) iter.Seq2[int, LineCell] {
-	return func(yield func(int, LineCell) bool) {
-		start, ok := tb.lnToIndex(ln)
-		if !ok {
-			return
-		}
-
-		end, ok := tb.lnToIndex(ln + 1)
-		if !ok {
-			end = math.MaxInt
-		}
-
-		cell := LineCell{}
-
-		n := 0
-		w := 0
-
-		for i, g := range grapheme.Graphemes.Iter(tb.ReadSlice(start, end)) {
-			cell.G = g
-
-			if cell.G.Width < 0 {
-				cell.G.Width = vt.Wchar(tb.MeasureY, tb.MeasureX, cell.G.Bytes)
-			}
-
-			w += cell.G.Width
-			if w > tb.WrapWidth {
-				w = cell.G.Width
-				cell.Ln += 1
-				cell.Col = 0
-			}
-
-			if !yield(i, cell) {
-				return
-			}
-
-			cell.Col += 1
-			n = i
-		}
-
-		if extra {
-			cell.G = grapheme.Graphemes.Get(" ")
-
-			w += cell.G.Width
-			if w > tb.WrapWidth {
-				w = cell.G.Width
-				cell.Ln += 1
-				cell.Col = 0
-			}
-
-			if !yield(n, cell) {
-				return
-			}
-		}
-	}
-}
-
-func (tb *TextBuf) IterLineSlice(ln int, extra bool, start, end int) iter.Seq2[int, LineCell] {
-	return func(yield func(int, LineCell) bool) {
-		i := 0
-		for j, c := range tb.IterLine(ln, extra) {
-			if j >= start && j < end {
-				if !yield(i, c) {
-					return
-				}
-				i += 1
-			}
-		}
-	}
 }

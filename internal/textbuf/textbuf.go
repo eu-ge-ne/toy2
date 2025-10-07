@@ -63,7 +63,7 @@ func (tb *TextBuf) Validate() {
 	tb.tree.Root.Validate()
 }
 
-func (tb TextBuf) lnToIndex(ln int) (int, bool) {
+func (tb TextBuf) lnIndex(ln int) (int, bool) {
 	if tb.Count() == 0 {
 		return 0, false
 	}
@@ -100,7 +100,7 @@ func (tb TextBuf) lnToIndex(ln int) (int, bool) {
 }
 
 func (tb *TextBuf) lnColToIndex(ln, col int) (int, bool) {
-	lnIndex, ok := tb.lnToIndex(ln)
+	lnIndex, ok := tb.lnIndex(ln)
 	if !ok {
 		return 0, false
 	}
