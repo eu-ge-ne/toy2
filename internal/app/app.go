@@ -128,7 +128,6 @@ func (app *App) Run() {
 	}
 
 	app.editor.ResetSyntax()
-	app.editor.ResetCursor()
 	app.editor.Render()
 
 	vt.ListenStdin()

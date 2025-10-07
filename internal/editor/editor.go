@@ -113,6 +113,7 @@ func (ed *Editor) Layout(a ui.Area) {
 	ed.area = a
 }
 
+// TODO: why needed?
 func (ed *Editor) ResetCursor() {
 	if ed.multiLine {
 		ed.cursor.Set(0, 0, false)
