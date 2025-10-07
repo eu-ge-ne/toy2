@@ -71,7 +71,7 @@ func (buf *TextBuf) Insert(index int, text string) {
 func (buf *TextBuf) Insert2(ln, col int, text string) {
 	index, ok := buf.lnIndex(ln)
 	if !ok {
-		index = buf.LineCount() - 1
+		index = max(0, buf.LineCount()-1)
 	}
 
 	for i, cell := range buf.IterLine(ln, false) {
