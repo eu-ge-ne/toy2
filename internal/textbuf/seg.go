@@ -19,10 +19,10 @@ func (tb *TextBuf) IterSegLine(ln int, extra bool) iter.Seq2[int, Seg] {
 	return func(yield func(int, Seg) bool) {
 		seg := Seg{}
 
-		n := 0
+		i := 0
 		w := 0
 
-		for i, g := range grapheme.Graphemes.Iter(tb.ReadPosRange(ln, 0, ln+1, 0)) {
+		for _, g := range grapheme.Graphemes.Iter(tb.ReadPosRange(ln, 0, ln+1, 0)) {
 			seg.G = g
 
 			if seg.G.Width < 0 {
@@ -36,12 +36,12 @@ func (tb *TextBuf) IterSegLine(ln int, extra bool) iter.Seq2[int, Seg] {
 				seg.Col = 0
 			}
 
-			if !yield(n, seg) {
+			if !yield(i, seg) {
 				return
 			}
 
 			seg.Col += 1
-			n = i
+			i += 1
 		}
 
 		if extra {
@@ -54,7 +54,7 @@ func (tb *TextBuf) IterSegLine(ln int, extra bool) iter.Seq2[int, Seg] {
 				seg.Col = 0
 			}
 
-			if !yield(n, seg) {
+			if !yield(i, seg) {
 				return
 			}
 		}
