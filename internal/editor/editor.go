@@ -175,16 +175,6 @@ func (ed *Editor) SaveToFile(filePath string) error {
 	return ed.buffer.SaveToFile(filePath)
 }
 
-func (ed *Editor) deleteSelection() {
-	cur := ed.cursor
-
-	ed.buffer.DeleteSlice2(cur.StartLn, cur.StartCol, cur.Ln, cur.Col+1)
-	ed.syntax.Delete(cur.StartLn, cur.StartCol, cur.Ln, cur.Col+1)
-	ed.cursor.Set(cur.StartLn, cur.StartCol, false)
-
-	ed.history.Push()
-}
-
 func (ed *Editor) deleteChar() {
 	cur := ed.cursor
 
@@ -224,12 +214,22 @@ func (ed *Editor) deletePrevChar() {
 	ed.history.Push()
 }
 
+func (ed *Editor) deleteSelection() {
+	cur := ed.cursor
+
+	ed.buffer.DeleteSlice2(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol)
+	ed.syntax.Delete(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol)
+	ed.cursor.Set(cur.StartLn, cur.StartCol, false)
+
+	ed.history.Push()
+}
+
 func (ed *Editor) insertText(text string) {
 	cur := ed.cursor
 
 	if cur.Selecting {
-		ed.buffer.DeleteSlice2(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol+1)
-		ed.syntax.Delete(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol+1)
+		ed.buffer.DeleteSlice2(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol)
+		ed.syntax.Delete(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol)
 		cur.Set(cur.StartLn, cur.StartCol, false)
 	}
 

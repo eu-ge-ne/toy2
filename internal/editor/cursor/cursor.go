@@ -25,18 +25,6 @@ func New(buffer *textbuf.TextBuf) Cursor {
 	return Cursor{buffer: buffer}
 }
 
-func (cur *Cursor) Set(ln, col int, sel bool) bool {
-	oldLn := cur.Ln
-	oldCol := cur.Col
-
-	cur.setLn(ln)
-	cur.setCol(col)
-	cur.setSelection(oldLn, oldCol, sel)
-	cur.setRange()
-
-	return cur.Ln != oldLn || cur.Col != oldCol
-}
-
 func (cur *Cursor) Top(sel bool) bool {
 	return cur.Set(0, 0, sel)
 }
@@ -102,15 +90,27 @@ func (cur *Cursor) IsSelected(ln, col int) bool {
 		return false
 	}
 
-	if ln == cur.EndLn && col > cur.EndCol {
+	if ln == cur.EndLn && col >= cur.EndCol {
 		return false
 	}
 
 	return true
 }
 
+func (cur *Cursor) Set(ln, col int, sel bool) bool {
+	oldLn := cur.Ln
+	oldCol := cur.Col
+
+	cur.setLn(ln)
+	cur.setCol(col)
+	cur.setSelection(oldLn, oldCol, sel)
+
+	return cur.Ln != oldLn || cur.Col != oldCol
+}
+
 func (cur *Cursor) setLn(ln int) {
 	max := cur.buffer.LineCount() - 1
+
 	if max < 0 {
 		max = 0
 	}
@@ -119,16 +119,16 @@ func (cur *Cursor) setLn(ln int) {
 }
 
 func (cur *Cursor) setCol(col int) {
-	len := 0
+	max := 0
 
 	for _, c := range cur.buffer.IterLine(cur.Ln, false) {
 		if c.G.IsEol {
 			break
 		}
-		len += 1
+		max += 1
 	}
 
-	cur.Col = std.Clamp(col, 0, len)
+	cur.Col = std.Clamp(col, 0, max)
 }
 
 func (cur *Cursor) setSelection(ln, col int, sel bool) {
@@ -143,9 +143,7 @@ func (cur *Cursor) setSelection(ln, col int, sel bool) {
 	}
 
 	cur.Selecting = true
-}
 
-func (cur *Cursor) setRange() {
 	if (cur.ln0 > cur.Ln) || (cur.ln0 == cur.Ln && cur.col0 > cur.Col) {
 		cur.StartLn = cur.Ln
 		cur.StartCol = cur.Col
