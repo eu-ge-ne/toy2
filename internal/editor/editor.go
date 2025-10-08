@@ -123,7 +123,7 @@ func (ed *Editor) ResetCursor() {
 	}
 }
 
-func (ed *Editor) ResetSyntax() {
+func (ed *Editor) SetSyntax() {
 	ed.syntax.SetLanguage()
 }
 

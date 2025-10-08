@@ -127,7 +127,7 @@ func (app *App) Run() {
 		app.open(flag.Arg(0))
 	}
 
-	app.editor.ResetSyntax()
+	app.editor.SetSyntax()
 	app.editor.Render()
 
 	vt.ListenStdin()
