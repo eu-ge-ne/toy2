@@ -123,16 +123,16 @@ func (cur *Cursor) setLn(ln int) {
 }
 
 func (cur *Cursor) setCol(col int) {
-	max := 0
+	len := 0
 
 	for _, c := range cur.buffer.IterLine(cur.Ln, false) {
 		if c.G.IsEol {
 			break
 		}
-		max += 1
+		len += 1
 	}
 
-	cur.Col = std.Clamp(col, 0, max)
+	cur.Col = std.Clamp(col, 0, len)
 }
 
 func (cur *Cursor) setSelection(ln, col int, sel bool) {
