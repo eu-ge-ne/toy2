@@ -17,7 +17,6 @@ func (buf *TextBuf) Read() string {
 
 func (buf *TextBuf) Chunk(i int) string {
 	x, offset := buf.tree.Root.Find(i)
-
 	if x == nil {
 		return ""
 	}
