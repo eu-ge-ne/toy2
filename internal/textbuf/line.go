@@ -31,7 +31,7 @@ func (buf *TextBuf) IterLine(ln int, extra bool) iter.Seq2[int, LineCell] {
 		i := 0
 		w := 0
 
-		for _, g := range grapheme.Graphemes.Iter(buf.ReadSlice(start, end)) {
+		for g := range grapheme.Graphemes.Iter(buf.ReadSlice(start, end)) {
 			cell.G = g
 
 			if cell.G.Width < 0 {

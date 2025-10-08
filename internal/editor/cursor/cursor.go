@@ -92,12 +92,12 @@ func (cur *Cursor) Forward(n int) bool {
 
 func (cur *Cursor) ForwardText(text string) bool {
 	var count, eolCount, lastEolIndex int
-	for i, g := range grapheme.Graphemes.IterText(text) {
+	for g := range grapheme.Graphemes.IterText(text) {
 		if g.IsEol {
 			eolCount += 1
-			lastEolIndex = i
+			lastEolIndex = count
 		}
-		count = i + 1
+		count += 1
 	}
 
 	if eolCount == 0 {
