@@ -73,8 +73,12 @@ func (cur *Cursor) Right(sel bool) bool {
 	return false
 }
 
-func (cur *Cursor) Forward(n int) bool {
-	return cur.Set(cur.Ln, cur.Col+n, false)
+func (cur *Cursor) Forward(dLn, dCol int) bool {
+	if dLn == 0 {
+		return cur.Set(cur.Ln, cur.Col+dCol, false)
+	} else {
+		return cur.Set(cur.Ln+dLn, dCol, false)
+	}
 }
 
 func (cur *Cursor) IsSelected(ln, col int) bool {
