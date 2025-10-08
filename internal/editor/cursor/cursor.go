@@ -91,21 +91,10 @@ func (cur *Cursor) Forward(n int) bool {
 }
 
 func (cur *Cursor) ForwardText(text string) bool {
-	var count, eolCount, lastEolIndex int
-	for g := range grapheme.Graphemes.IterText(text) {
-		if g.IsEol {
-			eolCount += 1
-			lastEolIndex = count
-		}
-		count += 1
-	}
+	dln, dcol := grapheme.Graphemes.MeasureText(text)
 
-	if eolCount == 0 {
-		return cur.Forward(count)
-	}
-
-	ln := cur.Ln + eolCount
-	col := count - lastEolIndex - 1
+	ln := cur.Ln + dln
+	col := cur.Col + dcol
 
 	return cur.Set(ln, col, false)
 }
