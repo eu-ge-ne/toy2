@@ -71,7 +71,7 @@ func (buf *TextBuf) Index(ln, col int) (int, bool) {
 
 	colIndex := 0
 
-	for i, cell := range buf.IterLine(ln, false) {
+	for i, cell := range buf.IterLine(ln, true) {
 		if i == col {
 			return lnIndex + colIndex, true
 		}
