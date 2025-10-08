@@ -60,7 +60,7 @@ func (ed *Editor) Copy() bool {
 	cur := ed.cursor
 
 	if cur.Selecting {
-		ed.clipboard = ed.buffer.ReadSlice2(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol+1)
+		ed.clipboard = ed.buffer.ReadSlice2(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol)
 		cur.Set(cur.Ln, cur.Col, false)
 	} else {
 		ed.clipboard = ed.buffer.ReadSlice2(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
@@ -79,7 +79,7 @@ func (ed *Editor) Cut() bool {
 	cur := ed.cursor
 
 	if cur.Selecting {
-		ed.clipboard = ed.buffer.ReadSlice2(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol+1)
+		ed.clipboard = ed.buffer.ReadSlice2(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol)
 		ed.deleteSelection()
 	} else {
 		ed.clipboard = ed.buffer.ReadSlice2(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
