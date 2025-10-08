@@ -235,10 +235,16 @@ func (ed *Editor) insertText(text string) {
 
 	ed.buffer.Insert2(cur.Ln, cur.Col, text)
 
+	startLn := cur.Ln
+	startCol := cur.Col
+
 	dLn, dCol := grapheme.Graphemes.MeasureText(text)
 	cur.Forward(dLn, dCol)
 
-	ed.syntax.Insert(cur.Ln, cur.Col, text)
+	endLn := cur.Ln
+	endCol := cur.Col
+
+	ed.syntax.Insert(startLn, startCol, endLn, endCol)
 
 	ed.history.Push()
 }

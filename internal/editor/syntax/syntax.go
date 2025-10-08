@@ -52,8 +52,27 @@ func (s *Syntax) Delete(startLn, startCol, endLn, endCol int) {
 	s.parse()
 }
 
-func (s *Syntax) Insert(startLn, startCol int, text string) {
-	//s.parse()
+func (s *Syntax) Insert(startLn, startCol, endLn, endCol int) {
+	startByte, ok := s.buffer.Index(startLn, startCol)
+	if !ok {
+		panic("in Syntax.Insert")
+	}
+
+	newEndByte, ok := s.buffer.Index(endLn, endCol)
+	if !ok {
+		panic("in Syntax.Insert")
+	}
+
+	s.tree.Edit(&treeSitter.InputEdit{
+		StartByte:      uint(startByte),
+		OldEndByte:     uint(startByte + 1),
+		NewEndByte:     uint(newEndByte),
+		StartPosition:  treeSitter.NewPoint(uint(startLn), uint(startCol)),
+		OldEndPosition: treeSitter.NewPoint(uint(startLn), uint(startCol+1)),
+		NewEndPosition: treeSitter.NewPoint(uint(endLn), uint(endCol)),
+	})
+
+	s.parse()
 }
 
 func (s *Syntax) parse() {
