@@ -23,12 +23,11 @@ func (p GraphemePool) Get(seg string) *Grapheme {
 
 func (p GraphemePool) Iter(it iter.Seq[string]) iter.Seq[*Grapheme] {
 	return func(yield func(*Grapheme) bool) {
-		var (
-			seg   string
-			state = -1
-		)
+		var seg string
 
 		for text := range it {
+			state := -1
+
 			for len(text) > 0 {
 				seg, text, _, state = uniseg.StepString(text, state)
 
@@ -42,10 +41,8 @@ func (p GraphemePool) Iter(it iter.Seq[string]) iter.Seq[*Grapheme] {
 
 func (p GraphemePool) IterText(text string) iter.Seq[*Grapheme] {
 	return func(yield func(*Grapheme) bool) {
-		var (
-			seg   string
-			state = -1
-		)
+		var seg string
+		state := -1
 
 		for len(text) > 0 {
 			seg, text, _, state = uniseg.StepString(text, state)
@@ -58,10 +55,8 @@ func (p GraphemePool) IterText(text string) iter.Seq[*Grapheme] {
 }
 
 func (p GraphemePool) MeasureText(text string) (ln, col int) {
-	var (
-		seg   string
-		state = -1
-	)
+	var seg string
+	state := -1
 
 	for len(text) > 0 {
 		seg, text, _, state = uniseg.StepString(text, state)
