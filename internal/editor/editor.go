@@ -8,6 +8,7 @@ import (
 	"github.com/eu-ge-ne/toy2/internal/editor/handler"
 	"github.com/eu-ge-ne/toy2/internal/editor/history"
 	"github.com/eu-ge-ne/toy2/internal/editor/syntax"
+	"github.com/eu-ge-ne/toy2/internal/grapheme"
 	"github.com/eu-ge-ne/toy2/internal/textbuf"
 	"github.com/eu-ge-ne/toy2/internal/theme"
 	"github.com/eu-ge-ne/toy2/internal/ui"
@@ -234,7 +235,9 @@ func (ed *Editor) insertText(text string) {
 
 	ed.buffer.Insert2(cur.Ln, cur.Col, text)
 	ed.syntax.Insert(cur.Ln, cur.Col, text)
-	cur.ForwardText(text)
+
+	dln, dcol := grapheme.Graphemes.MeasureText(text)
+	cur.Set(cur.Ln+dln, cur.Col+dcol, false)
 
 	ed.history.Push()
 }

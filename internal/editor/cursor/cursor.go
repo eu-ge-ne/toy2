@@ -3,7 +3,6 @@ package cursor
 import (
 	"math"
 
-	"github.com/eu-ge-ne/toy2/internal/grapheme"
 	"github.com/eu-ge-ne/toy2/internal/std"
 	"github.com/eu-ge-ne/toy2/internal/textbuf"
 )
@@ -88,15 +87,6 @@ func (cur *Cursor) Right(sel bool) bool {
 
 func (cur *Cursor) Forward(n int) bool {
 	return cur.Set(cur.Ln, cur.Col+n, false)
-}
-
-func (cur *Cursor) ForwardText(text string) bool {
-	dln, dcol := grapheme.Graphemes.MeasureText(text)
-
-	ln := cur.Ln + dln
-	col := cur.Col + dcol
-
-	return cur.Set(ln, col, false)
 }
 
 func (cur *Cursor) IsSelected(ln, col int) bool {
