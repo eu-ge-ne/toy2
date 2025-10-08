@@ -20,12 +20,12 @@ func New() *Alert {
 	return &Alert{}
 }
 
-func (al *Alert) SetColors(t theme.Tokens) {
+func (al *Alert) SetColors(t theme.Theme) {
 	al.colorBackground = t.DangerBg()
 	al.colorText = append(t.DangerBg(), t.Light1Fg()...)
 }
 
-func (al *Alert) Layout(a ui.Area) {
+func (al *Alert) SetArea(a ui.Area) {
 	w := std.Clamp(60, 0, a.W)
 	h := std.Clamp(10, 0, a.H)
 
@@ -74,17 +74,23 @@ func (al *Alert) Render() {
 	vt.Sync.Esu()
 }
 
-func (al *Alert) Open(text string, done chan<- struct{}) {
-	al.enabled = true
+func (al *Alert) Open(text string) <-chan struct{} {
+	done := make(chan struct{})
 
-	al.text = text
-	al.Render()
+	go func() {
+		al.enabled = true
 
-	al.processInput()
+		al.text = text
+		al.Render()
 
-	al.enabled = false
+		al.processInput()
 
-	done <- struct{}{}
+		al.enabled = false
+
+		done <- struct{}{}
+	}()
+
+	return done
 }
 
 func (al *Alert) processInput() {

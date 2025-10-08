@@ -69,12 +69,10 @@ func CharAttr(attr Attr) []byte {
 	return fmt.Appendf(nil, "\x1b[%dm", attr)
 }
 
-type RGB [3]byte
-
-func CharFg(rgb RGB) []byte {
+func CharFg(rgb [3]byte) []byte {
 	return fmt.Appendf(nil, "\x1b[38;2;%d;%d;%dm", rgb[0], rgb[1], rgb[2])
 }
 
-func CharBg(rgb RGB) []byte {
+func CharBg(rgb [3]byte) []byte {
 	return fmt.Appendf(nil, "\x1b[48;2;%d;%d;%dm", rgb[0], rgb[1], rgb[2])
 }

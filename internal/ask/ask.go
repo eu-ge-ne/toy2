@@ -20,12 +20,12 @@ func New() *Ask {
 	return &Ask{}
 }
 
-func (ask *Ask) SetColors(t theme.Tokens) {
+func (ask *Ask) SetColors(t theme.Theme) {
 	ask.colorBackground = t.Light1Bg()
 	ask.colorText = append(t.Light1Bg(), t.Light1Fg()...)
 }
 
-func (ask *Ask) Layout(a ui.Area) {
+func (ask *Ask) SetArea(a ui.Area) {
 	w := std.Clamp(60, 0, a.W)
 	h := std.Clamp(7, 0, a.H)
 
@@ -74,17 +74,23 @@ func (ask *Ask) Render() {
 	vt.Sync.Esu()
 }
 
-func (ask *Ask) Open(text string, done chan<- bool) {
-	ask.enabled = true
+func (ask *Ask) Open(text string) <-chan bool {
+	done := make(chan bool)
 
-	ask.text = text
-	ask.Render()
+	go func() {
+		ask.enabled = true
 
-	result := ask.processInput()
+		ask.text = text
+		ask.Render()
 
-	ask.enabled = false
+		result := ask.processInput()
 
-	done <- result
+		ask.enabled = false
+
+		done <- result
+	}()
+
+	return done
 }
 
 func (ask *Ask) processInput() bool {

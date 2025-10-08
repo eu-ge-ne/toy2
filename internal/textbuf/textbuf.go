@@ -9,10 +9,6 @@ import (
 )
 
 type TextBuf struct {
-	WrapWidth int
-	MeasureY  int
-	MeasureX  int
-
 	content content.Content
 	tree    tree.Tree
 }
@@ -21,45 +17,35 @@ type Snapshot struct {
 	node *node.Node
 }
 
-func New() TextBuf {
-	return TextBuf{
-		WrapWidth: math.MaxInt,
-
+func New() *TextBuf {
+	return &TextBuf{
 		content: content.Content{},
 		tree:    tree.Tree{Root: node.NIL},
 	}
 }
 
-func (tb *TextBuf) Count() int {
-	return tb.tree.Root.TotalLen
+func (buf *TextBuf) Count() int {
+	return buf.tree.Root.TotalLen
 }
 
-func (tb *TextBuf) LineCount() int {
-	if tb.tree.Root.TotalLen == 0 {
-		return 0
-	} else {
-		return tb.tree.Root.TotalEolsLen + 1
-	}
-}
-
-func (tb *TextBuf) Save() Snapshot {
+func (buf *TextBuf) Save() Snapshot {
 	return Snapshot{
-		node: tb.tree.Root.Clone(node.NIL),
+		node: buf.tree.Root.Clone(node.NIL),
 	}
 }
 
-func (tb *TextBuf) Restore(s Snapshot) {
-	tb.tree.Root = s.node.Clone(node.NIL)
+func (buf *TextBuf) Restore(s Snapshot) {
+	buf.tree.Root = s.node.Clone(node.NIL)
 }
 
-func (tb *TextBuf) Reset(text string) {
-	tb.DeleteIndex(0)
+func (buf *TextBuf) Reset(text string) {
+	buf.delete(0, math.MaxInt)
 
 	if len(text) > 0 {
-		tb.InsertIndex(0, text)
+		buf.insert(0, text)
 	}
 }
 
-func (tb *TextBuf) Validate() {
-	tb.tree.Root.Validate()
+func (buf *TextBuf) Validate() {
+	buf.tree.Root.Validate()
 }

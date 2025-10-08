@@ -3,55 +3,57 @@ package textbuf
 import (
 	"iter"
 	"math"
-	"slices"
-	"strings"
+
+	"github.com/eu-ge-ne/toy2/internal/grapheme"
 )
 
-func (tb *TextBuf) Iter() iter.Seq[string] {
-	return tb.ReadIndex(0)
-}
-
-func (tb *TextBuf) Text() string {
-	it := tb.ReadIndex(0)
-
-	return strings.Join(slices.Collect(it), "")
-}
-
-func (tb *TextBuf) ReadIndexRange(start int, end int) iter.Seq[string] {
-	x, offset := tb.tree.Root.Find(start)
+func (buf *TextBuf) Chunk(idx int) string {
+	x, offset := buf.tree.Root.Find(idx)
 	if x == nil {
-		return none
+		return ""
 	}
 
-	return tb.content.Read(x, offset, end-start)
+	return buf.content.Chunk(x, offset)
 }
 
-func (tb *TextBuf) ReadIndex(start int) iter.Seq[string] {
-	return tb.ReadIndexRange(start, math.MaxInt)
+func (buf *TextBuf) Slice(startIdx int, endIdx int) iter.Seq[string] {
+	x, offset := buf.tree.Root.Find(startIdx)
+	if x == nil {
+		return func(yield func(string) bool) {}
+	}
+
+	return buf.content.Read(x, offset, endIdx-startIdx)
 }
 
-func (tb *TextBuf) ReadPosRange(startLn, startCol, endLn, endCol int) iter.Seq[string] {
-	start_i, ok := tb.posToIndex(startLn, startCol)
+func (buf *TextBuf) Read(startLn, startCol, endLn, endCol int) iter.Seq[string] {
+	startPos, ok := buf.Pos(startLn, startCol)
 	if !ok {
-		return none
+		return func(yield func(string) bool) {}
 	}
 
-	end_i, ok := tb.posToIndex(endLn, endCol)
-	if !ok {
-		end_i = math.MaxInt
+	endPos := buf.EndPos(endLn, endCol)
+
+	if endPos.Idx < startPos.Idx {
+		panic("assert")
 	}
 
-	return tb.ReadIndexRange(start_i, end_i)
+	return buf.Slice(startPos.Idx, endPos.Idx)
 }
 
-func (tb *TextBuf) ReadPos(startLn, startCol int) iter.Seq[string] {
-	start_i, ok := tb.posToIndex(startLn, startCol)
+func (buf *TextBuf) ReadLine(ln int) iter.Seq[string] {
+	startIdx, ok := buf.lnIdx(ln)
 	if !ok {
-		return none
+		return func(yield func(string) bool) {}
 	}
 
-	return tb.ReadIndexRange(start_i, math.MaxInt)
+	endIdx, ok := buf.lnIdx(ln + 1)
+	if !ok {
+		endIdx = math.MaxInt
+	}
+
+	return buf.Slice(startIdx, endIdx)
 }
 
-func none(yield func(string) bool) {
+func (buf *TextBuf) LineGraphemes(ln int) iter.Seq[*grapheme.Grapheme] {
+	return grapheme.Graphemes.FromString(buf.ReadLine(ln))
 }

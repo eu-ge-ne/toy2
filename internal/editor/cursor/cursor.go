@@ -3,39 +3,78 @@ package cursor
 import (
 	"math"
 
-	"github.com/eu-ge-ne/toy2/internal/grapheme"
 	"github.com/eu-ge-ne/toy2/internal/std"
 	"github.com/eu-ge-ne/toy2/internal/textbuf"
 )
 
 type Cursor struct {
-	ln0       int
-	col0      int
-	Ln        int
-	Col       int
+	OnChanged func()
+
+	Ln  int
+	Col int
+
 	Selecting bool
-	FromLn    int
-	FromCol   int
-	ToLn      int
-	ToCol     int
+	StartLn   int
+	StartCol  int
+	EndLn     int
+	EndCol    int
 
-	buffer *textbuf.TextBuf
+	buffer     *textbuf.TextBuf
+	selFromLn  int
+	selFromCol int
 }
 
-func New(buffer *textbuf.TextBuf) Cursor {
-	return Cursor{buffer: buffer}
+func New(buffer *textbuf.TextBuf) *Cursor {
+	return &Cursor{buffer: buffer}
 }
 
-func (cur *Cursor) Set(ln, col int, sel bool) bool {
+func (cur *Cursor) Set(ln, col int, sel bool) (ok bool) {
+	defer func() {
+		if ok {
+			if cur.OnChanged != nil {
+				cur.OnChanged()
+			}
+		}
+	}()
+
 	oldLn := cur.Ln
 	oldCol := cur.Col
 
-	cur.setLn(ln)
-	cur.setCol(col)
-	cur.setSelection(oldLn, oldCol, sel)
-	cur.setRange()
+	cur.Ln = std.Clamp(ln, 0, cur.buffer.LineCount()-1)
 
-	return cur.Ln != oldLn || cur.Col != oldCol
+	if cur.Ln == cur.buffer.LineCount()-1 {
+		cur.Col = std.Clamp(col, 0, cur.buffer.ColumnCount(cur.Ln))
+	} else {
+		cur.Col = std.Clamp(col, 0, cur.buffer.ColumnCount(cur.Ln)-1)
+	}
+
+	ok = cur.Ln != oldLn || cur.Col != oldCol
+
+	if !sel {
+		cur.Selecting = false
+		return
+	}
+
+	if !cur.Selecting {
+		cur.selFromLn = oldLn
+		cur.selFromCol = oldCol
+	}
+
+	cur.Selecting = true
+
+	if (cur.selFromLn > cur.Ln) || (cur.selFromLn == cur.Ln && cur.selFromCol > cur.Col) {
+		cur.StartLn = cur.Ln
+		cur.StartCol = cur.Col
+		cur.EndLn = cur.selFromLn
+		cur.EndCol = cur.selFromCol
+	} else {
+		cur.StartLn = cur.selFromLn
+		cur.StartCol = cur.selFromCol
+		cur.EndLn = cur.Ln
+		cur.EndCol = cur.Col
+	}
+
+	return
 }
 
 func (cur *Cursor) Top(sel bool) bool {
@@ -86,96 +125,22 @@ func (cur *Cursor) Right(sel bool) bool {
 	return false
 }
 
-func (cur *Cursor) Forward(n int) bool {
-	return cur.Set(cur.Ln, cur.Col+n, false)
-}
-
-func (cur *Cursor) ForwardText(text string) bool {
-	var count, eolCount, lastEolIndex int
-	for i, g := range grapheme.Graphemes.IterText(text) {
-		if g.IsEol {
-			eolCount += 1
-			lastEolIndex = i
-		}
-		count = i + 1
-	}
-
-	if eolCount == 0 {
-		return cur.Forward(count)
-	}
-
-	ln := cur.Ln + eolCount
-	col := count - lastEolIndex - 1
-
-	return cur.Set(ln, col, false)
-}
-
 func (cur *Cursor) IsSelected(ln, col int) bool {
 	if !cur.Selecting {
 		return false
 	}
 
-	if ln < cur.FromLn || ln > cur.ToLn {
+	if ln < cur.StartLn || ln > cur.EndLn {
 		return false
 	}
 
-	if ln == cur.FromLn && col < cur.FromCol {
+	if ln == cur.StartLn && col < cur.StartCol {
 		return false
 	}
 
-	if ln == cur.ToLn && col > cur.ToCol {
+	if ln == cur.EndLn && col >= cur.EndCol {
 		return false
 	}
 
 	return true
-}
-
-func (cur *Cursor) setLn(ln int) {
-	max := cur.buffer.LineCount() - 1
-	if max < 0 {
-		max = 0
-	}
-
-	cur.Ln = std.Clamp(ln, 0, max)
-}
-
-func (cur *Cursor) setCol(col int) {
-	len := 0
-
-	for _, c := range cur.buffer.IterSegLine(cur.Ln, false) {
-		if c.G.IsEol {
-			break
-		}
-		len += 1
-	}
-
-	cur.Col = std.Clamp(col, 0, len)
-}
-
-func (cur *Cursor) setSelection(ln, col int, sel bool) {
-	if !sel {
-		cur.Selecting = false
-		return
-	}
-
-	if !cur.Selecting {
-		cur.ln0 = ln
-		cur.col0 = col
-	}
-
-	cur.Selecting = true
-}
-
-func (cur *Cursor) setRange() {
-	if (cur.ln0 > cur.Ln) || (cur.ln0 == cur.Ln && cur.col0 > cur.Col) {
-		cur.FromLn = cur.Ln
-		cur.FromCol = cur.Col
-		cur.ToLn = cur.ln0
-		cur.ToCol = cur.col0
-	} else {
-		cur.FromLn = cur.ln0
-		cur.FromCol = cur.col0
-		cur.ToLn = cur.Ln
-		cur.ToCol = cur.Col
-	}
 }

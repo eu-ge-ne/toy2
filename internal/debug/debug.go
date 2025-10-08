@@ -36,12 +36,12 @@ func (d *Debug) ToggleEnabled() {
 	d.enabled = !d.enabled
 }
 
-func (d *Debug) SetColors(t theme.Tokens) {
+func (d *Debug) SetColors(t theme.Theme) {
 	d.colorBackground = t.Light0Bg()
 	d.colorText = append(t.Light0Bg(), t.Dark0Fg()...)
 }
 
-func (d *Debug) Layout(a ui.Area) {
+func (d *Debug) SetArea(a ui.Area) {
 	w := std.Clamp(30, 0, a.W)
 	h := std.Clamp(7, 0, a.H)
 
@@ -83,16 +83,9 @@ func (d *Debug) Render() {
 	vt.Sync.Esu()
 }
 
-func (d *Debug) SetInputTime(elapsed time.Duration) {
-	d.inputTime = elapsed
-
-	if d.enabled {
-		d.Render()
-	}
-}
-
-func (d *Debug) SetRenderTime(elapsed time.Duration) {
-	d.renderTime = elapsed
+func (d *Debug) SetTimes(input, render time.Duration) {
+	d.inputTime = input
+	d.renderTime = render
 
 	if d.enabled {
 		d.Render()

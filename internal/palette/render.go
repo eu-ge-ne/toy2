@@ -15,7 +15,7 @@ func (p *Palette) Render() {
 
 	listSize, area := p.resize()
 
-	p.editor.Layout(ui.Area{
+	p.editor.SetArea(ui.Area{
 		Y: area.Y + 1,
 		X: area.X + 2,
 		W: area.W - 4,

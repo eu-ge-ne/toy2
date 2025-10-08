@@ -18,19 +18,17 @@ type SaveAs struct {
 }
 
 func New() *SaveAs {
-	return &SaveAs{
-		editor: editor.New(false),
-	}
+	return &SaveAs{editor: editor.New(false)}
 }
 
-func (sv *SaveAs) SetColors(t theme.Tokens) {
+func (sv *SaveAs) SetColors(t theme.Theme) {
 	sv.colorBackground = t.Light1Bg()
 	sv.colorText = append(t.Light1Bg(), t.Light1Fg()...)
 
 	sv.editor.SetColors(t)
 }
 
-func (sv *SaveAs) Layout(a ui.Area) {
+func (sv *SaveAs) SetArea(a ui.Area) {
 	w := std.Clamp(60, 0, a.W)
 	h := std.Clamp(10, 0, a.H)
 
@@ -41,7 +39,7 @@ func (sv *SaveAs) Layout(a ui.Area) {
 		H: h,
 	}
 
-	sv.editor.Layout(ui.Area{
+	sv.editor.SetArea(ui.Area{
 		Y: sv.area.Y + 4,
 		X: sv.area.X + 2,
 		W: sv.area.W - 4,
@@ -74,21 +72,27 @@ func (sv *SaveAs) Render() {
 	vt.Sync.Esu()
 }
 
-func (sv *SaveAs) Open(filePath string, done chan<- string) {
-	sv.enabled = true
-	sv.editor.Enable(true)
+func (sv *SaveAs) Open(filePath string) <-chan string {
+	done := make(chan string)
 
-	sv.editor.Reset(filePath)
-	sv.editor.ResetCursor()
+	go func() {
+		sv.enabled = true
+		sv.editor.SetEnabled(true)
 
-	sv.Render()
+		sv.editor.SetText(filePath)
+		sv.editor.End(false)
 
-	result := sv.processInput()
+		sv.Render()
 
-	sv.enabled = false
-	sv.editor.Enable(false)
+		result := sv.processInput()
 
-	done <- result
+		sv.enabled = false
+		sv.editor.SetEnabled(false)
+
+		done <- result
+	}()
+
+	return done
 }
 
 func (sv *SaveAs) processInput() string {
@@ -99,7 +103,7 @@ func (sv *SaveAs) processInput() string {
 		case "ESC":
 			return ""
 		case "ENTER":
-			fp := sv.editor.Text()
+			fp := sv.editor.GetText()
 			if len(fp) > 0 {
 				return fp
 			}

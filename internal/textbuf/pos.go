@@ -1,47 +1,38 @@
 package textbuf
 
-import (
-	"github.com/eu-ge-ne/toy2/internal/textbuf/node"
-)
+import "github.com/eu-ge-ne/toy2/internal/std"
 
-func (tb TextBuf) posToIndex(ln, col int) (int, bool) {
-	i, ok := tb.findLineStart(ln)
-
-	if !ok {
-		return 0, false
-	}
-
-	return i + col, true
+type Pos struct {
+	Ln     int
+	Col    int
+	Idx    int
+	ColIdx int
 }
 
-func (tb TextBuf) findLineStart(ln int) (int, bool) {
-	if ln == 0 {
-		return 0, true
+func (buf *TextBuf) Pos(ln, col int) (Pos, bool) {
+	lnIdx, ok := buf.lnIdx(ln)
+	if !ok {
+		return Pos{}, false
 	}
 
-	eolIndex := ln - 1
-	x := tb.tree.Root
-	i := 0
-
-	for x != node.NIL {
-		if eolIndex < x.Left.TotalEolsLen {
-			x = x.Left
-			continue
-		}
-
-		eolIndex -= x.Left.TotalEolsLen
-		i += x.Left.TotalLen
-
-		if eolIndex < x.EolsLen {
-			buf := tb.content.Table[x.PieceIndex]
-			eolEnd := buf.Eols[x.EolsStart+eolIndex].End
-			return i + eolEnd - x.Start, true
-		}
-
-		eolIndex -= x.EolsLen
-		i += x.Len
-		x = x.Right
+	colIdx, ok := buf.colIdx(ln, col)
+	if !ok {
+		return Pos{}, false
 	}
 
-	return 0, false
+	return Pos{Ln: ln, Col: col, Idx: lnIdx + colIdx, ColIdx: colIdx}, true
+}
+
+func (buf *TextBuf) EndPos(ln, col int) Pos {
+	ln = std.Clamp(ln, 0, buf.LineCount()-1)
+
+	lnIdx, _ := buf.lnIdx(ln)
+
+	colIdx, ok := buf.colIdx(ln, col)
+	if !ok {
+		colIdx = buf.endColIdx(ln)
+		col = max(0, buf.ColumnCount(ln)-1)
+	}
+
+	return Pos{Ln: ln, Col: col, Idx: lnIdx + colIdx, ColIdx: colIdx}
 }

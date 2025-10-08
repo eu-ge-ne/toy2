@@ -2,6 +2,7 @@ package app
 
 import (
 	"flag"
+	"log"
 	"os"
 	"os/signal"
 	"runtime"
@@ -9,9 +10,9 @@ import (
 	"slices"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/eu-ge-ne/toy2/internal/alert"
-	"github.com/eu-ge-ne/toy2/internal/app/command"
 	"github.com/eu-ge-ne/toy2/internal/ask"
 	"github.com/eu-ge-ne/toy2/internal/debug"
 	"github.com/eu-ge-ne/toy2/internal/editor"
@@ -25,6 +26,7 @@ import (
 )
 
 type App struct {
+	logFile    *os.File
 	area       ui.Area
 	alert      *alert.Alert
 	ask        *ask.Ask
@@ -34,7 +36,7 @@ type App struct {
 	header     *header.Header
 	palette    *palette.Palette
 	saveas     *saveas.SaveAs
-	commands   []command.Command
+	commands   map[string]Command
 	restoreVt  func()
 	zenEnabled bool
 	filePath   string
@@ -45,26 +47,29 @@ var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 func New() *App {
 	app := App{}
 
-	app.commands = []command.Command{
-		command.NewCopy(&app),
-		command.NewCut(&app),
-		command.NewDebug(&app),
-		command.NewExit(&app),
-		command.NewPalette(&app),
-		command.NewPaste(&app),
-		command.NewRedo(&app),
-		command.NewSave(&app),
-		command.NewSelectAll(&app),
-		command.NewThemeBase16(&app),
-		command.NewThemeGray(&app),
-		command.NewThemeNeutral(&app),
-		command.NewThemeSlate(&app),
-		command.NewThemeStone(&app),
-		command.NewThemeZinc(&app),
-		command.NewUndo(&app),
-		command.NewWhitespace(&app),
-		command.NewWrap(&app),
-		command.NewZen(&app),
+	app.commands = map[string]Command{
+		"COPY":              NewCopy(&app),
+		"CUT":               NewCut(&app),
+		"DEBUG":             NewDebug(&app),
+		"EXIT":              NewExit(&app),
+		"PALETTE":           NewPalette(&app),
+		"PASTE":             NewPaste(&app),
+		"REDO":              NewRedo(&app),
+		"SAVE":              NewSave(&app),
+		"SELECTALL":         NewSelectAll(&app),
+		"SYNTAX_JAVASCRIPT": NewSyntaxJavaScript(&app),
+		"SYNTAX_OFF":        NewSyntaxOff(&app),
+		"SYNTAX_TYPESCRIPT": NewSyntaxTypeScript(&app),
+		"THEME_BASE16":      NewThemeBase16(&app),
+		"THEME_GRAY":        NewThemeGray(&app),
+		"THEME_NEUTRAL":     NewThemeNeutral(&app),
+		"THEME_SLATE":       NewThemeSlate(&app),
+		"THEME_STONE":       NewThemeStone(&app),
+		"THEME_ZINC":        NewThemeZinc(&app),
+		"UNDO":              NewUndo(&app),
+		"WHITESPACE":        NewWhitespace(&app),
+		"WRAP":              NewWrap(&app),
+		"ZEN":               NewZen(&app),
 	}
 
 	options := []*palette.Option{}
@@ -81,19 +86,14 @@ func New() *App {
 	app.ask = ask.New()
 	app.alert = alert.New()
 	app.header = header.New()
-	app.editor = editor.New(true)
 	app.footer = footer.New()
 	app.debug = debug.New()
 	app.palette = palette.New(&app, options)
 	app.saveas = saveas.New()
 
-	app.editor.Enable(true)
+	app.editor = editor.New(true)
 	app.editor.OnCursor = app.footer.SetCursorStatus
-	app.editor.OnKeyHandled = app.debug.SetInputTime
-	app.editor.OnRender = app.debug.SetRenderTime
-	app.editor.OnChanged = func() {
-		app.header.SetFlag(app.editor.HasChanges())
-	}
+	app.editor.OnChanged = func() { app.header.SetFlag(app.editor.HasChanges()) }
 
 	return &app
 }
@@ -110,12 +110,23 @@ func (app *App) Run() {
 		defer pprof.StopCPUProfile()
 	}
 
+	f, err := os.OpenFile("tmp/toy2.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+	if err != nil {
+		panic(err)
+	}
+
+	log.SetOutput(f)
+	log.SetFlags(log.Ltime | log.Lmicroseconds | log.Lshortfile)
+
 	app.restoreVt = vt.Init()
 
 	app.setColors(theme.Zinc{})
-	app.enableZen(false)
-	app.editor.EnableWhitespace(true)
-	app.editor.EnableWrap(true)
+	app.setZenEnabled(false)
+
+	app.editor.SetEnabled(true)
+	app.editor.SetWrapEnabled(true)
+	app.editor.SetWhitespaceEnabled(true)
+	app.editor.SetGrammar(nil)
 
 	app.debug.Enable(true)
 
@@ -127,7 +138,6 @@ func (app *App) Run() {
 		app.open(flag.Arg(0))
 	}
 
-	app.editor.ResetCursor()
 	app.editor.Render()
 
 	vt.ListenStdin()
@@ -153,8 +163,8 @@ func (app *App) Render() {
 func (app *App) layout(a ui.Area) {
 	app.area = a
 
-	app.header.Layout(app.area)
-	app.footer.Layout(app.area)
+	app.header.SetArea(app.area)
+	app.footer.SetArea(app.area)
 
 	var editorArea ui.Area
 	if app.zenEnabled {
@@ -168,15 +178,15 @@ func (app *App) layout(a ui.Area) {
 		}
 	}
 
-	app.editor.Layout(editorArea)
-	app.debug.Layout(editorArea)
-	app.palette.Layout(editorArea)
-	app.ask.Layout(editorArea)
-	app.alert.Layout(editorArea)
-	app.saveas.Layout(editorArea)
+	app.editor.SetArea(editorArea)
+	app.debug.SetArea(editorArea)
+	app.palette.SetArea(editorArea)
+	app.ask.SetArea(editorArea)
+	app.alert.SetArea(editorArea)
+	app.saveas.SetArea(editorArea)
 }
 
-func (app *App) setColors(t theme.Tokens) {
+func (app *App) setColors(t theme.Theme) {
 	app.ask.SetColors(t)
 	app.alert.SetColors(t)
 	app.debug.SetColors(t)
@@ -187,15 +197,17 @@ func (app *App) setColors(t theme.Tokens) {
 	app.saveas.SetColors(t)
 }
 
-func (app *App) enableZen(enabled bool) {
+func (app *App) setZenEnabled(enabled bool) {
 	app.zenEnabled = enabled
 
 	app.header.Enable(!enabled)
 	app.footer.Enable(!enabled)
-	app.editor.EnableIndex(!enabled)
+	app.editor.SetIndexEnabled(!enabled)
 }
 
 func (app *App) exit() {
+	app.logFile.Close()
+
 	app.restoreVt()
 
 	os.Exit(0)
@@ -224,36 +236,42 @@ func (app *App) refresh() {
 }
 
 func (app *App) processInput() {
+outer:
 	for {
 		key := vt.ReadKey()
 
-		i := slices.IndexFunc(app.commands, func(c command.Command) bool {
-			return c.Match(key)
-		})
-
-		if i >= 0 {
-			app.commands[i].Run()
-			continue
+		for _, c := range app.commands {
+			if c.Match(key) {
+				if c.Run() {
+					app.Render()
+				}
+				continue outer
+			}
 		}
 
+		ti0 := time.Now()
+
 		if app.editor.HandleKey(key) {
+			ti := time.Since(ti0)
+
+			tr0 := time.Now()
 			app.editor.Render()
+			tr := time.Since(tr0)
+
+			app.debug.SetTimes(ti, tr)
 		}
 	}
 }
 
 func (app *App) open(filePath string) {
-	err := app.editor.LoadFromFile(filePath)
+	err := app.editor.Load(filePath)
 
 	if os.IsNotExist(err) {
 		return
 	}
 
 	if err != nil {
-		done := make(chan struct{})
-		go app.alert.Open(err.Error(), done)
-		<-done
-
+		<-app.alert.Open(err.Error())
 		app.exit()
 	}
 
@@ -271,37 +289,30 @@ func (app *App) save() bool {
 }
 
 func (app *App) saveFile() bool {
-	err := app.editor.SaveToFile(app.filePath)
+	err := app.editor.Save(app.filePath)
 	if err == nil {
 		return true
 	}
 
-	done := make(chan struct{})
-	go app.alert.Open(err.Error(), done)
-	<-done
+	<-app.alert.Open(err.Error())
 
 	return app.saveFileAs()
 }
 
 func (app *App) saveFileAs() bool {
 	for {
-		filePathResult := make(chan string)
-		go app.saveas.Open(app.filePath, filePathResult)
-
-		filePath := <-filePathResult
+		filePath := <-app.saveas.Open(app.filePath)
 		if len(filePath) == 0 {
 			return false
 		}
 
-		err := app.editor.SaveToFile(filePath)
+		err := app.editor.Save(filePath)
 		if err == nil {
 			app.setFilePath(filePath)
 			return true
 		}
 
-		done := make(chan struct{})
-		go app.alert.Open(err.Error(), done)
-		<-done
+		<-app.alert.Open(err.Error())
 	}
 }
 

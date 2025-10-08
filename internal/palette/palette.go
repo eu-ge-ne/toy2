@@ -34,7 +34,7 @@ func New(parent ui.Control, options []*Option) *Palette {
 	}
 }
 
-func (p *Palette) SetColors(t theme.Tokens) {
+func (p *Palette) SetColors(t theme.Theme) {
 	p.colorBackground = t.Light1Bg()
 	p.colorOption = append(t.Light1Bg(), t.Light1Fg()...)
 	p.colorSelectedOption = append(t.Light2Bg(), t.Light1Fg()...)
@@ -42,32 +42,38 @@ func (p *Palette) SetColors(t theme.Tokens) {
 	p.editor.SetColors(t)
 }
 
-func (p *Palette) Layout(a ui.Area) {
+func (p *Palette) SetArea(a ui.Area) {
 	p.area = a
 }
 
-func (p *Palette) Open(done chan<- *Option) {
-	p.enabled = true
-	p.editor.Enable(true)
+func (p *Palette) Open() <-chan *Option {
+	done := make(chan *Option)
 
-	p.editor.Reset("")
-	p.editor.ResetCursor()
+	go func() {
+		p.enabled = true
+		p.editor.SetEnabled(true)
 
-	p.filter()
-	p.parent.Render()
+		p.editor.SetText("")
+		p.editor.End(false)
 
-	result := p.processInput()
+		p.filter()
+		p.parent.Render()
 
-	p.enabled = false
-	p.editor.Enable(false)
+		result := p.processInput()
 
-	done <- result
+		p.enabled = false
+		p.editor.SetEnabled(false)
+
+		done <- result
+	}()
+
+	return done
 }
 
 func (p *Palette) filter() {
 	p.selectedIndex = 0
 
-	text := strings.ToUpper(p.editor.Text())
+	text := strings.ToUpper(p.editor.GetText())
 
 	if len(text) == 0 {
 		p.filteredOptions = p.options

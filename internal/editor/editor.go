@@ -1,231 +1,400 @@
 package editor
 
 import (
+	"io"
 	"math"
-	"time"
+	"os"
+	"unicode/utf8"
 
 	"github.com/eu-ge-ne/toy2/internal/editor/cursor"
-	"github.com/eu-ge-ne/toy2/internal/editor/handler"
+	"github.com/eu-ge-ne/toy2/internal/editor/frame"
 	"github.com/eu-ge-ne/toy2/internal/editor/history"
 	"github.com/eu-ge-ne/toy2/internal/editor/syntax"
+	"github.com/eu-ge-ne/toy2/internal/grammar"
+	"github.com/eu-ge-ne/toy2/internal/key"
+	"github.com/eu-ge-ne/toy2/internal/std"
 	"github.com/eu-ge-ne/toy2/internal/textbuf"
 	"github.com/eu-ge-ne/toy2/internal/theme"
 	"github.com/eu-ge-ne/toy2/internal/ui"
+	"github.com/eu-ge-ne/toy2/internal/vt"
 )
 
 type Editor struct {
-	OnKeyHandled func(time.Duration)
-	OnRender     func(time.Duration)
-	OnCursor     func(int, int, int)
-	OnChanged    func()
+	OnCursor  func(int, int, int)
+	OnChanged func()
 
 	multiLine bool
+	buffer    *textbuf.TextBuf
+	cursor    *cursor.Cursor
+	history   *history.History
+	syntax    *syntax.Syntax
+	frame     *frame.Frame
+
 	area      ui.Area
 	enabled   bool
 	clipboard string
-
-	indexEnabled      bool
-	whitespaceEnabled bool
-	wrapEnabled       bool
-
-	indexWidth int
-	textWidth  int
-	cursorY    int
-	cursorX    int
-	scrollLn   int
-	scrollCol  int
-
-	buffer   *textbuf.TextBuf
-	cursor   *cursor.Cursor
-	history  *history.History
-	syntax   *syntax.Syntax
-	handlers []handler.Handler
-
-	colors colors
-}
-
-type colors struct {
-	background []byte
-	index      []byte
-	void       []byte
-	char       map[charColorEnum][]byte
+	handlers  []Handler
 }
 
 func New(multiLine bool) *Editor {
-	b := textbuf.New()
-	c := cursor.New(&b)
-	h := history.New(&b, &c)
-	s := syntax.New(&b)
+	buffer := textbuf.New()
 
-	ed := Editor{
+	ed := &Editor{
 		multiLine: multiLine,
-		buffer:    &b,
-		cursor:    &c,
-		history:   &h,
-		syntax:    &s,
+		buffer:    buffer,
 	}
 
+	ed.cursor = cursor.New(buffer)
+	ed.cursor.OnChanged = ed.onCursorChanged
+
+	ed.history = history.New(buffer, ed.cursor)
 	ed.history.OnChanged = ed.OnChanged
 
-	ed.handlers = append(ed.handlers,
-		&handler.Insert{Editor: &ed},
-		&handler.Backspace{Editor: &ed},
-		&handler.Bottom{Editor: &ed},
-		&handler.Copy{Editor: &ed},
-		&handler.Cut{Editor: &ed},
-		&handler.Delete{Editor: &ed},
-		&handler.Down{Editor: &ed},
-		&handler.End{Editor: &ed},
-		&handler.Enter{Editor: &ed},
-		&handler.Home{Editor: &ed},
-		&handler.Left{Editor: &ed},
-		&handler.PageDown{Editor: &ed},
-		&handler.PageUp{Editor: &ed},
-		&handler.Paste{Editor: &ed},
-		&handler.Redo{Editor: &ed},
-		&handler.Right{Editor: &ed},
-		&handler.SelectAll{Editor: &ed},
-		&handler.Top{Editor: &ed},
-		&handler.Undo{Editor: &ed},
-		&handler.Up{Editor: &ed},
-	)
+	ed.syntax = syntax.New()
+	ed.frame = frame.New(buffer, ed.cursor, ed.syntax)
 
-	return &ed
-}
-
-func (ed *Editor) SetColors(t theme.Tokens) {
-	ed.colors = colors{
-		background: t.MainBg(),
-		index:      append(t.Light0Bg(), t.Dark0Fg()...),
-		void:       t.Dark0Bg(),
-		char: map[charColorEnum][]byte{
-			charColorVisible:            append(t.MainBg(), t.Light1Fg()...),
-			charColorWhitespace:         append(t.MainBg(), t.Dark0Fg()...),
-			charColorEmpty:              append(t.MainBg(), t.MainFg()...),
-			charColorVisibleSelected:    append(t.Light2Bg(), t.Light1Fg()...),
-			charColorWhitespaceSelected: append(t.Light2Bg(), t.Dark1Fg()...),
-			charColorEmptySelected:      append(t.Light2Bg(), t.Dark1Fg()...),
-		},
+	ed.handlers = []Handler{
+		&Insert{ed},
+		&Backspace{ed},
+		&Bottom{ed},
+		&Copy{ed},
+		&Cut{ed},
+		&Delete{ed},
+		&Down{ed},
+		&End{ed},
+		&Enter{ed},
+		&Home{ed},
+		&Left{ed},
+		&PageDown{ed},
+		&PageUp{ed},
+		&Paste{ed},
+		&Redo{ed},
+		&Right{ed},
+		&SelectAll{ed},
+		&Top{ed},
+		&Undo{ed},
+		&Up{ed},
 	}
+
+	return ed
 }
 
-func (ed *Editor) Layout(a ui.Area) {
+func (ed *Editor) SetGrammar(grm grammar.Grammar) {
+	ed.syntax.SetGrammar(grm)
+}
+
+func (ed *Editor) SetColors(t theme.Theme) {
+	ed.frame.SetColors(t)
+}
+
+func (ed *Editor) SetArea(a ui.Area) {
 	ed.area = a
+	ed.frame.SetArea(a)
 }
 
-func (ed *Editor) Reset(text string) {
-	ed.buffer.Reset(text)
-	ed.history.Reset()
-	ed.syntax.Reset()
+func (ed *Editor) SetEnabled(e bool) {
+	ed.enabled = e
 }
 
-func (ed *Editor) ResetCursor() {
-	if ed.multiLine {
-		ed.cursor.Set(0, 0, false)
-	} else {
-		ed.cursor.Set(math.MaxInt, math.MaxInt, false)
-	}
+func (ed *Editor) SetIndexEnabled(e bool) {
+	ed.frame.SetIndexEnabled(e)
+}
+
+func (ed *Editor) SetWrapEnabled(e bool) {
+	ed.frame.SetWrapEnabled(e)
+}
+
+func (ed *Editor) ToggleWrapEnabled() {
+	ed.frame.ToggleWrapEnabled()
+}
+
+func (ed *Editor) SetWhitespaceEnabled(e bool) {
+	ed.frame.SetWhitespaceEnabled(e)
+}
+
+func (ed *Editor) ToggleWhitespaceEnabled() {
+	ed.frame.ToggleWhitespaceEnabled()
 }
 
 func (ed *Editor) HasChanges() bool {
 	return !ed.history.IsEmpty()
 }
 
-func (ed *Editor) Enable(enable bool) {
-	ed.enabled = enable
+func (ed *Editor) GetText() string {
+	return std.IterToStr(ed.buffer.Slice(0, math.MaxInt))
 }
 
-func (ed *Editor) EnableIndex(enable bool) {
-	ed.indexEnabled = enable
+func (ed *Editor) SetText(text string) {
+	ed.buffer.Reset(text)
 }
 
-func (ed *Editor) EnableWhitespace(enable bool) {
-	ed.whitespaceEnabled = enable
-}
-
-func (ed *Editor) ToggleWhitespace() {
-	ed.whitespaceEnabled = !ed.whitespaceEnabled
-
-	ed.cursor.Home(false)
-}
-
-func (ed *Editor) EnableWrap(enable bool) {
-	ed.wrapEnabled = enable
-}
-
-func (ed *Editor) ToggleWrap() {
-	ed.wrapEnabled = !ed.wrapEnabled
-
-	ed.cursor.Home(false)
-}
-
-func (ed *Editor) Text() string {
-	return ed.buffer.Text()
-}
-
-func (ed *Editor) LoadFromFile(filePath string) error {
-	return ed.buffer.LoadFromFile(filePath)
-}
-
-func (ed *Editor) SaveToFile(filePath string) error {
-	return ed.buffer.SaveToFile(filePath)
-}
-
-func (ed *Editor) deleteSelection() {
-	cur := ed.cursor
-
-	ed.buffer.DeleteSegPosRange(cur.FromLn, cur.FromCol, cur.Ln, cur.Col+1)
-	ed.cursor.Set(cur.FromLn, cur.FromCol, false)
-
-	ed.history.Push()
-}
-
-func (ed *Editor) deleteSeg() {
-	cur := ed.cursor
-
-	ed.buffer.DeleteSegPosRange(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
-
-	ed.history.Push()
-}
-
-func (ed *Editor) deletePrevSeg() {
-	cur := ed.cursor
-
-	if cur.Ln > 0 && cur.Col == 0 {
-		l := 0
-		for range ed.buffer.IterSegLine(cur.Ln, false) {
-			l += 1
-			if l == 2 {
-				break
-			}
-		}
-
-		if l == 1 {
-			ed.buffer.DeleteSegPosRange(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
-			cur.Left(false)
-		} else {
-			cur.Left(false)
-			ed.buffer.DeleteSegPosRange(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
-		}
-	} else {
-		ed.buffer.DeleteSegPosRange(cur.Ln, cur.Col-1, cur.Ln, cur.Col)
-		cur.Left(false)
+func (ed *Editor) Load(filePath string) error {
+	f, err := os.Open(filePath)
+	if err != nil {
+		return err
 	}
 
-	ed.history.Push()
+	defer f.Close()
+
+	buf := make([]byte, 1024*1024*64)
+
+	for {
+		bytesRead, err := f.Read(buf)
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+
+		chunk := buf[:bytesRead]
+
+		if !utf8.Valid(chunk) {
+			panic("invalid utf8 chunk")
+		}
+
+		ed.buffer.Append(string(chunk))
+	}
+
+	return nil
 }
 
-func (ed *Editor) insertText(text string) {
+func (ed *Editor) Save(filePath string) error {
+	f, err := os.OpenFile(filePath, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+
+	defer f.Close()
+
+	for text := range ed.buffer.Slice(0, math.MaxInt) {
+		_, err := f.WriteString(text)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (ed *Editor) Render() {
+	ed.frame.Render(ed.enabled)
+}
+
+func (ed *Editor) HandleKey(key key.Key) bool {
+	if !ed.enabled {
+		return false
+	}
+
+	for _, h := range ed.handlers {
+		if h.Match(key) {
+			return h.Run(key)
+		}
+	}
+
+	return false
+}
+
+func (ed *Editor) Backspace() bool {
+	if ed.cursor.Selecting {
+		ed.deleteSelection()
+		return true
+	}
+
+	if ed.cursor.Ln == 0 && ed.cursor.Col == 0 {
+		return false
+	}
+
+	var change textbuf.Change
+
+	if ed.cursor.Col == 0 {
+		startLn := ed.cursor.Ln - 1
+		startCol := max(0, ed.buffer.ColumnCount(startLn)-1)
+
+		change = ed.buffer.Delete(startLn, startCol, ed.cursor.Ln, ed.cursor.Col)
+	} else {
+		change = ed.buffer.Delete(ed.cursor.Ln, ed.cursor.Col-1, ed.cursor.Ln, ed.cursor.Col)
+	}
+
+	ed.cursor.Set(change.Start.Ln, change.Start.Col, false)
+	ed.history.Push()
+
+	ed.syntax.Delete(change)
+
+	return true
+}
+
+func (ed *Editor) Bottom(sel bool) bool {
+	if !ed.multiLine {
+		return false
+	}
+
+	return ed.cursor.Bottom(sel)
+}
+
+func (ed *Editor) Copy() bool {
 	cur := ed.cursor
 
 	if cur.Selecting {
-		ed.buffer.DeleteSegPosRange(cur.FromLn, cur.FromCol, cur.ToLn, cur.ToCol+1)
-		cur.Set(cur.FromLn, cur.FromCol, false)
+		ed.clipboard = std.IterToStr(ed.buffer.Read(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol))
+		cur.Set(cur.Ln, cur.Col, false)
+	} else {
+		ed.clipboard = std.IterToStr(ed.buffer.Read(cur.Ln, cur.Col, cur.Ln, cur.Col+1))
 	}
 
-	ed.buffer.InsertSegPos(cur.Ln, cur.Col, text)
+	vt.CopyToClipboard(vt.Sync, ed.clipboard)
 
-	cur.ForwardText(text)
+	return false
+}
+
+func (ed *Editor) Cut() bool {
+	cur := ed.cursor
+
+	if cur.Selecting {
+		ed.clipboard = std.IterToStr(ed.buffer.Read(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol))
+		ed.deleteSelection()
+	} else {
+		ed.clipboard = std.IterToStr(ed.buffer.Read(cur.Ln, cur.Col, cur.Ln, cur.Col+1))
+		ed.deleteChar()
+	}
+
+	vt.CopyToClipboard(vt.Sync, ed.clipboard)
+
+	return true
+}
+
+func (ed *Editor) Delete() bool {
+	if ed.cursor.Selecting {
+		ed.deleteSelection()
+	} else {
+		ed.deleteChar()
+	}
+
+	return true
+}
+
+func (ed *Editor) Down(n int, sel bool) bool {
+	if !ed.multiLine {
+		return false
+	}
+
+	return ed.cursor.Down(n, sel)
+}
+
+func (ed *Editor) End(sel bool) bool {
+	return ed.cursor.End(sel)
+}
+
+func (ed *Editor) Enter() bool {
+	if !ed.multiLine {
+		return false
+	}
+
+	return ed.insertText("\n")
+}
+
+func (ed *Editor) Home(sel bool) bool {
+	return ed.cursor.Home(sel)
+}
+
+func (ed *Editor) Insert(text string) bool {
+	return ed.insertText(text)
+}
+
+func (ed *Editor) Left(sel bool) bool {
+	return ed.cursor.Left(sel)
+}
+
+func (ed *Editor) Paste() bool {
+	if len(ed.clipboard) == 0 {
+		return false
+	}
+
+	return ed.Insert(ed.clipboard)
+}
+
+func (ed *Editor) Redo() bool {
+	if !ed.enabled {
+		return false
+	}
+
+	return ed.history.Redo()
+}
+
+func (ed *Editor) Right(sel bool) bool {
+	return ed.cursor.Right(sel)
+}
+
+func (ed *Editor) SelectAll() bool {
+	if !ed.enabled {
+		return false
+	}
+
+	ed.cursor.Set(0, 0, false)
+	ed.cursor.Set(math.MaxInt, math.MaxInt, true)
+
+	return true
+}
+
+func (ed *Editor) Top(sel bool) bool {
+	if !ed.multiLine {
+		return false
+	}
+
+	return ed.cursor.Top(sel)
+}
+
+func (ed *Editor) Undo() bool {
+	if !ed.enabled {
+		return false
+	}
+
+	return ed.history.Undo()
+}
+
+func (ed *Editor) Up(n int, sel bool) bool {
+	if !ed.multiLine {
+		return false
+	}
+
+	return ed.cursor.Up(n, sel)
+}
+
+func (ed *Editor) insertText(text string) bool {
+	if ed.cursor.Selecting {
+		ed.deleteSelection()
+		return true
+	}
+
+	change := ed.buffer.Insert(ed.cursor.Ln, ed.cursor.Col, text)
+
+	ed.cursor.Set(change.End.Ln, change.End.Col, false)
+	ed.history.Push()
+
+	ed.syntax.Insert(change)
+
+	return true
+}
+
+func (ed *Editor) deleteSelection() {
+	change := ed.buffer.Delete(ed.cursor.StartLn, ed.cursor.StartCol, ed.cursor.EndLn, ed.cursor.EndCol)
+
+	ed.cursor.Set(change.Start.Ln, change.Start.Col, false)
+	ed.history.Push()
+
+	ed.syntax.Delete(change)
+}
+
+func (ed *Editor) deleteChar() {
+	change := ed.buffer.Delete(ed.cursor.Ln, ed.cursor.Col, ed.cursor.Ln, ed.cursor.Col+1)
 
 	ed.history.Push()
+
+	ed.syntax.Delete(change)
+}
+
+func (ed *Editor) onCursorChanged() {
+	if ed.OnCursor != nil {
+		ed.OnCursor(ed.cursor.Ln, ed.cursor.Col, ed.buffer.LineCount())
+	}
 }

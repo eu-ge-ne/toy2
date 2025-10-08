@@ -1,80 +1,99 @@
 package textbuf
 
-import "github.com/eu-ge-ne/toy2/internal/textbuf/node"
+import (
+	"github.com/eu-ge-ne/toy2/internal/grapheme"
+	"github.com/eu-ge-ne/toy2/internal/textbuf/node"
+)
 
-func (tb *TextBuf) InsertIndex(i int, text string) {
-	if i > tb.Count() {
+type insCase int
+
+const (
+	insCaseRoot insCase = iota
+	insCaseLeft
+	insCaseRight
+	insCaseSplit
+)
+
+func (buf *TextBuf) insert(idx int, text string) {
+	if idx > buf.Count() {
 		return
 	}
 
-	type InsertCase int
-	const (
-		InsertRoot InsertCase = iota
-		InsertLeft
-		InsertRight
-		InsertSplit
-	)
-
-	insertCase := InsertRoot
+	insertCase := insCaseRoot
 	p := node.NIL
-	x := tb.tree.Root
+	x := buf.tree.Root
 
 	for x != node.NIL {
-		if i <= x.Left.TotalLen {
-			insertCase = InsertLeft
+		if idx <= x.Left.TotalLen {
+			insertCase = insCaseLeft
 			p = x
 			x = x.Left
 			continue
 		}
 
-		i -= x.Left.TotalLen
+		idx -= x.Left.TotalLen
 
-		if i < x.Len {
-			insertCase = InsertSplit
+		if idx < x.Len {
+			insertCase = insCaseSplit
 			p = x
 			x = node.NIL
 			continue
 		}
 
-		i -= x.Len
+		idx -= x.Len
 
-		insertCase = InsertRight
+		insertCase = insCaseRight
 		p = x
 		x = x.Right
 	}
 
-	if (insertCase == InsertRight) && tb.content.Growable(p) {
-		tb.content.Grow(p, text)
+	if (insertCase == insCaseRight) && buf.content.Growable(p) {
+		buf.content.Grow(p, text)
 		node.Bubble(p)
 		return
 	}
 
-	child := tb.content.Create(text)
+	child := buf.content.Create(text)
 
 	switch insertCase {
-	case InsertRoot:
-		tb.tree.Root = child
-		tb.tree.Root.Red = false
-	case InsertLeft:
-		tb.tree.InsertLeft(p, child)
-	case InsertRight:
-		tb.tree.InsertRight(p, child)
-	case InsertSplit:
-		y := tb.content.Split(p, i, 0)
-		tb.tree.InsertAfter(p, y)
-		tb.tree.InsertBefore(y, child)
+	case insCaseRoot:
+		buf.tree.Root = child
+		buf.tree.Root.Red = false
+	case insCaseLeft:
+		buf.tree.InsertLeft(p, child)
+	case insCaseRight:
+		buf.tree.InsertRight(p, child)
+	case insCaseSplit:
+		y := buf.content.Split(p, idx, 0)
+		buf.tree.InsertAfter(p, y)
+		buf.tree.InsertBefore(y, child)
 	}
 }
 
-func (tb *TextBuf) InsertPos(ln, col int, text string) {
-	i, ok := tb.posToIndex(ln, col)
-	if !ok {
-		return
+func (buf *TextBuf) Insert(ln, col int, text string) Change {
+	startPos := buf.EndPos(ln, col)
+
+	buf.insert(startPos.Idx, text)
+
+	dLn, dCol := grapheme.Graphemes.MeasureString(text)
+
+	var endLn, endCol int
+	if dLn == 0 {
+		endLn = ln
+		endCol = col + dCol
+	} else {
+		endLn = ln + dLn
+		endCol = dCol
 	}
 
-	tb.InsertIndex(i, text)
+	endPos := buf.EndPos(endLn, endCol)
+	if endPos.Idx <= startPos.Idx {
+		panic("assert")
+	}
+
+	return Change{startPos, endPos}
 }
 
-func (tb *TextBuf) Append(text string) {
-	tb.InsertIndex(tb.Count(), text)
+func (buf *TextBuf) Append(text string) {
+	buf.insert(buf.Count(), text)
 }
