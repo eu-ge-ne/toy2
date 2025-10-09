@@ -8,10 +8,10 @@ import (
 )
 
 func (buf *TextBuf) Iter() iter.Seq[string] {
-	return buf.ReadSlice(0, math.MaxInt)
+	return buf.Read(0, math.MaxInt)
 }
 
-func (buf *TextBuf) Read() string {
+func (buf *TextBuf) All() string {
 	return strings.Join(slices.Collect(buf.Iter()), "")
 }
 
@@ -24,7 +24,7 @@ func (buf *TextBuf) Chunk(i int) string {
 	return buf.content.Chunk(x, offset)
 }
 
-func (buf *TextBuf) ReadSlice(start int, end int) iter.Seq[string] {
+func (buf *TextBuf) Read(start int, end int) iter.Seq[string] {
 	x, offset := buf.tree.Root.Find(start)
 	if x == nil {
 		return none
@@ -33,7 +33,7 @@ func (buf *TextBuf) ReadSlice(start int, end int) iter.Seq[string] {
 	return buf.content.Read(x, offset, end-start)
 }
 
-func (buf *TextBuf) ReadSlice2(startLn, startCol, endLn, endCol int) string {
+func (buf *TextBuf) Read2(startLn, startCol, endLn, endCol int) string {
 	start, ok := buf.Index(startLn, startCol)
 	if !ok {
 		return ""
@@ -44,7 +44,7 @@ func (buf *TextBuf) ReadSlice2(startLn, startCol, endLn, endCol int) string {
 		end = math.MaxInt
 	}
 
-	it := buf.ReadSlice(start, end)
+	it := buf.Read(start, end)
 
 	return strings.Join(slices.Collect(it), "")
 }

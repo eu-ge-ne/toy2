@@ -102,16 +102,16 @@ func testDeleteHead(t *testing.T, buf textbuf.TextBuf, n int) {
 	expected := text
 
 	for len(expected) > 0 {
-		assert.Equal(t, expected, buf.Read())
+		assert.Equal(t, expected, buf.All())
 		assert.Equal(t, len(expected), buf.Count())
 		buf.Validate()
 
 		i := min(buf.Count(), n)
-		buf.DeleteSlice(0, i)
+		buf.Delete(0, i)
 		expected = expected[i:]
 	}
 
-	assert.Equal(t, expected, buf.Read())
+	assert.Equal(t, expected, buf.All())
 	assert.Equal(t, len(expected), buf.Count())
 	buf.Validate()
 }
@@ -120,16 +120,16 @@ func testDeleteTail(t *testing.T, buf textbuf.TextBuf, n int) {
 	expected := text
 
 	for len(expected) > 0 {
-		assert.Equal(t, expected, buf.Read())
+		assert.Equal(t, expected, buf.All())
 		assert.Equal(t, len(expected), buf.Count())
 		buf.Validate()
 
 		i := max(buf.Count()-n, 0)
-		buf.DeleteSlice(i, buf.Count())
+		buf.Delete(i, buf.Count())
 		expected = expected[0:i]
 	}
 
-	assert.Equal(t, expected, buf.Read())
+	assert.Equal(t, expected, buf.All())
 	assert.Equal(t, len(expected), buf.Count())
 	buf.Validate()
 }
@@ -138,17 +138,17 @@ func testDeleteMiddle(t *testing.T, buf textbuf.TextBuf, n int) {
 	expected := text
 
 	for len(expected) > 0 {
-		assert.Equal(t, expected, buf.Read())
+		assert.Equal(t, expected, buf.All())
 		assert.Equal(t, len(expected), buf.Count())
 		buf.Validate()
 
 		pos := buf.Count() / 2
 		i := min(buf.Count(), pos+n)
-		buf.DeleteSlice(pos, i)
+		buf.Delete(pos, i)
 		expected = expected[0:pos] + expected[i:]
 	}
 
-	assert.Equal(t, expected, buf.Read())
+	assert.Equal(t, expected, buf.All())
 	assert.Equal(t, len(expected), buf.Count())
 	buf.Validate()
 }

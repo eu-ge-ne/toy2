@@ -31,7 +31,7 @@ func (buf *TextBuf) IterLine(ln int, extra bool) iter.Seq2[int, LineCell] {
 		i := 0
 		w := 0
 
-		for g := range grapheme.Graphemes.Iter(buf.ReadSlice(start, end)) {
+		for g := range grapheme.Graphemes.Iter(buf.Read(start, end)) {
 			cell.G = g
 
 			if cell.G.Width < 0 {
@@ -70,7 +70,7 @@ func (buf *TextBuf) IterLine(ln int, extra bool) iter.Seq2[int, LineCell] {
 	}
 }
 
-func (buf *TextBuf) IterLineSlice(ln int, extra bool, start, end int) iter.Seq2[int, LineCell] {
+func (buf *TextBuf) IterLine2(ln int, extra bool, start, end int) iter.Seq2[int, LineCell] {
 	return func(yield func(int, LineCell) bool) {
 		i := 0
 		for j, c := range buf.IterLine(ln, extra) {

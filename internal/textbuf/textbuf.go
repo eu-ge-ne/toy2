@@ -52,7 +52,7 @@ func (buf *TextBuf) Restore(s Snapshot) {
 }
 
 func (buf *TextBuf) Reset(text string) {
-	buf.DeleteSlice(0, math.MaxInt)
+	buf.Delete(0, math.MaxInt)
 
 	if len(text) > 0 {
 		buf.Insert(0, text)

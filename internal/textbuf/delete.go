@@ -6,7 +6,7 @@ import (
 	"github.com/eu-ge-ne/toy2/internal/textbuf/node"
 )
 
-func (buf *TextBuf) DeleteSlice(start int, end int) {
+func (buf *TextBuf) Delete(start int, end int) {
 	n, offset := buf.tree.Root.Find(start)
 	if n == nil {
 		return
@@ -58,7 +58,7 @@ func (buf *TextBuf) DeleteSlice(start int, end int) {
 	}
 }
 
-func (buf *TextBuf) DeleteSlice2(startLn, startCol, endLn, endCol int) {
+func (buf *TextBuf) Delete2(startLn, startCol, endLn, endCol int) {
 	start, ok := buf.Index(startLn, startCol)
 	if !ok {
 		return
@@ -69,5 +69,5 @@ func (buf *TextBuf) DeleteSlice2(startLn, startCol, endLn, endCol int) {
 		end = math.MaxInt
 	}
 
-	buf.DeleteSlice(start, end)
+	buf.Delete(start, end)
 }

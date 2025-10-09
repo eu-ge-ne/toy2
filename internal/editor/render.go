@@ -113,7 +113,7 @@ func (ed *Editor) scrollV() {
 
 func (ed *Editor) scrollH() {
 	var cell *textbuf.LineCell = nil
-	for _, c := range ed.buffer.IterLineSlice(ed.cursor.Ln, true, ed.cursor.Col, math.MaxInt) {
+	for _, c := range ed.buffer.IterLine2(ed.cursor.Ln, true, ed.cursor.Col, math.MaxInt) {
 		cell = &c
 		break
 	}
@@ -138,7 +138,7 @@ func (ed *Editor) scrollH() {
 	// After?
 
 	xs := make([]int, deltaCol)
-	for i, c := range ed.buffer.IterLineSlice(ed.cursor.Ln, true, ed.cursor.Col-deltaCol, ed.cursor.Col) {
+	for i, c := range ed.buffer.IterLine2(ed.cursor.Ln, true, ed.cursor.Col-deltaCol, ed.cursor.Col) {
 		xs[i] = c.G.Width
 	}
 
