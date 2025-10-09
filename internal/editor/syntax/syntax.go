@@ -30,39 +30,36 @@ func (s *Syntax) SetLanguage() {
 }
 
 func (s *Syntax) Delete(startLn, startCol, endLn, endCol int) {
-	startByte, oldEndByte, ok := s.buffer.Index2(startLn, startCol, endLn, endCol)
+	start, oldEnd, ok := s.buffer.Index2(startLn, startCol, endLn, endCol)
 	if !ok {
 		panic("in Syntax.Delete")
 	}
 
-	s.tree.Edit(&treeSitter.InputEdit{
-		StartByte:      uint(startByte),
-		OldEndByte:     uint(oldEndByte),
-		NewEndByte:     uint(startByte + 1),
-		StartPosition:  treeSitter.NewPoint(uint(startLn), uint(startCol)),
-		OldEndPosition: treeSitter.NewPoint(uint(endLn), uint(endCol)),
-		NewEndPosition: treeSitter.NewPoint(uint(startLn), uint(startCol+1)),
-	})
+	s.edit(start, oldEnd, start+1, startLn, startCol, endLn, endCol, startLn, startCol+1)
 
 	s.parse()
 }
 
 func (s *Syntax) Insert(startLn, startCol, endLn, endCol int) {
-	startByte, newEndByte, ok := s.buffer.Index2(startLn, startCol, endLn, endCol)
+	start, newEnd, ok := s.buffer.Index2(startLn, startCol, endLn, endCol)
 	if !ok {
 		panic("in Syntax.Insert")
 	}
 
-	s.tree.Edit(&treeSitter.InputEdit{
-		StartByte:      uint(startByte),
-		OldEndByte:     uint(startByte + 1),
-		NewEndByte:     uint(newEndByte),
-		StartPosition:  treeSitter.NewPoint(uint(startLn), uint(startCol)),
-		OldEndPosition: treeSitter.NewPoint(uint(startLn), uint(startCol+1)),
-		NewEndPosition: treeSitter.NewPoint(uint(endLn), uint(endCol)),
-	})
+	s.edit(start, start+1, newEnd, startLn, startCol, startLn, startCol+1, endLn, endCol)
 
 	s.parse()
+}
+
+func (s *Syntax) edit(start, oldEnd, newEnd, startLn, startCol, oldEndLn, oldEndCol, newEndLn, newEndCol int) {
+	s.tree.Edit(&treeSitter.InputEdit{
+		StartByte:      uint(start),
+		OldEndByte:     uint(oldEnd),
+		NewEndByte:     uint(newEnd),
+		StartPosition:  treeSitter.NewPoint(uint(startLn), uint(startCol)),
+		OldEndPosition: treeSitter.NewPoint(uint(oldEndLn), uint(oldEndCol)),
+		NewEndPosition: treeSitter.NewPoint(uint(newEndLn), uint(newEndCol)),
+	})
 }
 
 func (s *Syntax) parse() {
