@@ -30,12 +30,7 @@ func (s *Syntax) SetLanguage() {
 }
 
 func (s *Syntax) Delete(startLn, startCol, endLn, endCol int) {
-	startByte, ok := s.buffer.Index(startLn, startCol)
-	if !ok {
-		panic("in Syntax.Delete")
-	}
-
-	oldEndByte, ok := s.buffer.Index(endLn, endCol)
+	startByte, oldEndByte, ok := s.buffer.Index2(startLn, startCol, endLn, endCol)
 	if !ok {
 		panic("in Syntax.Delete")
 	}
@@ -53,12 +48,7 @@ func (s *Syntax) Delete(startLn, startCol, endLn, endCol int) {
 }
 
 func (s *Syntax) Insert(startLn, startCol, endLn, endCol int) {
-	startByte, ok := s.buffer.Index(startLn, startCol)
-	if !ok {
-		panic("in Syntax.Insert")
-	}
-
-	newEndByte, ok := s.buffer.Index(endLn, endCol)
+	startByte, newEndByte, ok := s.buffer.Index2(startLn, startCol, endLn, endCol)
 	if !ok {
 		panic("in Syntax.Insert")
 	}

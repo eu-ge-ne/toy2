@@ -117,3 +117,17 @@ func (buf TextBuf) lnIndex(ln int) (int, bool) {
 
 	return 0, false
 }
+
+func (buf *TextBuf) Index2(startLn, startCol, endLn, endCol int) (int, int, bool) {
+	start, ok := buf.Index(startLn, startCol)
+	if !ok {
+		return 0, 0, false
+	}
+
+	end, ok := buf.Index(endLn, endCol)
+	if !ok {
+		return 0, 0, false
+	}
+
+	return start, end, true
+}
