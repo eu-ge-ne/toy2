@@ -23,18 +23,18 @@ func (buf *TextBuf) Index(ln, col int) (int, bool) {
 	return 0, false
 }
 
-func (buf *TextBuf) Index2(startLn, startCol, endLn, endCol int) (int, int) {
+func (buf *TextBuf) Index2(startLn, startCol, endLn, endCol int) (int, int, bool) {
 	start, ok := buf.Index(startLn, startCol)
 	if !ok {
-		panic("in Syntax.Insert2")
+		return 0, 0, false
 	}
 
 	end, ok := buf.Index(endLn, endCol)
 	if !ok {
-		panic("in Syntax.Insert2")
+		return 0, 0, false
 	}
 
-	return start, end
+	return start, end, true
 }
 
 func (buf TextBuf) lnIndex(ln int) (int, bool) {

@@ -30,7 +30,10 @@ func (s *Syntax) SetLanguage() {
 }
 
 func (s *Syntax) Delete(startLn, startCol, endLn, endCol int) {
-	startByte, oldEndByte := s.buffer.Index2(startLn, startCol, endLn, endCol)
+	startByte, oldEndByte, ok := s.buffer.Index2(startLn, startCol, endLn, endCol)
+	if !ok {
+		panic("in Syntax.Delete")
+	}
 
 	s.tree.Edit(&treeSitter.InputEdit{
 		StartByte:      uint(startByte),
@@ -45,7 +48,10 @@ func (s *Syntax) Delete(startLn, startCol, endLn, endCol int) {
 }
 
 func (s *Syntax) Insert(startLn, startCol, endLn, endCol int) {
-	startByte, newEndByte := s.buffer.Index2(startLn, startCol, endLn, endCol)
+	startByte, newEndByte, ok := s.buffer.Index2(startLn, startCol, endLn, endCol)
+	if !ok {
+		panic("in Syntax.Insert")
+	}
 
 	s.tree.Edit(&treeSitter.InputEdit{
 		StartByte:      uint(startByte),
