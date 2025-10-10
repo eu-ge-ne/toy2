@@ -1,6 +1,8 @@
 package syntax
 
 import (
+	"time"
+
 	"github.com/eu-ge-ne/toy2/internal/textbuf"
 
 	treeSitter "github.com/tree-sitter/go-tree-sitter"
@@ -11,6 +13,7 @@ type Syntax struct {
 	buffer  *textbuf.TextBuf
 	parser  *treeSitter.Parser
 	tree    *treeSitter.Tree
+	isDirty bool
 	setLang chan struct{}
 	edits   chan edit
 }
@@ -42,6 +45,8 @@ func (s *Syntax) Insert(startLn, startCol, endLn, endCol int) {
 
 func (s *Syntax) run() {
 	for {
+		timeout := time.After(100 * time.Millisecond)
+
 		select {
 		case <-s.setLang:
 			err := s.parser.SetLanguage(treeSitter.NewLanguage(treeSitterTs.LanguageTypescript()))
@@ -57,14 +62,18 @@ func (s *Syntax) run() {
 					panic("in Syntax.Delete")
 				}
 				s.editTree(start, oldEnd, start+1, pos.startLn, pos.startCol, pos.endLn, pos.endCol, pos.startLn, pos.startCol+1)
-				s.parseTree()
 			} else {
 				start, newEnd, ok := s.buffer.Index2(pos.startLn, pos.startCol, pos.endLn, pos.endCol)
 				if !ok {
 					panic("in Syntax.Insert")
 				}
 				s.editTree(start, start+1, newEnd, pos.startLn, pos.startCol, pos.startLn, pos.startCol+1, pos.endLn, pos.endCol)
+			}
+			s.isDirty = true
+		case <-timeout:
+			if s.isDirty {
 				s.parseTree()
+				s.isDirty = false
 			}
 		}
 	}
