@@ -29,8 +29,6 @@ func (c *Copy) Match(key.Key) bool {
 	return false
 }
 
-func (c *Copy) Run() {
-	if c.app.editor.Handlers["COPY"].Run(key.Key{}) {
-		c.app.editor.Render()
-	}
+func (c *Copy) Run() bool {
+	return c.app.editor.Handlers["COPY"].Run(key.Key{})
 }

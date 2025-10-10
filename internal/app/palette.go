@@ -21,7 +21,7 @@ func (c *Palette) Match(k key.Key) bool {
 	return k.Name == "F1"
 }
 
-func (c *Palette) Run() {
+func (c *Palette) Run() bool {
 	c.app.editor.SetEnabled(false)
 
 	done := make(chan *palette.Option)
@@ -32,16 +32,13 @@ func (c *Palette) Run() {
 
 	c.app.editor.SetEnabled(true)
 
-	c.app.editor.Render()
-
-	if option != nil {
-		i := slices.IndexFunc(c.app.commands, func(c command.Command) bool {
-			o := c.Option()
-			return o != nil && o.Id == option.Id
-		})
-
-		if i >= 0 {
-			app.commands[i].Run()
+	for _, c := range c.app.commands {
+		o := c.Option()
+		if o != nil && o.Id == option.Id {
+			c.Run()
+			return true
 		}
 	}
+
+	return true
 }

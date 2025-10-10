@@ -12,7 +12,7 @@ type Exit struct {
 
 func NewExit(app *App) *Exit {
 	return &Exit{
-		app:    *app,
+		app:    app,
 		option: palette.NewOption("Exit", "Global: Exit", []key.Key{{Name: "F10"}}),
 	}
 }

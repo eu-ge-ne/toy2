@@ -29,8 +29,6 @@ func (c *Cut) Match(key.Key) bool {
 	return false
 }
 
-func (c *Cut) Run() {
-	if c.app.editor.Handlers["CUT"].Run(key.Key{}) {
-		c.app.editor.Render()
-	}
+func (c *Cut) Run() bool {
+	return c.app.editor.Handlers["CUT"].Run(key.Key{})
 }

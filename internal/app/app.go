@@ -61,11 +61,9 @@ func New() *App {
 		"THEMESTONE":   NewThemeStone(&app),
 		"THEMEZINC":    NewThemeZinc(&app),
 		"UNDO":         NewUndo(&app),
-		/*
-			command.NewWhitespace(&app),
-			command.NewWrap(&app),
-			command.NewZen(&app),
-		*/
+		"WHITESPACE":   NewWhitespace(&app),
+		"WRAP":         NewWrap(&app),
+		"ZEN":          NewZen(&app),
 	}
 
 	options := []*palette.Option{}
@@ -226,16 +224,17 @@ func (app *App) refresh() {
 }
 
 func (app *App) processInput() {
+outer:
 	for {
 		key := vt.ReadKey()
 
-		i := slices.IndexFunc(app.commands, func(c Command) bool {
-			return c.Match(key)
-		})
-
-		if i >= 0 {
-			app.commands[i].Run()
-			continue
+		for _, c := range app.commands {
+			if c.Match(key) {
+				if c.Run() {
+					app.Render()
+				}
+				continue outer
+			}
 		}
 
 		if app.editor.HandleKey(key) {

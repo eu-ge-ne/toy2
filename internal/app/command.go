@@ -8,23 +8,5 @@ import (
 type Command interface {
 	Option() *palette.Option
 	Match(key.Key) bool
-	Run()
-}
-
-func (app *App) Whitespace() {
-	app.editor.ToggleWhitespaceEnabled()
-
-	app.Render()
-}
-
-func (app *App) Wrap() {
-	app.editor.ToggleWrapEnabled()
-
-	app.Render()
-}
-
-func (app *App) Zen() {
-	app.enableZen(!app.zenEnabled)
-
-	app.refresh()
+	Run() bool
 }

@@ -1,4 +1,4 @@
-package command
+package app
 
 import (
 	"github.com/eu-ge-ne/toy2/internal/key"
@@ -6,11 +6,11 @@ import (
 )
 
 type Zen struct {
-	app    App
+	app    *App
 	option palette.Option
 }
 
-func NewZen(app App) *Zen {
+func NewZen(app *App) *Zen {
 	return &Zen{
 		app:    app,
 		option: palette.NewOption("Zen", "Global: Toggle Zen Mode", []key.Key{{Name: "F11"}}),
@@ -26,5 +26,7 @@ func (c *Zen) Match(k key.Key) bool {
 }
 
 func (c *Zen) Run() {
-	c.app.Zen()
+	c.app.enableZen(!c.app.zenEnabled)
+
+	c.app.refresh()
 }
