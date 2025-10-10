@@ -10,30 +10,6 @@ import (
 	"github.com/eu-ge-ne/toy2/internal/vt"
 )
 
-func (ed *Editor) EnableIndex(enable bool) {
-	ed.indexEnabled = enable
-}
-
-func (ed *Editor) EnableWhitespace(enable bool) {
-	ed.whitespaceEnabled = enable
-}
-
-func (ed *Editor) ToggleWhitespace() {
-	ed.whitespaceEnabled = !ed.whitespaceEnabled
-
-	ed.cursor.Home(false)
-}
-
-func (ed *Editor) EnableWrap(enable bool) {
-	ed.wrapEnabled = enable
-}
-
-func (ed *Editor) ToggleWrap() {
-	ed.wrapEnabled = !ed.wrapEnabled
-
-	ed.cursor.Home(false)
-}
-
 func (ed *Editor) Render() {
 	t0 := time.Now()
 
