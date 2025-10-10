@@ -21,8 +21,8 @@ type Cursor struct {
 	col0   int
 }
 
-func New(buffer *textbuf.TextBuf) Cursor {
-	return Cursor{buffer: buffer}
+func New(buffer *textbuf.TextBuf) *Cursor {
+	return &Cursor{buffer: buffer}
 }
 
 func (cur *Cursor) Top(sel bool) bool {

@@ -39,17 +39,17 @@ type Editor struct {
 func New(multiLine bool) *Editor {
 	b := textbuf.New()
 	c := cursor.New(&b)
-	h := history.New(&b, &c)
-	d := data.New(multiLine, &b, &c, &h)
-	r := render.New(&b, &c)
+	h := history.New(&b, c)
+	d := data.New(multiLine, &b, c, h)
+	r := render.New(&b, c)
 
 	ed := Editor{
 		multiLine: multiLine,
 		buffer:    &b,
-		cursor:    &c,
-		history:   &h,
-		data:      &d,
-		render:    &r,
+		cursor:    c,
+		history:   h,
+		data:      d,
+		render:    r,
 	}
 
 	ed.history.OnChanged = ed.OnChanged
@@ -63,10 +63,9 @@ func (ed *Editor) SetColors(t theme.Tokens) {
 
 func (ed *Editor) SetSyntax() {
 	ed.syntax = syntax.New(ed.buffer)
+	ed.syntax.Reset()
 
 	ed.data.SetSyntax(ed.syntax)
-
-	ed.syntax.Reset()
 }
 
 func (ed *Editor) Layout(a ui.Area) {

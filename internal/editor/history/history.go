@@ -20,8 +20,8 @@ type entry struct {
 	snapshot textbuf.Snapshot
 }
 
-func New(buffer *textbuf.TextBuf, cursor *cursor.Cursor) History {
-	return History{
+func New(buffer *textbuf.TextBuf, cursor *cursor.Cursor) *History {
+	return &History{
 		buffer: buffer,
 		cursor: cursor,
 		entries: []entry{{

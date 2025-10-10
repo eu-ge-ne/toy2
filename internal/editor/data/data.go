@@ -25,8 +25,8 @@ type Data struct {
 	clipboard string
 }
 
-func New(multiLine bool, buffer *textbuf.TextBuf, cursor *cursor.Cursor, history *history.History) Data {
-	d := Data{
+func New(multiLine bool, buffer *textbuf.TextBuf, cursor *cursor.Cursor, history *history.History) *Data {
+	d := &Data{
 		multiLine: multiLine,
 		buffer:    buffer,
 		cursor:    cursor,
@@ -34,26 +34,26 @@ func New(multiLine bool, buffer *textbuf.TextBuf, cursor *cursor.Cursor, history
 	}
 
 	d.Handlers = append(d.Handlers,
-		&Insert{&d},
-		&Backspace{&d},
-		&Bottom{&d},
-		&Copy{&d},
-		&Cut{&d},
-		&Delete{&d},
-		&Down{&d},
-		&End{&d},
-		&Enter{&d},
-		&Home{&d},
-		&Left{&d},
-		&PageDown{&d},
-		&PageUp{&d},
-		&Paste{&d},
-		&Redo{&d},
-		&Right{&d},
-		&SelectAll{&d},
-		&Top{&d},
-		&Undo{&d},
-		&Up{&d},
+		&Insert{d},
+		&Backspace{d},
+		&Bottom{d},
+		&Copy{d},
+		&Cut{d},
+		&Delete{d},
+		&Down{d},
+		&End{d},
+		&Enter{d},
+		&Home{d},
+		&Left{d},
+		&PageDown{d},
+		&PageUp{d},
+		&Paste{d},
+		&Redo{d},
+		&Right{d},
+		&SelectAll{d},
+		&Top{d},
+		&Undo{d},
+		&Up{d},
 	)
 
 	return d

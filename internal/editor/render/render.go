@@ -31,8 +31,8 @@ type Render struct {
 	scrollCol  int
 }
 
-func New(buffer *textbuf.TextBuf, cursor *cursor.Cursor) Render {
-	return Render{
+func New(buffer *textbuf.TextBuf, cursor *cursor.Cursor) *Render {
+	return &Render{
 		buffer: buffer,
 		cursor: cursor,
 	}
