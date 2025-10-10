@@ -29,7 +29,7 @@ type Editor struct {
 	cursor   *cursor.Cursor
 	history  *history.History
 	syntax   *syntax.Syntax
-	render   render.Render
+	render   *render.Render
 	handlers []handler.Handler
 }
 
@@ -37,13 +37,14 @@ func New(multiLine bool, withSyntax bool) *Editor {
 	b := textbuf.New()
 	c := cursor.New(&b)
 	h := history.New(&b, &c)
+	r := render.New(&b, &c)
 
 	ed := Editor{
 		multiLine: multiLine,
 		buffer:    &b,
 		cursor:    &c,
 		history:   &h,
-		render:    render.New(&b, &c),
+		render:    &r,
 	}
 
 	if withSyntax {
