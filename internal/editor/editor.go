@@ -1,199 +1,236 @@
 package editor
 
 import (
-	"math"
+	"io"
+	"os"
 	"time"
+	"unicode/utf8"
 
 	"github.com/eu-ge-ne/toy2/internal/editor/cursor"
-	"github.com/eu-ge-ne/toy2/internal/editor/handler"
 	"github.com/eu-ge-ne/toy2/internal/editor/history"
+	"github.com/eu-ge-ne/toy2/internal/editor/render"
 	"github.com/eu-ge-ne/toy2/internal/editor/syntax"
+	"github.com/eu-ge-ne/toy2/internal/grapheme"
+	"github.com/eu-ge-ne/toy2/internal/key"
 	"github.com/eu-ge-ne/toy2/internal/textbuf"
 	"github.com/eu-ge-ne/toy2/internal/theme"
 	"github.com/eu-ge-ne/toy2/internal/ui"
 )
 
 type Editor struct {
+	Handlers     map[string]Handler
 	OnKeyHandled func(time.Duration)
 	OnRender     func(time.Duration)
 	OnCursor     func(int, int, int)
 	OnChanged    func()
 
 	multiLine bool
-	area      ui.Area
+	buffer    *textbuf.TextBuf
+	cursor    *cursor.Cursor
+	history   *history.History
+	syntax    *syntax.Syntax
+	render    *render.Render
+
 	enabled   bool
+	pageSize  int
 	clipboard string
-
-	indexEnabled      bool
-	whitespaceEnabled bool
-	wrapEnabled       bool
-
-	indexWidth int
-	textWidth  int
-	cursorY    int
-	cursorX    int
-	scrollLn   int
-	scrollCol  int
-
-	buffer   *textbuf.TextBuf
-	cursor   *cursor.Cursor
-	history  *history.History
-	syntax   *syntax.Syntax
-	handlers []handler.Handler
-
-	colors colors
-}
-
-type colors struct {
-	background []byte
-	index      []byte
-	void       []byte
-	char       map[charColorEnum][]byte
 }
 
 func New(multiLine bool) *Editor {
-	b := textbuf.New()
-	c := cursor.New(&b)
-	h := history.New(&b, &c)
-	s := syntax.New(&b)
-
-	ed := Editor{
+	ed := &Editor{
 		multiLine: multiLine,
-		buffer:    &b,
-		cursor:    &c,
-		history:   &h,
-		syntax:    &s,
 	}
 
+	ed.buffer = textbuf.New()
+	ed.cursor = cursor.New(ed.buffer)
+
+	ed.history = history.New(ed.buffer, ed.cursor)
 	ed.history.OnChanged = ed.OnChanged
 
-	ed.handlers = append(ed.handlers,
-		&handler.Insert{Editor: &ed},
-		&handler.Backspace{Editor: &ed},
-		&handler.Bottom{Editor: &ed},
-		&handler.Copy{Editor: &ed},
-		&handler.Cut{Editor: &ed},
-		&handler.Delete{Editor: &ed},
-		&handler.Down{Editor: &ed},
-		&handler.End{Editor: &ed},
-		&handler.Enter{Editor: &ed},
-		&handler.Home{Editor: &ed},
-		&handler.Left{Editor: &ed},
-		&handler.PageDown{Editor: &ed},
-		&handler.PageUp{Editor: &ed},
-		&handler.Paste{Editor: &ed},
-		&handler.Redo{Editor: &ed},
-		&handler.Right{Editor: &ed},
-		&handler.SelectAll{Editor: &ed},
-		&handler.Top{Editor: &ed},
-		&handler.Undo{Editor: &ed},
-		&handler.Up{Editor: &ed},
-	)
+	ed.render = render.New(ed.buffer, ed.cursor)
 
-	return &ed
-}
-
-func (ed *Editor) SetColors(t theme.Tokens) {
-	ed.colors = colors{
-		background: t.MainBg(),
-		index:      append(t.Light0Bg(), t.Dark0Fg()...),
-		void:       t.Dark0Bg(),
-		char: map[charColorEnum][]byte{
-			charColorVisible:            append(t.MainBg(), t.Light1Fg()...),
-			charColorWhitespace:         append(t.MainBg(), t.Dark0Fg()...),
-			charColorEmpty:              append(t.MainBg(), t.MainFg()...),
-			charColorVisibleSelected:    append(t.Light2Bg(), t.Light1Fg()...),
-			charColorWhitespaceSelected: append(t.Light2Bg(), t.Dark1Fg()...),
-			charColorEmptySelected:      append(t.Light2Bg(), t.Dark1Fg()...),
-		},
+	ed.Handlers = map[string]Handler{
+		"INSERT":    &Insert{ed},
+		"BACKSPACE": &Backspace{ed},
+		"BOTTOM":    &Bottom{ed},
+		"COPY":      &Copy{ed},
+		"CUT":       &Cut{ed},
+		"DELETE":    &Delete{ed},
+		"DOWN":      &Down{ed},
+		"END":       &End{ed},
+		"ENTER":     &Enter{ed},
+		"HOME":      &Home{ed},
+		"LEFT":      &Left{ed},
+		"PAGEDOWN":  &PageDown{ed},
+		"PAGEUP":    &PageUp{ed},
+		"PASTE":     &Paste{ed},
+		"REDO":      &Redo{ed},
+		"RIGHT":     &Right{ed},
+		"SELECTALL": &SelectAll{ed},
+		"TOP":       &Top{ed},
+		"UNDO":      &Undo{ed},
+		"UP":        &Up{ed},
 	}
+
+	return ed
 }
 
-func (ed *Editor) Layout(a ui.Area) {
-	ed.area = a
-}
-
-func (ed *Editor) Reset(text string) {
-	ed.buffer.Reset(text)
-	ed.history.Reset()
+func (ed *Editor) SetSyntax() {
+	ed.syntax = syntax.New(ed.buffer)
 	ed.syntax.Reset()
 }
 
-func (ed *Editor) ResetCursor() {
-	if ed.multiLine {
-		ed.cursor.Set(0, 0, false)
-	} else {
-		ed.cursor.Set(math.MaxInt, math.MaxInt, false)
+func (ed *Editor) SetColors(t theme.Tokens) {
+	ed.render.SetColors(t)
+}
+
+func (ed *Editor) Layout(a ui.Area) {
+	ed.pageSize = a.H
+	ed.render.SetArea(a)
+}
+
+func (ed *Editor) Render() {
+	started := time.Now()
+
+	if ed.OnCursor != nil {
+		ed.OnCursor(ed.cursor.Ln, ed.cursor.Col, ed.buffer.LineCount())
 	}
+
+	ed.render.Render()
+
+	if ed.OnRender != nil {
+		ed.OnRender(time.Since(started))
+	}
+}
+
+func (ed *Editor) SetEnabled(enabled bool) {
+	ed.enabled = enabled
+	ed.render.SetEnabled(enabled)
+}
+
+func (ed *Editor) SetIndexEnabled(enabled bool) {
+	ed.render.SetIndexEnabled(enabled)
+}
+
+func (ed *Editor) EnableWhitespace(enabled bool) {
+	ed.render.SetWhitespaceEnabled(enabled)
+}
+
+func (ed *Editor) ToggleWhitespaceEnabled() {
+	ed.render.ToggleWhitespaceEnabled()
+	ed.cursor.Home(false)
+}
+
+func (ed *Editor) SetWrapEnabled(enabled bool) {
+	ed.render.SetWrapEnabled(enabled)
+}
+
+func (ed *Editor) ToggleWrapEnabled() {
+	ed.render.ToggleWrapEnabled()
+	ed.cursor.Home(false)
+}
+
+func (ed *Editor) HandleKey(key key.Key) bool {
+	if !ed.enabled {
+		return false
+	}
+
+	t0 := time.Now()
+
+	for _, h := range ed.Handlers {
+		if h.Match(key) {
+			r := h.Run(key)
+
+			if ed.OnKeyHandled != nil {
+				ed.OnKeyHandled(time.Since(t0))
+			}
+
+			return r
+		}
+	}
+
+	return false
 }
 
 func (ed *Editor) HasChanges() bool {
 	return !ed.history.IsEmpty()
 }
 
-func (ed *Editor) Enable(enable bool) {
-	ed.enabled = enable
+func (ed *Editor) SetText(text string) {
+	ed.buffer.Reset(text)
+	ed.syntax.Reset()
 }
 
-func (ed *Editor) EnableIndex(enable bool) {
-	ed.indexEnabled = enable
+func (ed *Editor) GetText() string {
+	return ed.buffer.All()
 }
 
-func (ed *Editor) EnableWhitespace(enable bool) {
-	ed.whitespaceEnabled = enable
+func (ed *Editor) Load(filePath string) error {
+	f, err := os.Open(filePath)
+	if err != nil {
+		return err
+	}
+
+	defer f.Close()
+
+	buf := make([]byte, 1024*1024*64)
+
+	for {
+		bytesRead, err := f.Read(buf)
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+
+		chunk := buf[:bytesRead]
+
+		if !utf8.Valid(chunk) {
+			panic("invalid utf8 chunk")
+		}
+
+		ed.buffer.Append(string(chunk))
+	}
+
+	ed.syntax.Reset()
+
+	return nil
 }
 
-func (ed *Editor) ToggleWhitespace() {
-	ed.whitespaceEnabled = !ed.whitespaceEnabled
+func (ed *Editor) Save(filePath string) error {
+	f, err := os.OpenFile(filePath, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
 
-	ed.cursor.Home(false)
+	defer f.Close()
+
+	for text := range ed.buffer.Iter() {
+		_, err := f.WriteString(text)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
-func (ed *Editor) EnableWrap(enable bool) {
-	ed.wrapEnabled = enable
-}
-
-func (ed *Editor) ToggleWrap() {
-	ed.wrapEnabled = !ed.wrapEnabled
-
-	ed.cursor.Home(false)
-}
-
-func (ed *Editor) Text() string {
-	return ed.buffer.Text()
-}
-
-func (ed *Editor) LoadFromFile(filePath string) error {
-	return ed.buffer.LoadFromFile(filePath)
-}
-
-func (ed *Editor) SaveToFile(filePath string) error {
-	return ed.buffer.SaveToFile(filePath)
-}
-
-func (ed *Editor) deleteSelection() {
+func (ed *Editor) deleteChar() {
 	cur := ed.cursor
 
-	ed.buffer.DeleteSegPosRange(cur.FromLn, cur.FromCol, cur.Ln, cur.Col+1)
-	ed.cursor.Set(cur.FromLn, cur.FromCol, false)
+	ed.buffer.Delete2(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
+	ed.syntax.Delete(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
 
 	ed.history.Push()
 }
 
-func (ed *Editor) deleteSeg() {
-	cur := ed.cursor
-
-	ed.buffer.DeleteSegPosRange(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
-
-	ed.history.Push()
-}
-
-func (ed *Editor) deletePrevSeg() {
+func (ed *Editor) deletePrevChar() {
 	cur := ed.cursor
 
 	if cur.Ln > 0 && cur.Col == 0 {
 		l := 0
-		for range ed.buffer.IterSegLine(cur.Ln, false) {
+		for range ed.buffer.IterLine(cur.Ln, false) {
 			l += 1
 			if l == 2 {
 				break
@@ -201,16 +238,29 @@ func (ed *Editor) deletePrevSeg() {
 		}
 
 		if l == 1 {
-			ed.buffer.DeleteSegPosRange(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
+			ed.buffer.Delete2(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
+			ed.syntax.Delete(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
 			cur.Left(false)
 		} else {
 			cur.Left(false)
-			ed.buffer.DeleteSegPosRange(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
+			ed.buffer.Delete2(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
+			ed.syntax.Delete(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
 		}
 	} else {
-		ed.buffer.DeleteSegPosRange(cur.Ln, cur.Col-1, cur.Ln, cur.Col)
+		ed.buffer.Delete2(cur.Ln, cur.Col-1, cur.Ln, cur.Col)
+		ed.syntax.Delete(cur.Ln, cur.Col-1, cur.Ln, cur.Col)
 		cur.Left(false)
 	}
+
+	ed.history.Push()
+}
+
+func (ed *Editor) deleteSelection() {
+	cur := ed.cursor
+
+	ed.buffer.Delete2(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol)
+	ed.syntax.Delete(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol)
+	ed.cursor.Set(cur.StartLn, cur.StartCol, false)
 
 	ed.history.Push()
 }
@@ -219,13 +269,23 @@ func (ed *Editor) insertText(text string) {
 	cur := ed.cursor
 
 	if cur.Selecting {
-		ed.buffer.DeleteSegPosRange(cur.FromLn, cur.FromCol, cur.ToLn, cur.ToCol+1)
-		cur.Set(cur.FromLn, cur.FromCol, false)
+		ed.buffer.Delete2(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol)
+		ed.syntax.Delete(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol)
+		cur.Set(cur.StartLn, cur.StartCol, false)
 	}
 
-	ed.buffer.InsertSegPos(cur.Ln, cur.Col, text)
+	ed.buffer.Insert2(cur.Ln, cur.Col, text)
 
-	cur.ForwardText(text)
+	startLn := cur.Ln
+	startCol := cur.Col
+
+	dLn, dCol := grapheme.Graphemes.MeasureText(text)
+	cur.Forward(dLn, dCol)
+
+	endLn := cur.Ln
+	endCol := cur.Col
+
+	ed.syntax.Insert(startLn, startCol, endLn, endCol)
 
 	ed.history.Push()
 }

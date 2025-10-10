@@ -1,11 +1,11 @@
-package handler
+package editor
 
 import (
 	"github.com/eu-ge-ne/toy2/internal/key"
 )
 
 type Home struct {
-	Editor Editor
+	editor *Editor
 }
 
 func (h *Home) Match(k key.Key) bool {
@@ -18,6 +18,6 @@ func (h *Home) Match(k key.Key) bool {
 	return false
 }
 
-func (h *Home) Handle(k key.Key) bool {
-	return h.Editor.Home(k.Mods&key.Shift != 0)
+func (h *Home) Run(k key.Key) bool {
+	return h.editor.cursor.Home(k.Mods&key.Shift != 0)
 }

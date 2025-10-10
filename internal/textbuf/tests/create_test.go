@@ -11,8 +11,7 @@ import (
 func TestCreateEmpty(t *testing.T) {
 	buf := textbuf.New()
 
-	assert.Equal(t, "",
-		iterToStr(buf.ReadIndex(0)))
+	assert.Equal(t, "", buf.All())
 	assert.Equal(t, 0, buf.Count())
 	assert.Equal(t, 0, buf.LineCount())
 

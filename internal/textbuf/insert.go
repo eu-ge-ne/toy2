@@ -1,9 +1,11 @@
 package textbuf
 
-import "github.com/eu-ge-ne/toy2/internal/textbuf/node"
+import (
+	"github.com/eu-ge-ne/toy2/internal/textbuf/node"
+)
 
-func (tb *TextBuf) InsertIndex(i int, text string) {
-	if i > tb.Count() {
+func (buf *TextBuf) Insert(index int, text string) {
+	if index > buf.Count() {
 		return
 	}
 
@@ -17,64 +19,76 @@ func (tb *TextBuf) InsertIndex(i int, text string) {
 
 	insertCase := InsertRoot
 	p := node.NIL
-	x := tb.tree.Root
+	x := buf.tree.Root
 
 	for x != node.NIL {
-		if i <= x.Left.TotalLen {
+		if index <= x.Left.TotalLen {
 			insertCase = InsertLeft
 			p = x
 			x = x.Left
 			continue
 		}
 
-		i -= x.Left.TotalLen
+		index -= x.Left.TotalLen
 
-		if i < x.Len {
+		if index < x.Len {
 			insertCase = InsertSplit
 			p = x
 			x = node.NIL
 			continue
 		}
 
-		i -= x.Len
+		index -= x.Len
 
 		insertCase = InsertRight
 		p = x
 		x = x.Right
 	}
 
-	if (insertCase == InsertRight) && tb.content.Growable(p) {
-		tb.content.Grow(p, text)
+	if (insertCase == InsertRight) && buf.content.Growable(p) {
+		buf.content.Grow(p, text)
 		node.Bubble(p)
 		return
 	}
 
-	child := tb.content.Create(text)
+	child := buf.content.Create(text)
 
 	switch insertCase {
 	case InsertRoot:
-		tb.tree.Root = child
-		tb.tree.Root.Red = false
+		buf.tree.Root = child
+		buf.tree.Root.Red = false
 	case InsertLeft:
-		tb.tree.InsertLeft(p, child)
+		buf.tree.InsertLeft(p, child)
 	case InsertRight:
-		tb.tree.InsertRight(p, child)
+		buf.tree.InsertRight(p, child)
 	case InsertSplit:
-		y := tb.content.Split(p, i, 0)
-		tb.tree.InsertAfter(p, y)
-		tb.tree.InsertBefore(y, child)
+		y := buf.content.Split(p, index, 0)
+		buf.tree.InsertAfter(p, y)
+		buf.tree.InsertBefore(y, child)
 	}
 }
 
-func (tb *TextBuf) InsertPos(ln, col int, text string) {
-	i, ok := tb.posToIndex(ln, col)
+func (buf *TextBuf) Insert2(ln, col int, text string) {
+	index, ok := buf.lnIndex(ln)
+
 	if !ok {
-		return
+		if ln == 0 {
+			index = 0
+		} else {
+			index = max(0, buf.LineCount()-1)
+		}
 	}
 
-	tb.InsertIndex(i, text)
+	for i, cell := range buf.IterLine(ln, false) {
+		if i == col {
+			break
+		}
+		index += len(cell.G.Seg)
+	}
+
+	buf.Insert(index, text)
 }
 
-func (tb *TextBuf) Append(text string) {
-	tb.InsertIndex(tb.Count(), text)
+func (buf *TextBuf) Append(text string) {
+	buf.Insert(buf.Count(), text)
 }

@@ -3,39 +3,26 @@ package cursor
 import (
 	"math"
 
-	"github.com/eu-ge-ne/toy2/internal/grapheme"
 	"github.com/eu-ge-ne/toy2/internal/std"
 	"github.com/eu-ge-ne/toy2/internal/textbuf"
 )
 
 type Cursor struct {
-	ln0       int
-	col0      int
 	Ln        int
 	Col       int
 	Selecting bool
-	FromLn    int
-	FromCol   int
-	ToLn      int
-	ToCol     int
+	StartLn   int
+	StartCol  int
+	EndLn     int
+	EndCol    int
 
 	buffer *textbuf.TextBuf
+	ln0    int
+	col0   int
 }
 
-func New(buffer *textbuf.TextBuf) Cursor {
-	return Cursor{buffer: buffer}
-}
-
-func (cur *Cursor) Set(ln, col int, sel bool) bool {
-	oldLn := cur.Ln
-	oldCol := cur.Col
-
-	cur.setLn(ln)
-	cur.setCol(col)
-	cur.setSelection(oldLn, oldCol, sel)
-	cur.setRange()
-
-	return cur.Ln != oldLn || cur.Col != oldCol
+func New(buffer *textbuf.TextBuf) *Cursor {
+	return &Cursor{buffer: buffer}
 }
 
 func (cur *Cursor) Top(sel bool) bool {
@@ -86,28 +73,12 @@ func (cur *Cursor) Right(sel bool) bool {
 	return false
 }
 
-func (cur *Cursor) Forward(n int) bool {
-	return cur.Set(cur.Ln, cur.Col+n, false)
-}
-
-func (cur *Cursor) ForwardText(text string) bool {
-	var count, eolCount, lastEolIndex int
-	for i, g := range grapheme.Graphemes.IterText(text) {
-		if g.IsEol {
-			eolCount += 1
-			lastEolIndex = i
-		}
-		count = i + 1
+func (cur *Cursor) Forward(dLn, dCol int) bool {
+	if dLn == 0 {
+		return cur.Set(cur.Ln, cur.Col+dCol, false)
+	} else {
+		return cur.Set(cur.Ln+dLn, dCol, false)
 	}
-
-	if eolCount == 0 {
-		return cur.Forward(count)
-	}
-
-	ln := cur.Ln + eolCount
-	col := count - lastEolIndex - 1
-
-	return cur.Set(ln, col, false)
 }
 
 func (cur *Cursor) IsSelected(ln, col int) bool {
@@ -115,23 +86,35 @@ func (cur *Cursor) IsSelected(ln, col int) bool {
 		return false
 	}
 
-	if ln < cur.FromLn || ln > cur.ToLn {
+	if ln < cur.StartLn || ln > cur.EndLn {
 		return false
 	}
 
-	if ln == cur.FromLn && col < cur.FromCol {
+	if ln == cur.StartLn && col < cur.StartCol {
 		return false
 	}
 
-	if ln == cur.ToLn && col > cur.ToCol {
+	if ln == cur.EndLn && col >= cur.EndCol {
 		return false
 	}
 
 	return true
 }
 
+func (cur *Cursor) Set(ln, col int, sel bool) bool {
+	oldLn := cur.Ln
+	oldCol := cur.Col
+
+	cur.setLn(ln)
+	cur.setCol(col)
+	cur.setSelection(oldLn, oldCol, sel)
+
+	return cur.Ln != oldLn || cur.Col != oldCol
+}
+
 func (cur *Cursor) setLn(ln int) {
 	max := cur.buffer.LineCount() - 1
+
 	if max < 0 {
 		max = 0
 	}
@@ -142,7 +125,7 @@ func (cur *Cursor) setLn(ln int) {
 func (cur *Cursor) setCol(col int) {
 	len := 0
 
-	for _, c := range cur.buffer.IterSegLine(cur.Ln, false) {
+	for _, c := range cur.buffer.IterLine(cur.Ln, false) {
 		if c.G.IsEol {
 			break
 		}
@@ -164,18 +147,16 @@ func (cur *Cursor) setSelection(ln, col int, sel bool) {
 	}
 
 	cur.Selecting = true
-}
 
-func (cur *Cursor) setRange() {
 	if (cur.ln0 > cur.Ln) || (cur.ln0 == cur.Ln && cur.col0 > cur.Col) {
-		cur.FromLn = cur.Ln
-		cur.FromCol = cur.Col
-		cur.ToLn = cur.ln0
-		cur.ToCol = cur.col0
+		cur.StartLn = cur.Ln
+		cur.StartCol = cur.Col
+		cur.EndLn = cur.ln0
+		cur.EndCol = cur.col0
 	} else {
-		cur.FromLn = cur.ln0
-		cur.FromCol = cur.col0
-		cur.ToLn = cur.Ln
-		cur.ToCol = cur.Col
+		cur.StartLn = cur.ln0
+		cur.StartCol = cur.col0
+		cur.EndLn = cur.Ln
+		cur.EndCol = cur.Col
 	}
 }

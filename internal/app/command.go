@@ -4,18 +4,19 @@ import (
 	"slices"
 
 	"github.com/eu-ge-ne/toy2/internal/app/command"
+	"github.com/eu-ge-ne/toy2/internal/key"
 	"github.com/eu-ge-ne/toy2/internal/palette"
 	"github.com/eu-ge-ne/toy2/internal/theme"
 )
 
 func (app *App) Copy() {
-	if app.editor.Copy() {
+	if app.editor.Handlers["COPY"].Run(key.Key{}) {
 		app.editor.Render()
 	}
 }
 
 func (app *App) Cut() {
-	if app.editor.Cut() {
+	if app.editor.Handlers["CUT"].Run(key.Key{}) {
 		app.editor.Render()
 	}
 }
@@ -27,7 +28,7 @@ func (app *App) Debug() {
 }
 
 func (app *App) Exit() {
-	app.editor.Enable(false)
+	app.editor.SetEnabled(false)
 
 	if app.editor.HasChanges() {
 		save := make(chan bool)
@@ -42,7 +43,7 @@ func (app *App) Exit() {
 }
 
 func (app *App) Palette() {
-	app.editor.Enable(false)
+	app.editor.SetEnabled(false)
 
 	done := make(chan *palette.Option)
 
@@ -50,7 +51,7 @@ func (app *App) Palette() {
 
 	option := <-done
 
-	app.editor.Enable(true)
+	app.editor.SetEnabled(true)
 
 	app.editor.Render()
 
@@ -67,31 +68,31 @@ func (app *App) Palette() {
 }
 
 func (app *App) Paste() {
-	if app.editor.Paste() {
+	if app.editor.Handlers["PASTE"].Run(key.Key{}) {
 		app.editor.Render()
 	}
 }
 
 func (app *App) Redo() {
-	if app.editor.Redo() {
+	if app.editor.Handlers["REDO"].Run(key.Key{}) {
 		app.editor.Render()
 	}
 }
 
 func (app *App) Save() {
-	app.editor.Enable(false)
+	app.editor.SetEnabled(false)
 
 	if app.save() {
-		app.editor.ResetCursor()
+		//app.editor.Data.TopHome(false)
 	}
 
-	app.editor.Enable(true)
+	app.editor.SetEnabled(true)
 
 	app.editor.Render()
 }
 
 func (app *App) SelectAll() {
-	if app.editor.SelectAll() {
+	if app.editor.Handlers["SELECTALL"].Run(key.Key{}) {
 		app.editor.Render()
 	}
 }
@@ -133,19 +134,19 @@ func (app *App) ThemeZinc() {
 }
 
 func (app *App) Undo() {
-	if app.editor.Undo() {
+	if app.editor.Handlers["UNDO"].Run(key.Key{}) {
 		app.editor.Render()
 	}
 }
 
 func (app *App) Whitespace() {
-	app.editor.ToggleWhitespace()
+	app.editor.ToggleWhitespaceEnabled()
 
 	app.Render()
 }
 
 func (app *App) Wrap() {
-	app.editor.ToggleWrap()
+	app.editor.ToggleWrapEnabled()
 
 	app.Render()
 }

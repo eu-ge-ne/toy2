@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/eu-ge-ne/toy2/internal/editor"
+	"github.com/eu-ge-ne/toy2/internal/key"
 	"github.com/eu-ge-ne/toy2/internal/theme"
 	"github.com/eu-ge-ne/toy2/internal/ui"
 	"github.com/eu-ge-ne/toy2/internal/vt"
@@ -48,10 +49,10 @@ func (p *Palette) Layout(a ui.Area) {
 
 func (p *Palette) Open(done chan<- *Option) {
 	p.enabled = true
-	p.editor.Enable(true)
+	p.editor.SetEnabled(true)
 
-	p.editor.Reset("")
-	p.editor.ResetCursor()
+	p.editor.SetText("")
+	p.editor.Handlers["END"].Run(key.Key{})
 
 	p.filter()
 	p.parent.Render()
@@ -59,7 +60,7 @@ func (p *Palette) Open(done chan<- *Option) {
 	result := p.processInput()
 
 	p.enabled = false
-	p.editor.Enable(false)
+	p.editor.SetEnabled(false)
 
 	done <- result
 }
@@ -67,7 +68,7 @@ func (p *Palette) Open(done chan<- *Option) {
 func (p *Palette) filter() {
 	p.selectedIndex = 0
 
-	text := strings.ToUpper(p.editor.Text())
+	text := strings.ToUpper(p.editor.GetText())
 
 	if len(text) == 0 {
 		p.filteredOptions = p.options

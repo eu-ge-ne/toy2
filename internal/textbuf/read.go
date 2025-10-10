@@ -7,50 +7,46 @@ import (
 	"strings"
 )
 
-func (tb *TextBuf) Iter() iter.Seq[string] {
-	return tb.ReadIndex(0)
+func (buf *TextBuf) Iter() iter.Seq[string] {
+	return buf.Read(0, math.MaxInt)
 }
 
-func (tb *TextBuf) Text() string {
-	it := tb.ReadIndex(0)
-
-	return strings.Join(slices.Collect(it), "")
+func (buf *TextBuf) All() string {
+	return strings.Join(slices.Collect(buf.Iter()), "")
 }
 
-func (tb *TextBuf) ReadIndexRange(start int, end int) iter.Seq[string] {
-	x, offset := tb.tree.Root.Find(start)
+func (buf *TextBuf) Chunk(i int) string {
+	x, offset := buf.tree.Root.Find(i)
+	if x == nil {
+		return ""
+	}
+
+	return buf.content.Chunk(x, offset)
+}
+
+func (buf *TextBuf) Read(start int, end int) iter.Seq[string] {
+	x, offset := buf.tree.Root.Find(start)
 	if x == nil {
 		return none
 	}
 
-	return tb.content.Read(x, offset, end-start)
+	return buf.content.Read(x, offset, end-start)
 }
 
-func (tb *TextBuf) ReadIndex(start int) iter.Seq[string] {
-	return tb.ReadIndexRange(start, math.MaxInt)
-}
-
-func (tb *TextBuf) ReadPosRange(startLn, startCol, endLn, endCol int) iter.Seq[string] {
-	start_i, ok := tb.posToIndex(startLn, startCol)
+func (buf *TextBuf) Read2(startLn, startCol, endLn, endCol int) string {
+	start, ok := buf.Index(startLn, startCol)
 	if !ok {
-		return none
+		return ""
 	}
 
-	end_i, ok := tb.posToIndex(endLn, endCol)
+	end, ok := buf.Index(endLn, endCol)
 	if !ok {
-		end_i = math.MaxInt
+		end = math.MaxInt
 	}
 
-	return tb.ReadIndexRange(start_i, end_i)
-}
+	it := buf.Read(start, end)
 
-func (tb *TextBuf) ReadPos(startLn, startCol int) iter.Seq[string] {
-	start_i, ok := tb.posToIndex(startLn, startCol)
-	if !ok {
-		return none
-	}
-
-	return tb.ReadIndexRange(start_i, math.MaxInt)
+	return strings.Join(slices.Collect(it), "")
 }
 
 func none(yield func(string) bool) {

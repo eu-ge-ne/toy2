@@ -81,13 +81,12 @@ func New() *App {
 	app.ask = ask.New()
 	app.alert = alert.New()
 	app.header = header.New()
-	app.editor = editor.New(true)
 	app.footer = footer.New()
 	app.debug = debug.New()
 	app.palette = palette.New(&app, options)
 	app.saveas = saveas.New()
 
-	app.editor.Enable(true)
+	app.editor = editor.New(true)
 	app.editor.OnCursor = app.footer.SetCursorStatus
 	app.editor.OnKeyHandled = app.debug.SetInputTime
 	app.editor.OnRender = app.debug.SetRenderTime
@@ -114,8 +113,11 @@ func (app *App) Run() {
 
 	app.setColors(theme.Zinc{})
 	app.enableZen(false)
+
+	app.editor.SetEnabled(true)
 	app.editor.EnableWhitespace(true)
-	app.editor.EnableWrap(true)
+	app.editor.SetWrapEnabled(true)
+	app.editor.SetSyntax()
 
 	app.debug.Enable(true)
 
@@ -127,7 +129,6 @@ func (app *App) Run() {
 		app.open(flag.Arg(0))
 	}
 
-	app.editor.ResetCursor()
 	app.editor.Render()
 
 	vt.ListenStdin()
@@ -192,7 +193,7 @@ func (app *App) enableZen(enabled bool) {
 
 	app.header.Enable(!enabled)
 	app.footer.Enable(!enabled)
-	app.editor.EnableIndex(!enabled)
+	app.editor.SetIndexEnabled(!enabled)
 }
 
 func (app *App) exit() {
@@ -243,7 +244,7 @@ func (app *App) processInput() {
 }
 
 func (app *App) open(filePath string) {
-	err := app.editor.LoadFromFile(filePath)
+	err := app.editor.Load(filePath)
 
 	if os.IsNotExist(err) {
 		return
@@ -271,7 +272,7 @@ func (app *App) save() bool {
 }
 
 func (app *App) saveFile() bool {
-	err := app.editor.SaveToFile(app.filePath)
+	err := app.editor.Save(app.filePath)
 	if err == nil {
 		return true
 	}
@@ -293,7 +294,7 @@ func (app *App) saveFileAs() bool {
 			return false
 		}
 
-		err := app.editor.SaveToFile(filePath)
+		err := app.editor.Save(filePath)
 		if err == nil {
 			app.setFilePath(filePath)
 			return true

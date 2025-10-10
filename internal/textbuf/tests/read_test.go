@@ -1,6 +1,7 @@
 package textbuf_test
 
 import (
+	"math"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -11,8 +12,7 @@ import (
 func TestReadEmpty(t *testing.T) {
 	buf := textbuf.New()
 
-	assert.Equal(t, "",
-		iterToStr(buf.ReadIndex(0)))
+	assert.Equal(t, "", buf.All())
 	buf.Validate()
 }
 
@@ -20,8 +20,7 @@ func TestRead(t *testing.T) {
 	buf := textbuf.New()
 	buf.Append("Lorem ipsum dolor")
 
-	assert.Equal(t, "ipsum ",
-		iterToStr(buf.ReadIndexRange(6, 12)))
+	assert.Equal(t, "ipsum ", iterToStr(buf.Read(6, 12)))
 	buf.Validate()
 }
 
@@ -29,12 +28,9 @@ func TestReadAtStartGTECount(t *testing.T) {
 	buf := textbuf.New()
 	buf.Append("Lorem")
 
-	assert.Equal(t, "m",
-		iterToStr(buf.ReadIndex(4)))
-	assert.Equal(t, "",
-		iterToStr(buf.ReadIndex(5)))
-	assert.Equal(t, "",
-		iterToStr(buf.ReadIndex(6)))
+	assert.Equal(t, "m", iterToStr(buf.Read(4, math.MaxInt)))
+	assert.Equal(t, "", iterToStr(buf.Read(5, math.MaxInt)))
+	assert.Equal(t, "", iterToStr(buf.Read(6, math.MaxInt)))
 
 	buf.Validate()
 }
@@ -43,12 +39,9 @@ func TestReadAtStartLT0(t *testing.T) {
 	buf := textbuf.New()
 	buf.Append("Lorem")
 
-	assert.Equal(t, "Lorem",
-		iterToStr(buf.ReadIndex(0)))
-	assert.Equal(t, "m",
-		iterToStr(buf.ReadIndex(buf.Count()-1)))
-	assert.Equal(t, "em",
-		iterToStr(buf.ReadIndex(buf.Count()-2)))
+	assert.Equal(t, "Lorem", buf.All())
+	assert.Equal(t, "m", iterToStr(buf.Read(buf.Count()-1, math.MaxInt)))
+	assert.Equal(t, "em", iterToStr(buf.Read(buf.Count()-2, math.MaxInt)))
 
 	buf.Validate()
 }
