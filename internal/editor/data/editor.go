@@ -1,4 +1,4 @@
-package handler
+package data
 
 type Editor interface {
 	Backspace() bool

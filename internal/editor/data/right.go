@@ -1,4 +1,4 @@
-package handler
+package data
 
 import (
 	"github.com/eu-ge-ne/toy2/internal/key"

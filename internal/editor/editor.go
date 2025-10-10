@@ -9,7 +9,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/eu-ge-ne/toy2/internal/editor/cursor"
-	"github.com/eu-ge-ne/toy2/internal/editor/handler"
+	"github.com/eu-ge-ne/toy2/internal/editor/data"
 	"github.com/eu-ge-ne/toy2/internal/editor/history"
 	"github.com/eu-ge-ne/toy2/internal/editor/render"
 	"github.com/eu-ge-ne/toy2/internal/editor/syntax"
@@ -35,7 +35,7 @@ type Editor struct {
 	history  *history.History
 	syntax   *syntax.Syntax
 	render   *render.Render
-	handlers []handler.Handler
+	handlers []data.Handler
 }
 
 func New(multiLine bool) *Editor {
@@ -55,26 +55,26 @@ func New(multiLine bool) *Editor {
 	ed.history.OnChanged = ed.OnChanged
 
 	ed.handlers = append(ed.handlers,
-		&handler.Insert{Editor: &ed},
-		&handler.Backspace{Editor: &ed},
-		&handler.Bottom{Editor: &ed},
-		&handler.Copy{Editor: &ed},
-		&handler.Cut{Editor: &ed},
-		&handler.Delete{Editor: &ed},
-		&handler.Down{Editor: &ed},
-		&handler.End{Editor: &ed},
-		&handler.Enter{Editor: &ed},
-		&handler.Home{Editor: &ed},
-		&handler.Left{Editor: &ed},
-		&handler.PageDown{Editor: &ed},
-		&handler.PageUp{Editor: &ed},
-		&handler.Paste{Editor: &ed},
-		&handler.Redo{Editor: &ed},
-		&handler.Right{Editor: &ed},
-		&handler.SelectAll{Editor: &ed},
-		&handler.Top{Editor: &ed},
-		&handler.Undo{Editor: &ed},
-		&handler.Up{Editor: &ed},
+		&data.Insert{Editor: &ed},
+		&data.Backspace{Editor: &ed},
+		&data.Bottom{Editor: &ed},
+		&data.Copy{Editor: &ed},
+		&data.Cut{Editor: &ed},
+		&data.Delete{Editor: &ed},
+		&data.Down{Editor: &ed},
+		&data.End{Editor: &ed},
+		&data.Enter{Editor: &ed},
+		&data.Home{Editor: &ed},
+		&data.Left{Editor: &ed},
+		&data.PageDown{Editor: &ed},
+		&data.PageUp{Editor: &ed},
+		&data.Paste{Editor: &ed},
+		&data.Redo{Editor: &ed},
+		&data.Right{Editor: &ed},
+		&data.SelectAll{Editor: &ed},
+		&data.Top{Editor: &ed},
+		&data.Undo{Editor: &ed},
+		&data.Up{Editor: &ed},
 	)
 
 	return &ed
@@ -154,7 +154,7 @@ func (ed *Editor) HandleKey(key key.Key) bool {
 
 	t0 := time.Now()
 
-	i := slices.IndexFunc(ed.handlers, func(h handler.Handler) bool {
+	i := slices.IndexFunc(ed.handlers, func(h data.Handler) bool {
 		return h.Match(key)
 	})
 
