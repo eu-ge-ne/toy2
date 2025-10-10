@@ -5,7 +5,7 @@ import (
 )
 
 type PageUp struct {
-	Editor Editor
+	data *Data
 }
 
 func (h *PageUp) Match(k key.Key) bool {
@@ -13,5 +13,5 @@ func (h *PageUp) Match(k key.Key) bool {
 }
 
 func (h *PageUp) Handle(k key.Key) bool {
-	return h.Editor.PageUp(k.Mods&key.Shift != 0)
+	return h.data.PageUp(k.Mods&key.Shift != 0)
 }

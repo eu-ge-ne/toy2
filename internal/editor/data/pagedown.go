@@ -5,7 +5,7 @@ import (
 )
 
 type PageDown struct {
-	Editor Editor
+	data *Data
 }
 
 func (h *PageDown) Match(k key.Key) bool {
@@ -13,5 +13,5 @@ func (h *PageDown) Match(k key.Key) bool {
 }
 
 func (h *PageDown) Handle(k key.Key) bool {
-	return h.Editor.PageDown(k.Mods&key.Shift != 0)
+	return h.data.PageDown(k.Mods&key.Shift != 0)
 }

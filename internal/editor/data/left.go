@@ -5,7 +5,7 @@ import (
 )
 
 type Left struct {
-	Editor Editor
+	data *Data
 }
 
 func (h *Left) Match(k key.Key) bool {
@@ -13,5 +13,5 @@ func (h *Left) Match(k key.Key) bool {
 }
 
 func (h *Left) Handle(k key.Key) bool {
-	return h.Editor.Left(k.Mods&key.Shift != 0)
+	return h.data.Left(k.Mods&key.Shift != 0)
 }

@@ -5,7 +5,7 @@ import (
 )
 
 type Cut struct {
-	Editor Editor
+	data *Data
 }
 
 func (h *Cut) Match(k key.Key) bool {
@@ -13,5 +13,5 @@ func (h *Cut) Match(k key.Key) bool {
 }
 
 func (h *Cut) Handle(key.Key) bool {
-	return h.Editor.Cut()
+	return h.data.Cut()
 }

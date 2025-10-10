@@ -5,7 +5,7 @@ import (
 )
 
 type Delete struct {
-	Editor Editor
+	data *Data
 }
 
 func (h *Delete) Match(k key.Key) bool {
@@ -13,5 +13,5 @@ func (h *Delete) Match(k key.Key) bool {
 }
 
 func (h *Delete) Handle(key.Key) bool {
-	return h.Editor.Delete()
+	return h.data.Delete()
 }

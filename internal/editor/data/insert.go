@@ -5,7 +5,7 @@ import (
 )
 
 type Insert struct {
-	Editor Editor
+	data *Data
 }
 
 func (h *Insert) Match(k key.Key) bool {
@@ -13,5 +13,5 @@ func (h *Insert) Match(k key.Key) bool {
 }
 
 func (h *Insert) Handle(k key.Key) bool {
-	return h.Editor.Insert(k.Text)
+	return h.data.Insert(k.Text)
 }

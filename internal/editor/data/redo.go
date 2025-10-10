@@ -5,7 +5,7 @@ import (
 )
 
 type Redo struct {
-	Editor Editor
+	data *Data
 }
 
 func (h *Redo) Match(k key.Key) bool {
@@ -13,5 +13,5 @@ func (h *Redo) Match(k key.Key) bool {
 }
 
 func (h *Redo) Handle(key.Key) bool {
-	return h.Editor.Redo()
+	return h.data.Redo()
 }

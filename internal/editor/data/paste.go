@@ -5,7 +5,7 @@ import (
 )
 
 type Paste struct {
-	Editor Editor
+	data *Data
 }
 
 func (h *Paste) Match(k key.Key) bool {
@@ -13,5 +13,5 @@ func (h *Paste) Match(k key.Key) bool {
 }
 
 func (h *Paste) Handle(key.Key) bool {
-	return h.Editor.Paste()
+	return h.data.Paste()
 }

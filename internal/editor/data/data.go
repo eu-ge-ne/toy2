@@ -1,0 +1,322 @@
+package data
+
+import (
+	"math"
+
+	"github.com/eu-ge-ne/toy2/internal/editor/cursor"
+	"github.com/eu-ge-ne/toy2/internal/editor/history"
+	"github.com/eu-ge-ne/toy2/internal/editor/syntax"
+	"github.com/eu-ge-ne/toy2/internal/grapheme"
+	"github.com/eu-ge-ne/toy2/internal/textbuf"
+	"github.com/eu-ge-ne/toy2/internal/vt"
+)
+
+type Data struct {
+	multiLine bool
+	buffer    *textbuf.TextBuf
+	cursor    *cursor.Cursor
+	history   *history.History
+	syntax    *syntax.Syntax
+
+	Handlers []Handler
+
+	enabled   bool
+	pageSize  int
+	clipboard string
+}
+
+func New(multiLine bool, buffer *textbuf.TextBuf, cursor *cursor.Cursor, history *history.History) Data {
+	d := Data{
+		multiLine: multiLine,
+		buffer:    buffer,
+		cursor:    cursor,
+		history:   history,
+	}
+
+	d.Handlers = append(d.Handlers,
+		&Insert{&d},
+		&Backspace{&d},
+		&Bottom{&d},
+		&Copy{&d},
+		&Cut{&d},
+		&Delete{&d},
+		&Down{&d},
+		&End{&d},
+		&Enter{&d},
+		&Home{&d},
+		&Left{&d},
+		&PageDown{&d},
+		&PageUp{&d},
+		&Paste{&d},
+		&Redo{&d},
+		&Right{&d},
+		&SelectAll{&d},
+		&Top{&d},
+		&Undo{&d},
+		&Up{&d},
+	)
+
+	return d
+}
+
+func (d *Data) SetSyntax(syntax *syntax.Syntax) {
+	d.syntax = syntax
+}
+
+func (d *Data) SetEnabled(enabled bool) {
+	d.enabled = enabled
+}
+
+func (d *Data) SetPageSize(pageSize int) {
+	d.pageSize = pageSize
+}
+
+func (d *Data) Backspace() bool {
+	if d.cursor.Selecting {
+		d.deleteSelection()
+	} else {
+		d.deletePrevChar()
+	}
+
+	return true
+}
+
+func (d *Data) Bottom(sel bool) bool {
+	if !d.multiLine {
+		return false
+	}
+
+	return d.cursor.Bottom(sel)
+}
+
+func (d *Data) Copy() bool {
+	if !d.enabled {
+		return false
+	}
+
+	cur := d.cursor
+
+	if cur.Selecting {
+		d.clipboard = d.buffer.Read2(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol)
+		cur.Set(cur.Ln, cur.Col, false)
+	} else {
+		d.clipboard = d.buffer.Read2(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
+	}
+
+	vt.CopyToClipboard(vt.Sync, d.clipboard)
+
+	return false
+}
+
+func (d *Data) Cut() bool {
+	if !d.enabled {
+		return false
+	}
+
+	cur := d.cursor
+
+	if cur.Selecting {
+		d.clipboard = d.buffer.Read2(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol)
+		d.deleteSelection()
+	} else {
+		d.clipboard = d.buffer.Read2(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
+		d.deleteChar()
+	}
+
+	vt.CopyToClipboard(vt.Sync, d.clipboard)
+
+	return true
+}
+
+func (d *Data) Delete() bool {
+	if d.cursor.Selecting {
+		d.deleteSelection()
+	} else {
+		d.deleteChar()
+	}
+
+	return true
+}
+
+func (d *Data) Down(sel bool) bool {
+	if !d.multiLine {
+		return false
+	}
+
+	return d.cursor.Down(1, sel)
+}
+
+func (d *Data) End(sel bool) bool {
+	return d.cursor.End(sel)
+}
+
+func (d *Data) Enter() bool {
+	if !d.multiLine {
+		return false
+	}
+
+	return d.Insert("\n")
+}
+
+func (d *Data) Home(sel bool) bool {
+	return d.cursor.Home(sel)
+}
+
+func (d *Data) Insert(text string) bool {
+	d.insertText(text)
+
+	return true
+}
+
+func (d *Data) Left(sel bool) bool {
+	return d.cursor.Left(sel)
+}
+
+func (d *Data) PageDown(sel bool) bool {
+	if !d.multiLine {
+		return false
+	}
+
+	return d.cursor.Down(d.pageSize, sel)
+}
+
+func (d *Data) PageUp(sel bool) bool {
+	if !d.multiLine {
+		return false
+	}
+
+	return d.cursor.Up(d.pageSize, sel)
+}
+
+func (d *Data) Paste() bool {
+	if !d.enabled {
+		return false
+	}
+
+	if len(d.clipboard) == 0 {
+		return false
+	}
+
+	return d.Insert(d.clipboard)
+}
+
+func (d *Data) Redo() bool {
+	if !d.enabled {
+		return false
+	}
+
+	return d.history.Redo()
+}
+
+func (d *Data) Right(sel bool) bool {
+	return d.cursor.Right(sel)
+}
+
+func (d *Data) SelectAll() bool {
+	if !d.enabled {
+		return false
+	}
+
+	d.cursor.Set(0, 0, false)
+	d.cursor.Set(math.MaxInt, math.MaxInt, true)
+
+	return true
+}
+
+func (d *Data) Top(sel bool) bool {
+	if !d.multiLine {
+		return false
+	}
+
+	return d.cursor.Top(sel)
+}
+
+func (d *Data) Undo() bool {
+	if !d.enabled {
+		return false
+	}
+
+	return d.history.Undo()
+}
+
+func (d *Data) Up(sel bool) bool {
+	if !d.multiLine {
+		return false
+	}
+
+	return d.cursor.Up(1, sel)
+}
+
+func (d *Data) deleteChar() {
+	cur := d.cursor
+
+	d.buffer.Delete2(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
+	d.syntax.Delete(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
+
+	d.history.Push()
+}
+
+func (d *Data) deletePrevChar() {
+	cur := d.cursor
+
+	if cur.Ln > 0 && cur.Col == 0 {
+		l := 0
+		for range d.buffer.IterLine(cur.Ln, false) {
+			l += 1
+			if l == 2 {
+				break
+			}
+		}
+
+		if l == 1 {
+			d.buffer.Delete2(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
+			d.syntax.Delete(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
+			cur.Left(false)
+		} else {
+			cur.Left(false)
+			d.buffer.Delete2(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
+			d.syntax.Delete(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
+		}
+	} else {
+		d.buffer.Delete2(cur.Ln, cur.Col-1, cur.Ln, cur.Col)
+		d.syntax.Delete(cur.Ln, cur.Col-1, cur.Ln, cur.Col)
+		cur.Left(false)
+	}
+
+	d.history.Push()
+}
+
+func (d *Data) deleteSelection() {
+	cur := d.cursor
+
+	d.buffer.Delete2(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol)
+	d.syntax.Delete(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol)
+	d.cursor.Set(cur.StartLn, cur.StartCol, false)
+
+	d.history.Push()
+}
+
+func (d *Data) insertText(text string) {
+	cur := d.cursor
+
+	if cur.Selecting {
+		d.buffer.Delete2(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol)
+		d.syntax.Delete(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol)
+		cur.Set(cur.StartLn, cur.StartCol, false)
+	}
+
+	d.buffer.Insert2(cur.Ln, cur.Col, text)
+
+	startLn := cur.Ln
+	startCol := cur.Col
+
+	dLn, dCol := grapheme.Graphemes.MeasureText(text)
+	cur.Forward(dLn, dCol)
+
+	endLn := cur.Ln
+	endCol := cur.Col
+
+	d.syntax.Insert(startLn, startCol, endLn, endCol)
+
+	d.history.Push()
+}

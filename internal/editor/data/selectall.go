@@ -5,7 +5,7 @@ import (
 )
 
 type SelectAll struct {
-	Editor Editor
+	data *Data
 }
 
 func (h *SelectAll) Match(k key.Key) bool {
@@ -13,5 +13,5 @@ func (h *SelectAll) Match(k key.Key) bool {
 }
 
 func (h *SelectAll) Handle(key.Key) bool {
-	return h.Editor.SelectAll()
+	return h.data.SelectAll()
 }

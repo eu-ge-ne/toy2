@@ -5,7 +5,7 @@ import (
 )
 
 type Up struct {
-	Editor Editor
+	data *Data
 }
 
 func (h *Up) Match(k key.Key) bool {
@@ -13,5 +13,5 @@ func (h *Up) Match(k key.Key) bool {
 }
 
 func (h *Up) Handle(k key.Key) bool {
-	return h.Editor.Up(k.Mods&key.Shift != 0)
+	return h.data.Up(k.Mods&key.Shift != 0)
 }

@@ -5,7 +5,7 @@ import (
 )
 
 type Backspace struct {
-	Editor Editor
+	data *Data
 }
 
 func (h *Backspace) Match(k key.Key) bool {
@@ -13,5 +13,5 @@ func (h *Backspace) Match(k key.Key) bool {
 }
 
 func (h *Backspace) Handle(key.Key) bool {
-	return h.Editor.Backspace()
+	return h.data.Backspace()
 }

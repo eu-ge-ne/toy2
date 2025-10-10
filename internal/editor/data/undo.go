@@ -5,7 +5,7 @@ import (
 )
 
 type Undo struct {
-	Editor Editor
+	data *Data
 }
 
 func (h *Undo) Match(k key.Key) bool {
@@ -13,5 +13,5 @@ func (h *Undo) Match(k key.Key) bool {
 }
 
 func (h *Undo) Handle(key.Key) bool {
-	return h.Editor.Undo()
+	return h.data.Undo()
 }

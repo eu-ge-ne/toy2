@@ -5,7 +5,7 @@ import (
 )
 
 type Copy struct {
-	Editor Editor
+	data *Data
 }
 
 func (h *Copy) Match(k key.Key) bool {
@@ -13,5 +13,5 @@ func (h *Copy) Match(k key.Key) bool {
 }
 
 func (h *Copy) Handle(key.Key) bool {
-	return h.Editor.Copy()
+	return h.data.Copy()
 }

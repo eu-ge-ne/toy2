@@ -5,7 +5,7 @@ import (
 )
 
 type Down struct {
-	Editor Editor
+	data *Data
 }
 
 func (h *Down) Match(k key.Key) bool {
@@ -13,5 +13,5 @@ func (h *Down) Match(k key.Key) bool {
 }
 
 func (h *Down) Handle(k key.Key) bool {
-	return h.Editor.Down(k.Mods&key.Shift != 0)
+	return h.data.Down(k.Mods&key.Shift != 0)
 }

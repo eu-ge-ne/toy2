@@ -27,21 +27,20 @@ type Editor struct {
 
 	multiLine bool
 	enabled   bool
-	clipboard string
-	pageSize  int
 
-	buffer   *textbuf.TextBuf
-	cursor   *cursor.Cursor
-	history  *history.History
-	syntax   *syntax.Syntax
-	render   *render.Render
-	handlers []data.Handler
+	buffer  *textbuf.TextBuf
+	cursor  *cursor.Cursor
+	history *history.History
+	syntax  *syntax.Syntax
+	data    *data.Data
+	render  *render.Render
 }
 
 func New(multiLine bool) *Editor {
 	b := textbuf.New()
 	c := cursor.New(&b)
 	h := history.New(&b, &c)
+	d := data.New(multiLine, &b, &c, &h)
 	r := render.New(&b, &c)
 
 	ed := Editor{
@@ -49,33 +48,11 @@ func New(multiLine bool) *Editor {
 		buffer:    &b,
 		cursor:    &c,
 		history:   &h,
+		data:      &d,
 		render:    &r,
 	}
 
 	ed.history.OnChanged = ed.OnChanged
-
-	ed.handlers = append(ed.handlers,
-		&data.Insert{Editor: &ed},
-		&data.Backspace{Editor: &ed},
-		&data.Bottom{Editor: &ed},
-		&data.Copy{Editor: &ed},
-		&data.Cut{Editor: &ed},
-		&data.Delete{Editor: &ed},
-		&data.Down{Editor: &ed},
-		&data.End{Editor: &ed},
-		&data.Enter{Editor: &ed},
-		&data.Home{Editor: &ed},
-		&data.Left{Editor: &ed},
-		&data.PageDown{Editor: &ed},
-		&data.PageUp{Editor: &ed},
-		&data.Paste{Editor: &ed},
-		&data.Redo{Editor: &ed},
-		&data.Right{Editor: &ed},
-		&data.SelectAll{Editor: &ed},
-		&data.Top{Editor: &ed},
-		&data.Undo{Editor: &ed},
-		&data.Up{Editor: &ed},
-	)
 
 	return &ed
 }
@@ -87,12 +64,14 @@ func (ed *Editor) SetColors(t theme.Tokens) {
 func (ed *Editor) SetSyntax() {
 	ed.syntax = syntax.New(ed.buffer)
 
+	ed.data.SetSyntax(ed.syntax)
+
 	ed.syntax.Reset()
 }
 
 func (ed *Editor) Layout(a ui.Area) {
 	ed.render.SetArea(a)
-	ed.pageSize = a.H
+	ed.data.SetPageSize(a.H)
 }
 
 func (ed *Editor) Render() {
@@ -120,6 +99,8 @@ func (ed *Editor) ResetCursor() {
 
 func (ed *Editor) SetEnabled(enabled bool) {
 	ed.enabled = enabled
+
+	ed.data.SetEnabled(enabled)
 	ed.render.SetEnabled(enabled)
 }
 
@@ -154,7 +135,7 @@ func (ed *Editor) HandleKey(key key.Key) bool {
 
 	t0 := time.Now()
 
-	i := slices.IndexFunc(ed.handlers, func(h data.Handler) bool {
+	i := slices.IndexFunc(ed.data.Handlers, func(h data.Handler) bool {
 		return h.Match(key)
 	})
 
@@ -162,7 +143,7 @@ func (ed *Editor) HandleKey(key key.Key) bool {
 		return false
 	}
 
-	r := ed.handlers[i].Handle(key)
+	r := ed.data.Handlers[i].Handle(key)
 
 	if ed.OnKeyHandled != nil {
 		ed.OnKeyHandled(time.Since(t0))
@@ -233,4 +214,28 @@ func (ed *Editor) SetText(text string) {
 
 func (ed *Editor) GetText() string {
 	return ed.buffer.All()
+}
+
+func (ed *Editor) Copy() bool {
+	return ed.data.Copy()
+}
+
+func (ed *Editor) Cut() bool {
+	return ed.data.Cut()
+}
+
+func (ed *Editor) Paste() bool {
+	return ed.data.Paste()
+}
+
+func (ed *Editor) Redo() bool {
+	return ed.data.Redo()
+}
+
+func (ed *Editor) Undo() bool {
+	return ed.data.Undo()
+}
+
+func (ed *Editor) SelectAll() bool {
+	return ed.data.SelectAll()
 }

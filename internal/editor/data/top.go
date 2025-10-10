@@ -5,7 +5,7 @@ import (
 )
 
 type Top struct {
-	Editor Editor
+	data *Data
 }
 
 func (h *Top) Match(k key.Key) bool {
@@ -13,5 +13,5 @@ func (h *Top) Match(k key.Key) bool {
 }
 
 func (h *Top) Handle(k key.Key) bool {
-	return h.Editor.Top(k.Mods&key.Shift != 0)
+	return h.data.Top(k.Mods&key.Shift != 0)
 }

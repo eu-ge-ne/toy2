@@ -5,7 +5,7 @@ import (
 )
 
 type Home struct {
-	Editor Editor
+	data *Data
 }
 
 func (h *Home) Match(k key.Key) bool {
@@ -19,5 +19,5 @@ func (h *Home) Match(k key.Key) bool {
 }
 
 func (h *Home) Handle(k key.Key) bool {
-	return h.Editor.Home(k.Mods&key.Shift != 0)
+	return h.data.Home(k.Mods&key.Shift != 0)
 }
