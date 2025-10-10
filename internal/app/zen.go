@@ -26,7 +26,7 @@ func (c *Zen) Match(k key.Key) bool {
 }
 
 func (c *Zen) Run() bool {
-	c.app.enableZen(!c.app.zenEnabled)
+	c.app.setZenEnabled(!c.app.zenEnabled)
 
 	return true
 }

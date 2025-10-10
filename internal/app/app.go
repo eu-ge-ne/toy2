@@ -111,7 +111,7 @@ func (app *App) Run() {
 	app.restoreVt = vt.Init()
 
 	app.setColors(theme.Zinc{})
-	app.enableZen(false)
+	app.setZenEnabled(false)
 
 	app.editor.SetEnabled(true)
 	app.editor.EnableWhitespace(true)
@@ -187,7 +187,7 @@ func (app *App) setColors(t theme.Tokens) {
 	app.saveas.SetColors(t)
 }
 
-func (app *App) enableZen(enabled bool) {
+func (app *App) setZenEnabled(enabled bool) {
 	app.zenEnabled = enabled
 
 	app.header.Enable(!enabled)
