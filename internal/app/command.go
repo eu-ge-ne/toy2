@@ -10,13 +10,13 @@ import (
 )
 
 func (app *App) Copy() {
-	if app.editor.Actions["COPY"].Run(key.Key{}) {
+	if app.editor.Handlers["COPY"].Run(key.Key{}) {
 		app.editor.Render()
 	}
 }
 
 func (app *App) Cut() {
-	if app.editor.Actions["CUT"].Run(key.Key{}) {
+	if app.editor.Handlers["CUT"].Run(key.Key{}) {
 		app.editor.Render()
 	}
 }
@@ -68,13 +68,13 @@ func (app *App) Palette() {
 }
 
 func (app *App) Paste() {
-	if app.editor.Actions["PASTE"].Run(key.Key{}) {
+	if app.editor.Handlers["PASTE"].Run(key.Key{}) {
 		app.editor.Render()
 	}
 }
 
 func (app *App) Redo() {
-	if app.editor.Actions["REDO"].Run(key.Key{}) {
+	if app.editor.Handlers["REDO"].Run(key.Key{}) {
 		app.editor.Render()
 	}
 }
@@ -92,7 +92,7 @@ func (app *App) Save() {
 }
 
 func (app *App) SelectAll() {
-	if app.editor.Actions["SELECTALL"].Run(key.Key{}) {
+	if app.editor.Handlers["SELECTALL"].Run(key.Key{}) {
 		app.editor.Render()
 	}
 }
@@ -134,7 +134,7 @@ func (app *App) ThemeZinc() {
 }
 
 func (app *App) Undo() {
-	if app.editor.Actions["UNDO"].Run(key.Key{}) {
+	if app.editor.Handlers["UNDO"].Run(key.Key{}) {
 		app.editor.Render()
 	}
 }

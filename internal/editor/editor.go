@@ -18,7 +18,7 @@ import (
 )
 
 type Editor struct {
-	Actions      map[string]Action
+	Handlers     map[string]Handler
 	OnKeyHandled func(time.Duration)
 	OnRender     func(time.Duration)
 	OnCursor     func(int, int, int)
@@ -49,7 +49,7 @@ func New(multiLine bool) *Editor {
 
 	ed.render = render.New(ed.buffer, ed.cursor)
 
-	ed.Actions = map[string]Action{
+	ed.Handlers = map[string]Handler{
 		"INSERT":    &Insert{ed},
 		"BACKSPACE": &Backspace{ed},
 		"BOTTOM":    &Bottom{ed},
@@ -137,9 +137,9 @@ func (ed *Editor) HandleKey(key key.Key) bool {
 
 	t0 := time.Now()
 
-	for _, act := range ed.Actions {
-		if act.Match(key) {
-			r := act.Run(key)
+	for _, h := range ed.Handlers {
+		if h.Match(key) {
+			r := h.Run(key)
 
 			if ed.OnKeyHandled != nil {
 				ed.OnKeyHandled(time.Since(t0))

@@ -80,7 +80,7 @@ func (sv *SaveAs) Open(filePath string, done chan<- string) {
 	sv.editor.SetEnabled(true)
 
 	sv.editor.SetText(filePath)
-	sv.editor.Actions["END"].Run(key.Key{})
+	sv.editor.Handlers["END"].Run(key.Key{})
 
 	sv.Render()
 

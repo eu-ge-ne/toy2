@@ -52,7 +52,7 @@ func (p *Palette) Open(done chan<- *Option) {
 	p.editor.SetEnabled(true)
 
 	p.editor.SetText("")
-	p.editor.Actions["END"].Run(key.Key{})
+	p.editor.Handlers["END"].Run(key.Key{})
 
 	p.filter()
 	p.parent.Render()
