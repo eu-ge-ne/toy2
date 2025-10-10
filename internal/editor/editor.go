@@ -41,14 +41,7 @@ type Editor struct {
 	syntax   *syntax.Syntax
 	handlers []handler.Handler
 
-	colors colors
-}
-
-type colors struct {
-	background []byte
-	index      []byte
-	void       []byte
-	char       map[charColorEnum][]byte
+	colors Colors
 }
 
 func New(multiLine bool, withSyntax bool) *Editor {
@@ -96,19 +89,7 @@ func New(multiLine bool, withSyntax bool) *Editor {
 }
 
 func (ed *Editor) SetColors(t theme.Tokens) {
-	ed.colors = colors{
-		background: t.MainBg(),
-		index:      append(t.Light0Bg(), t.Dark0Fg()...),
-		void:       t.Dark0Bg(),
-		char: map[charColorEnum][]byte{
-			charColorVisible:            append(t.MainBg(), t.Light1Fg()...),
-			charColorWhitespace:         append(t.MainBg(), t.Dark0Fg()...),
-			charColorEmpty:              append(t.MainBg(), t.MainFg()...),
-			charColorVisibleSelected:    append(t.Light2Bg(), t.Light1Fg()...),
-			charColorWhitespaceSelected: append(t.Light2Bg(), t.Dark1Fg()...),
-			charColorEmptySelected:      append(t.Light2Bg(), t.Dark1Fg()...),
-		},
-	}
+	ed.colors = NewColors(t)
 }
 
 func (ed *Editor) Layout(a ui.Area) {
