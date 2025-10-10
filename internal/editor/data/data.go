@@ -45,8 +45,8 @@ func New(multiLine bool, buffer *textbuf.TextBuf, cursor *cursor.Cursor, history
 		&Delete{d},
 		&GoDown{d},
 		&GoEnd{d},
+		&GoHome{d},
 		&Enter{d},
-		&Home{d},
 		&Left{d},
 		&PageDown{d},
 		&PageUp{d},
@@ -218,10 +218,6 @@ func (d *Data) Enter() bool {
 	}
 
 	return d.Insert("\n")
-}
-
-func (d *Data) Home(sel bool) bool {
-	return d.cursor.Home(sel)
 }
 
 func (d *Data) Insert(text string) bool {

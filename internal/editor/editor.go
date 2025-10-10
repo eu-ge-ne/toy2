@@ -83,7 +83,7 @@ func (ed *Editor) EnableWhitespace(enabled bool) {
 func (ed *Editor) ToggleWhitespaceEnabled() {
 	ed.render.ToggleWhitespaceEnabled()
 
-	ed.Data.Home(false)
+	ed.Data.GoHome(false)
 }
 
 func (ed *Editor) SetWrapEnabled(enabled bool) {
@@ -93,7 +93,7 @@ func (ed *Editor) SetWrapEnabled(enabled bool) {
 func (ed *Editor) ToggleWrapEnabled() {
 	ed.render.ToggleWrapEnabled()
 
-	ed.Data.Home(false)
+	ed.Data.GoHome(false)
 }
 
 func (ed *Editor) HandleKey(key key.Key) bool {
