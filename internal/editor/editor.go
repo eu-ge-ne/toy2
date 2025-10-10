@@ -221,3 +221,16 @@ func (ed *Editor) Save(filePath string) error {
 
 	return nil
 }
+
+func (ed *Editor) HasChanges() bool {
+	return !ed.history.IsEmpty()
+}
+
+func (ed *Editor) SetText(text string) {
+	ed.buffer.Reset(text)
+	ed.syntax.Reset()
+}
+
+func (ed *Editor) GetText() string {
+	return ed.buffer.All()
+}

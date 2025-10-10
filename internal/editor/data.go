@@ -7,19 +7,6 @@ import (
 	"github.com/eu-ge-ne/toy2/internal/vt"
 )
 
-func (ed *Editor) HasChanges() bool {
-	return !ed.history.IsEmpty()
-}
-
-func (ed *Editor) SetText(text string) {
-	ed.buffer.Reset(text)
-	ed.syntax.Reset()
-}
-
-func (ed *Editor) GetText() string {
-	return ed.buffer.All()
-}
-
 func (ed *Editor) Backspace() bool {
 	if ed.cursor.Selecting {
 		ed.deleteSelection()
