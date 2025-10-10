@@ -17,21 +17,6 @@ func (ed *Editor) GetText() string {
 	return ed.buffer.All()
 }
 
-func (ed *Editor) LoadFromFile(filePath string) error {
-	err := ed.buffer.LoadFromFile(filePath)
-	if err != nil {
-		return err
-	}
-
-	ed.syntax.Reset()
-
-	return nil
-}
-
-func (ed *Editor) SaveToFile(filePath string) error {
-	return ed.buffer.SaveToFile(filePath)
-}
-
 func (ed *Editor) deleteChar() {
 	cur := ed.cursor
 

@@ -1,4 +1,4 @@
-package textbuf
+package editor
 
 import (
 	"io"
@@ -6,7 +6,7 @@ import (
 	"unicode/utf8"
 )
 
-func (tb *TextBuf) LoadFromFile(filePath string) error {
+func (ed *Editor) Load(filePath string) error {
 	f, err := os.Open(filePath)
 	if err != nil {
 		return err
@@ -31,13 +31,15 @@ func (tb *TextBuf) LoadFromFile(filePath string) error {
 			panic("invalid utf8 chunk")
 		}
 
-		tb.Append(string(chunk))
+		ed.buffer.Append(string(chunk))
 	}
+
+	ed.syntax.Reset()
 
 	return nil
 }
 
-func (buf *TextBuf) SaveToFile(filePath string) error {
+func (ed *Editor) Save(filePath string) error {
 	f, err := os.OpenFile(filePath, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
@@ -45,7 +47,7 @@ func (buf *TextBuf) SaveToFile(filePath string) error {
 
 	defer f.Close()
 
-	for text := range buf.Iter() {
+	for text := range ed.buffer.Iter() {
 		_, err := f.WriteString(text)
 		if err != nil {
 			return err

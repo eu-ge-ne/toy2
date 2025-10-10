@@ -244,7 +244,7 @@ func (app *App) processInput() {
 }
 
 func (app *App) open(filePath string) {
-	err := app.editor.LoadFromFile(filePath)
+	err := app.editor.Load(filePath)
 
 	if os.IsNotExist(err) {
 		return
@@ -272,7 +272,7 @@ func (app *App) save() bool {
 }
 
 func (app *App) saveFile() bool {
-	err := app.editor.SaveToFile(app.filePath)
+	err := app.editor.Save(app.filePath)
 	if err == nil {
 		return true
 	}
@@ -294,7 +294,7 @@ func (app *App) saveFileAs() bool {
 			return false
 		}
 
-		err := app.editor.SaveToFile(filePath)
+		err := app.editor.Save(filePath)
 		if err == nil {
 			app.setFilePath(filePath)
 			return true
