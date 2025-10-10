@@ -13,5 +13,13 @@ func (h *GoDown) Match(k key.Key) bool {
 }
 
 func (h *GoDown) Handle(k key.Key) bool {
-	return h.data.Down(k.Mods&key.Shift != 0)
+	return h.data.GoDown(k.Mods&key.Shift != 0)
+}
+
+func (d *Data) GoDown(sel bool) bool {
+	if !d.multiLine {
+		return false
+	}
+
+	return d.cursor.Down(1, sel)
 }

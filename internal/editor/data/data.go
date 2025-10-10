@@ -44,7 +44,7 @@ func New(multiLine bool, buffer *textbuf.TextBuf, cursor *cursor.Cursor, history
 		&Cut{d},
 		&Delete{d},
 		&GoDown{d},
-		&End{d},
+		&GoEnd{d},
 		&Enter{d},
 		&Home{d},
 		&Left{d},
@@ -210,18 +210,6 @@ func (d *Data) Delete() bool {
 	}
 
 	return true
-}
-
-func (d *Data) Down(sel bool) bool {
-	if !d.multiLine {
-		return false
-	}
-
-	return d.cursor.Down(1, sel)
-}
-
-func (d *Data) GoEnd(sel bool) bool {
-	return d.cursor.End(sel)
 }
 
 func (d *Data) Enter() bool {

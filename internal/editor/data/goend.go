@@ -4,11 +4,11 @@ import (
 	"github.com/eu-ge-ne/toy2/internal/key"
 )
 
-type End struct {
+type GoEnd struct {
 	data *Data
 }
 
-func (h *End) Match(k key.Key) bool {
+func (h *GoEnd) Match(k key.Key) bool {
 	switch {
 	case k.Name == "END":
 		return true
@@ -18,6 +18,10 @@ func (h *End) Match(k key.Key) bool {
 	return false
 }
 
-func (h *End) Handle(k key.Key) bool {
+func (h *GoEnd) Handle(k key.Key) bool {
 	return h.data.GoEnd(k.Mods&key.Shift != 0)
+}
+
+func (d *Data) GoEnd(sel bool) bool {
+	return d.cursor.End(sel)
 }
