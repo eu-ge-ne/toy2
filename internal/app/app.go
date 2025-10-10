@@ -81,13 +81,12 @@ func New() *App {
 	app.ask = ask.New()
 	app.alert = alert.New()
 	app.header = header.New()
-	app.editor = editor.New(true, true)
 	app.footer = footer.New()
 	app.debug = debug.New()
 	app.palette = palette.New(&app, options)
 	app.saveas = saveas.New()
 
-	app.editor.Enable(true)
+	app.editor = editor.New(true)
 	app.editor.OnCursor = app.footer.SetCursorStatus
 	app.editor.OnKeyHandled = app.debug.SetInputTime
 	app.editor.OnRender = app.debug.SetRenderTime
@@ -114,8 +113,11 @@ func (app *App) Run() {
 
 	app.setColors(theme.Zinc{})
 	app.enableZen(false)
+
+	app.editor.Enable(true)
 	app.editor.EnableWhitespace(true)
 	app.editor.EnableWrap(true)
+	app.editor.SetSyntax()
 
 	app.debug.Enable(true)
 

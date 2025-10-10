@@ -19,7 +19,7 @@ type SaveAs struct {
 
 func New() *SaveAs {
 	return &SaveAs{
-		editor: editor.New(false, false),
+		editor: editor.New(false),
 	}
 }
 
