@@ -76,7 +76,7 @@ func New(multiLine bool) *Editor {
 }
 
 func (ed *Editor) SetColors(t theme.Tokens) {
-	ed.render.Colors = render.NewColors(t)
+	ed.render.SetColors(t)
 }
 
 func (ed *Editor) SetSyntax() {
@@ -86,7 +86,7 @@ func (ed *Editor) SetSyntax() {
 }
 
 func (ed *Editor) Layout(a ui.Area) {
-	ed.render.Area = a
+	ed.render.SetArea(a)
 	ed.pageSize = a.H
 }
 
@@ -113,31 +113,31 @@ func (ed *Editor) ResetCursor() {
 	}
 }
 
-func (ed *Editor) Enable(enable bool) {
-	ed.enabled = enable
-	ed.render.Enabled = enable
+func (ed *Editor) SetEnabled(enabled bool) {
+	ed.enabled = enabled
+	ed.render.SetEnabled(enabled)
 }
 
-func (ed *Editor) EnableIndex(enable bool) {
-	ed.render.IndexEnabled = enable
+func (ed *Editor) SetIndexEnabled(enabled bool) {
+	ed.render.SetIndexEnabled(enabled)
 }
 
-func (ed *Editor) EnableWhitespace(enable bool) {
-	ed.render.WhitespaceEnabled = enable
+func (ed *Editor) EnableWhitespace(enabled bool) {
+	ed.render.SetWhitespaceEnabled(enabled)
 }
 
-func (ed *Editor) ToggleWhitespace() {
-	ed.render.WhitespaceEnabled = !ed.render.WhitespaceEnabled
+func (ed *Editor) ToggleWhitespaceEnabled() {
+	ed.render.ToggleWhitespaceEnabled()
 
 	ed.cursor.Home(false)
 }
 
-func (ed *Editor) EnableWrap(enable bool) {
-	ed.render.WrapEnabled = enable
+func (ed *Editor) SetWrapEnabled(enabled bool) {
+	ed.render.SetWrapEnabled(enabled)
 }
 
-func (ed *Editor) ToggleWrap() {
-	ed.render.WrapEnabled = !ed.render.WrapEnabled
+func (ed *Editor) ToggleWrapEnabled() {
+	ed.render.ToggleWrapEnabled()
 
 	ed.cursor.Home(false)
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/eu-ge-ne/toy2/internal/editor/cursor"
 	"github.com/eu-ge-ne/toy2/internal/std"
 	"github.com/eu-ge-ne/toy2/internal/textbuf"
+	"github.com/eu-ge-ne/toy2/internal/theme"
 	"github.com/eu-ge-ne/toy2/internal/ui"
 	"github.com/eu-ge-ne/toy2/internal/vt"
 )
@@ -15,12 +16,12 @@ type Render struct {
 	buffer *textbuf.TextBuf
 	cursor *cursor.Cursor
 
-	Colors            Colors
-	Area              ui.Area
-	Enabled           bool
-	IndexEnabled      bool
-	WhitespaceEnabled bool
-	WrapEnabled       bool
+	colors            Colors
+	area              ui.Area
+	enabled           bool
+	indexEnabled      bool
+	whitespaceEnabled bool
+	wrapEnabled       bool
 
 	indexWidth int
 	textWidth  int
@@ -37,23 +38,55 @@ func New(buffer *textbuf.TextBuf, cursor *cursor.Cursor) Render {
 	}
 }
 
+func (r *Render) SetColors(t theme.Tokens) {
+	r.colors = newColors(t)
+}
+
+func (r *Render) SetArea(a ui.Area) {
+	r.area = a
+}
+
+func (r *Render) SetEnabled(enabled bool) {
+	r.enabled = enabled
+}
+
+func (r *Render) SetIndexEnabled(enabled bool) {
+	r.indexEnabled = enabled
+}
+
+func (r *Render) SetWhitespaceEnabled(enabled bool) {
+	r.whitespaceEnabled = enabled
+}
+
+func (r *Render) ToggleWhitespaceEnabled() {
+	r.whitespaceEnabled = !r.whitespaceEnabled
+}
+
+func (r *Render) SetWrapEnabled(enabled bool) {
+	r.wrapEnabled = enabled
+}
+
+func (r *Render) ToggleWrapEnabled() {
+	r.wrapEnabled = !r.wrapEnabled
+}
+
 func (r *Render) Render() {
 	vt.Sync.Bsu()
 
 	vt.Buf.Write(vt.HideCursor)
 	vt.Buf.Write(vt.SaveCursor)
-	vt.Buf.Write(r.Colors.background)
-	vt.ClearArea(vt.Buf, r.Area)
+	vt.Buf.Write(r.colors.background)
+	vt.ClearArea(vt.Buf, r.area)
 
 	r.determineLayout()
 
-	if r.Area.W >= r.indexWidth {
+	if r.area.W >= r.indexWidth {
 		r.scrollV()
 		r.scrollH()
 		r.renderLines()
 	}
 
-	if r.Enabled {
+	if r.enabled {
 		vt.SetCursor(vt.Buf, r.cursorY, r.cursorX)
 		vt.Buf.Write(vt.ShowCursor)
 	} else {
@@ -67,25 +100,25 @@ func (r *Render) Render() {
 }
 
 func (r *Render) determineLayout() {
-	if r.IndexEnabled && r.buffer.LineCount() > 0 {
+	if r.indexEnabled && r.buffer.LineCount() > 0 {
 		r.indexWidth = int(math.Log10(float64(r.buffer.LineCount()))) + 3
 	} else {
 		r.indexWidth = 0
 	}
 
-	r.textWidth = r.Area.W - r.indexWidth
+	r.textWidth = r.area.W - r.indexWidth
 
-	if r.WrapEnabled {
+	if r.wrapEnabled {
 		r.buffer.WrapWidth = r.textWidth
 	} else {
 		r.buffer.WrapWidth = math.MaxInt
 	}
 
-	r.cursorY = r.Area.Y
-	r.cursorX = r.Area.X + r.indexWidth
+	r.cursorY = r.area.Y
+	r.cursorX = r.area.X + r.indexWidth
 
-	r.buffer.MeasureY = r.Area.Y
-	r.buffer.MeasureX = r.Area.X + r.indexWidth
+	r.buffer.MeasureY = r.area.Y
+	r.buffer.MeasureX = r.area.X + r.indexWidth
 }
 
 func (r *Render) scrollV() {
@@ -99,8 +132,8 @@ func (r *Render) scrollV() {
 
 	// Below?
 
-	if deltaLn > r.Area.H {
-		r.scrollLn = r.cursor.Ln - r.Area.H
+	if deltaLn > r.area.H {
+		r.scrollLn = r.cursor.Ln - r.area.H
 	}
 
 	xs := make([]int, r.cursor.Ln+1-r.scrollLn)
@@ -116,7 +149,7 @@ func (r *Render) scrollV() {
 	i := 0
 	height := std.Sum(xs)
 
-	for height > r.Area.H {
+	for height > r.area.H {
 		height -= xs[i]
 		r.scrollLn += 1
 		i += 1
@@ -174,19 +207,19 @@ func (r *Render) scrollH() {
 }
 
 func (r *Render) renderLines() {
-	row := r.Area.Y
+	row := r.area.Y
 
 	for ln := r.scrollLn; ; ln += 1 {
 		if ln < r.buffer.LineCount() {
 			row = r.renderLine(ln, row)
 		} else {
-			vt.SetCursor(vt.Buf, row, r.Area.X)
-			vt.Buf.Write(r.Colors.void)
-			vt.ClearLine(vt.Buf, r.Area.W)
+			vt.SetCursor(vt.Buf, row, r.area.X)
+			vt.Buf.Write(r.colors.void)
+			vt.ClearLine(vt.Buf, r.area.W)
 		}
 
 		row += 1
-		if row >= r.Area.Y+r.Area.H {
+		if row >= r.area.Y+r.area.H {
 			break
 		}
 	}
@@ -200,34 +233,34 @@ func (r *Render) renderLine(ln int, row int) int {
 		if cell.Col == 0 {
 			if i > 0 {
 				row += 1
-				if row >= r.Area.Y+r.Area.H {
+				if row >= r.area.Y+r.area.H {
 					return row
 				}
 			}
 
-			vt.SetCursor(vt.Buf, row, r.Area.X)
+			vt.SetCursor(vt.Buf, row, r.area.X)
 
 			if r.indexWidth > 0 {
 				if i == 0 {
-					vt.Buf.Write(r.Colors.index)
+					vt.Buf.Write(r.colors.index)
 					fmt.Fprintf(vt.Buf, "%*d ", r.indexWidth-1, ln+1)
 				} else {
-					vt.Buf.Write(r.Colors.background)
+					vt.Buf.Write(r.colors.background)
 					vt.WriteSpaces(vt.Buf, r.indexWidth)
 				}
 			}
 
-			availableW = r.Area.W - r.indexWidth
+			availableW = r.area.W - r.indexWidth
 		}
 
 		if (cell.Col < r.scrollCol) || (cell.G.Width > availableW) {
 			continue
 		}
 
-		color := newCharColor(r.cursor.IsSelected(ln, i), cell.G.IsVisible, r.WhitespaceEnabled)
+		color := newCharColor(r.cursor.IsSelected(ln, i), cell.G.IsVisible, r.whitespaceEnabled)
 		if color != currentColor {
 			currentColor = color
-			vt.Buf.Write(r.Colors.char[color])
+			vt.Buf.Write(r.colors.char[color])
 		}
 
 		vt.Buf.Write(cell.G.Bytes)

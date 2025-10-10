@@ -48,7 +48,7 @@ func (p *Palette) Layout(a ui.Area) {
 
 func (p *Palette) Open(done chan<- *Option) {
 	p.enabled = true
-	p.editor.Enable(true)
+	p.editor.SetEnabled(true)
 
 	p.editor.SetText("")
 	p.editor.ResetCursor()
@@ -59,7 +59,7 @@ func (p *Palette) Open(done chan<- *Option) {
 	result := p.processInput()
 
 	p.enabled = false
-	p.editor.Enable(false)
+	p.editor.SetEnabled(false)
 
 	done <- result
 }

@@ -23,7 +23,7 @@ const (
 	charColorEmptySelected
 )
 
-func NewColors(t theme.Tokens) Colors {
+func newColors(t theme.Tokens) Colors {
 	return Colors{
 		background: t.MainBg(),
 		index:      append(t.Light0Bg(), t.Dark0Fg()...),

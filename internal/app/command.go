@@ -27,7 +27,7 @@ func (app *App) Debug() {
 }
 
 func (app *App) Exit() {
-	app.editor.Enable(false)
+	app.editor.SetEnabled(false)
 
 	if app.editor.HasChanges() {
 		save := make(chan bool)
@@ -42,7 +42,7 @@ func (app *App) Exit() {
 }
 
 func (app *App) Palette() {
-	app.editor.Enable(false)
+	app.editor.SetEnabled(false)
 
 	done := make(chan *palette.Option)
 
@@ -50,7 +50,7 @@ func (app *App) Palette() {
 
 	option := <-done
 
-	app.editor.Enable(true)
+	app.editor.SetEnabled(true)
 
 	app.editor.Render()
 
@@ -79,13 +79,13 @@ func (app *App) Redo() {
 }
 
 func (app *App) Save() {
-	app.editor.Enable(false)
+	app.editor.SetEnabled(false)
 
 	if app.save() {
 		app.editor.ResetCursor()
 	}
 
-	app.editor.Enable(true)
+	app.editor.SetEnabled(true)
 
 	app.editor.Render()
 }
@@ -139,13 +139,13 @@ func (app *App) Undo() {
 }
 
 func (app *App) Whitespace() {
-	app.editor.ToggleWhitespace()
+	app.editor.ToggleWhitespaceEnabled()
 
 	app.Render()
 }
 
 func (app *App) Wrap() {
-	app.editor.ToggleWrap()
+	app.editor.ToggleWrapEnabled()
 
 	app.Render()
 }
