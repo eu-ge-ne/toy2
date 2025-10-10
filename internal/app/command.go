@@ -11,12 +11,6 @@ type Command interface {
 	Run()
 }
 
-func (app *App) Undo() {
-	if app.editor.Handlers["UNDO"].Run(key.Key{}) {
-		app.editor.Render()
-	}
-}
-
 func (app *App) Whitespace() {
 	app.editor.ToggleWhitespaceEnabled()
 

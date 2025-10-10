@@ -60,8 +60,8 @@ func New() *App {
 		"THEMESLATE":   NewThemeSlate(&app),
 		"THEMESTONE":   NewThemeStone(&app),
 		"THEMEZINC":    NewThemeZinc(&app),
+		"UNDO":         NewUndo(&app),
 		/*
-			command.NewUndo(&app),
 			command.NewWhitespace(&app),
 			command.NewWrap(&app),
 			command.NewZen(&app),

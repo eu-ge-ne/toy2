@@ -1,4 +1,4 @@
-package command
+package app
 
 import (
 	"github.com/eu-ge-ne/toy2/internal/key"
@@ -6,11 +6,11 @@ import (
 )
 
 type Undo struct {
-	app    App
+	app    *App
 	option palette.Option
 }
 
-func NewUndo(app App) *Undo {
+func NewUndo(app *App) *Undo {
 	return &Undo{
 		app: app,
 		option: palette.NewOption(
@@ -30,5 +30,7 @@ func (c *Undo) Match(key.Key) bool {
 }
 
 func (c *Undo) Run() {
-	c.app.Undo()
+	if c.app.editor.Handlers["UNDO"].Run(key.Key{}) {
+		c.app.editor.Render()
+	}
 }
