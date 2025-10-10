@@ -12,17 +12,6 @@ type Command interface {
 	Run()
 }
 
-func (app *App) ThemeSlate() {
-	app.setColors(theme.Slate{})
-
-	app.Render()
-}
-
-func (app *App) ThemeStone() {
-	app.setColors(theme.Stone{})
-
-	app.Render()
-}
 
 func (app *App) ThemeZinc() {
 	app.setColors(theme.Zinc{})

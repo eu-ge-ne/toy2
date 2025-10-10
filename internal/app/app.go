@@ -57,9 +57,9 @@ func New() *App {
 		"THEMEBASE16":  NewThemeBase16(&app),
 		"THEMEGRAY":    NewThemeGray(&app),
 		"THEMENEUTRAL": NewThemeNeutral(&app),
+		"THEMESLATE":   NewThemeSlate(&app),
+		"THEMESTONE":   NewThemeStone(&app),
 		/*
-			command.NewThemeSlate(&app),
-			command.NewThemeStone(&app),
 			command.NewThemeZinc(&app),
 			command.NewUndo(&app),
 			command.NewWhitespace(&app),
