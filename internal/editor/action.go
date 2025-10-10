@@ -1,10 +1,10 @@
-package data
+package editor
 
 import (
 	"github.com/eu-ge-ne/toy2/internal/key"
 )
 
-type Handler interface {
+type Action interface {
 	Match(key.Key) bool
-	Handle(key.Key) bool
+	Run(key.Key) bool
 }

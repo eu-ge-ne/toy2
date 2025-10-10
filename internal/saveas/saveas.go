@@ -2,6 +2,7 @@ package saveas
 
 import (
 	"github.com/eu-ge-ne/toy2/internal/editor"
+	"github.com/eu-ge-ne/toy2/internal/key"
 	"github.com/eu-ge-ne/toy2/internal/std"
 	"github.com/eu-ge-ne/toy2/internal/theme"
 	"github.com/eu-ge-ne/toy2/internal/ui"
@@ -78,8 +79,8 @@ func (sv *SaveAs) Open(filePath string, done chan<- string) {
 	sv.enabled = true
 	sv.editor.SetEnabled(true)
 
-	sv.editor.Data.SetText(filePath)
-	sv.editor.Data.GoEnd(false)
+	sv.editor.SetText(filePath)
+	sv.editor.Actions["END"].Run(key.Key{})
 
 	sv.Render()
 
@@ -99,7 +100,7 @@ func (sv *SaveAs) processInput() string {
 		case "ESC":
 			return ""
 		case "ENTER":
-			fp := sv.editor.Data.GetText()
+			fp := sv.editor.GetText()
 			if len(fp) > 0 {
 				return fp
 			}

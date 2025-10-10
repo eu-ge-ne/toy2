@@ -4,18 +4,19 @@ import (
 	"slices"
 
 	"github.com/eu-ge-ne/toy2/internal/app/command"
+	"github.com/eu-ge-ne/toy2/internal/key"
 	"github.com/eu-ge-ne/toy2/internal/palette"
 	"github.com/eu-ge-ne/toy2/internal/theme"
 )
 
 func (app *App) Copy() {
-	if app.editor.Data.Copy() {
+	if app.editor.Actions["COPY"].Run(key.Key{}) {
 		app.editor.Render()
 	}
 }
 
 func (app *App) Cut() {
-	if app.editor.Data.Cut() {
+	if app.editor.Actions["CUT"].Run(key.Key{}) {
 		app.editor.Render()
 	}
 }
@@ -29,7 +30,7 @@ func (app *App) Debug() {
 func (app *App) Exit() {
 	app.editor.SetEnabled(false)
 
-	if app.editor.Data.HasChanges() {
+	if app.editor.HasChanges() {
 		save := make(chan bool)
 		go app.ask.Open("Save changes?", save)
 
@@ -67,13 +68,13 @@ func (app *App) Palette() {
 }
 
 func (app *App) Paste() {
-	if app.editor.Data.Paste() {
+	if app.editor.Actions["PASTE"].Run(key.Key{}) {
 		app.editor.Render()
 	}
 }
 
 func (app *App) Redo() {
-	if app.editor.Data.Redo() {
+	if app.editor.Actions["REDO"].Run(key.Key{}) {
 		app.editor.Render()
 	}
 }
@@ -82,7 +83,7 @@ func (app *App) Save() {
 	app.editor.SetEnabled(false)
 
 	if app.save() {
-		app.editor.Data.TopHome(false)
+		//app.editor.Data.TopHome(false)
 	}
 
 	app.editor.SetEnabled(true)
@@ -91,7 +92,7 @@ func (app *App) Save() {
 }
 
 func (app *App) SelectAll() {
-	if app.editor.Data.SelectAll() {
+	if app.editor.Actions["SELECTALL"].Run(key.Key{}) {
 		app.editor.Render()
 	}
 }
@@ -133,7 +134,7 @@ func (app *App) ThemeZinc() {
 }
 
 func (app *App) Undo() {
-	if app.editor.Data.Undo() {
+	if app.editor.Actions["UNDO"].Run(key.Key{}) {
 		app.editor.Render()
 	}
 }

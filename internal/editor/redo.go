@@ -1,17 +1,21 @@
-package data
+package editor
 
 import (
 	"github.com/eu-ge-ne/toy2/internal/key"
 )
 
 type Redo struct {
-	data *Data
+	editor *Editor
 }
 
 func (h *Redo) Match(k key.Key) bool {
 	return k.Name == "y" && (k.Mods&key.Ctrl != 0 || k.Mods&key.Super != 0)
 }
 
-func (h *Redo) Handle(key.Key) bool {
-	return h.data.Redo()
+func (h *Redo) Run(key.Key) bool {
+	if !h.editor.enabled {
+		return false
+	}
+
+	return h.editor.history.Redo()
 }

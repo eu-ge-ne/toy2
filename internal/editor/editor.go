@@ -1,13 +1,16 @@
 package editor
 
 import (
-	"slices"
+	"io"
+	"os"
 	"time"
+	"unicode/utf8"
 
 	"github.com/eu-ge-ne/toy2/internal/editor/cursor"
-	"github.com/eu-ge-ne/toy2/internal/editor/data"
 	"github.com/eu-ge-ne/toy2/internal/editor/history"
 	"github.com/eu-ge-ne/toy2/internal/editor/render"
+	"github.com/eu-ge-ne/toy2/internal/editor/syntax"
+	"github.com/eu-ge-ne/toy2/internal/grapheme"
 	"github.com/eu-ge-ne/toy2/internal/key"
 	"github.com/eu-ge-ne/toy2/internal/textbuf"
 	"github.com/eu-ge-ne/toy2/internal/theme"
@@ -15,31 +18,66 @@ import (
 )
 
 type Editor struct {
+	Actions      map[string]Action
 	OnKeyHandled func(time.Duration)
 	OnRender     func(time.Duration)
 	OnCursor     func(int, int, int)
 	OnChanged    func()
 
 	multiLine bool
-	enabled   bool
+	buffer    *textbuf.TextBuf
+	cursor    *cursor.Cursor
+	history   *history.History
+	syntax    *syntax.Syntax
+	render    *render.Render
 
-	Data   *data.Data
-	render *render.Render
+	enabled   bool
+	pageSize  int
+	clipboard string
 }
 
 func New(multiLine bool) *Editor {
-	ed := Editor{
+	ed := &Editor{
 		multiLine: multiLine,
 	}
 
-	buffer := textbuf.New()
-	cursor := cursor.New(buffer)
-	history := history.New(buffer, cursor)
-	history.OnChanged = ed.OnChanged
-	ed.Data = data.New(multiLine, buffer, cursor, history)
-	ed.render = render.New(buffer, cursor)
+	ed.buffer = textbuf.New()
+	ed.cursor = cursor.New(ed.buffer)
 
-	return &ed
+	ed.history = history.New(ed.buffer, ed.cursor)
+	ed.history.OnChanged = ed.OnChanged
+
+	ed.render = render.New(ed.buffer, ed.cursor)
+
+	ed.Actions = map[string]Action{
+		"INSERT":    &Insert{ed},
+		"BACKSPACE": &Backspace{ed},
+		"BOTTOM":    &Bottom{ed},
+		"COPY":      &Copy{ed},
+		"CUT":       &Cut{ed},
+		"DELETE":    &Delete{ed},
+		"DOWN":      &Down{ed},
+		"END":       &End{ed},
+		"ENTER":     &Enter{ed},
+		"HOME":      &Home{ed},
+		"LEFT":      &Left{ed},
+		"PAGEDOWN":  &PageDown{ed},
+		"PAGEUP":    &PageUp{ed},
+		"PASTE":     &Paste{ed},
+		"REDO":      &Redo{ed},
+		"RIGHT":     &Right{ed},
+		"SELECTALL": &SelectAll{ed},
+		"TOP":       &Top{ed},
+		"UNDO":      &Undo{ed},
+		"UP":        &Up{ed},
+	}
+
+	return ed
+}
+
+func (ed *Editor) SetSyntax() {
+	ed.syntax = syntax.New(ed.buffer)
+	ed.syntax.Reset()
 }
 
 func (ed *Editor) SetColors(t theme.Tokens) {
@@ -47,15 +85,15 @@ func (ed *Editor) SetColors(t theme.Tokens) {
 }
 
 func (ed *Editor) Layout(a ui.Area) {
+	ed.pageSize = a.H
 	ed.render.SetArea(a)
-	ed.Data.SetPageSize(a.H)
 }
 
 func (ed *Editor) Render() {
 	started := time.Now()
 
 	if ed.OnCursor != nil {
-		ed.OnCursor(ed.Data.CursorStatus())
+		ed.OnCursor(ed.cursor.Ln, ed.cursor.Col, ed.buffer.LineCount())
 	}
 
 	ed.render.Render()
@@ -67,8 +105,6 @@ func (ed *Editor) Render() {
 
 func (ed *Editor) SetEnabled(enabled bool) {
 	ed.enabled = enabled
-
-	ed.Data.SetEnabled(enabled)
 	ed.render.SetEnabled(enabled)
 }
 
@@ -82,8 +118,7 @@ func (ed *Editor) EnableWhitespace(enabled bool) {
 
 func (ed *Editor) ToggleWhitespaceEnabled() {
 	ed.render.ToggleWhitespaceEnabled()
-
-	ed.Data.GoHome(false)
+	ed.cursor.Home(false)
 }
 
 func (ed *Editor) SetWrapEnabled(enabled bool) {
@@ -92,8 +127,7 @@ func (ed *Editor) SetWrapEnabled(enabled bool) {
 
 func (ed *Editor) ToggleWrapEnabled() {
 	ed.render.ToggleWrapEnabled()
-
-	ed.Data.GoHome(false)
+	ed.cursor.Home(false)
 }
 
 func (ed *Editor) HandleKey(key key.Key) bool {
@@ -103,19 +137,155 @@ func (ed *Editor) HandleKey(key key.Key) bool {
 
 	t0 := time.Now()
 
-	i := slices.IndexFunc(ed.Data.Handlers, func(h data.Handler) bool {
-		return h.Match(key)
-	})
+	for _, act := range ed.Actions {
+		if act.Match(key) {
+			r := act.Run(key)
 
-	if i < 0 {
-		return false
+			if ed.OnKeyHandled != nil {
+				ed.OnKeyHandled(time.Since(t0))
+			}
+
+			return r
+		}
 	}
 
-	r := ed.Data.Handlers[i].Handle(key)
+	return false
+}
 
-	if ed.OnKeyHandled != nil {
-		ed.OnKeyHandled(time.Since(t0))
+func (ed *Editor) HasChanges() bool {
+	return !ed.history.IsEmpty()
+}
+
+func (ed *Editor) SetText(text string) {
+	ed.buffer.Reset(text)
+	ed.syntax.Reset()
+}
+
+func (ed *Editor) GetText() string {
+	return ed.buffer.All()
+}
+
+func (ed *Editor) Load(filePath string) error {
+	f, err := os.Open(filePath)
+	if err != nil {
+		return err
 	}
 
-	return r
+	defer f.Close()
+
+	buf := make([]byte, 1024*1024*64)
+
+	for {
+		bytesRead, err := f.Read(buf)
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+
+		chunk := buf[:bytesRead]
+
+		if !utf8.Valid(chunk) {
+			panic("invalid utf8 chunk")
+		}
+
+		ed.buffer.Append(string(chunk))
+	}
+
+	ed.syntax.Reset()
+
+	return nil
+}
+
+func (ed *Editor) Save(filePath string) error {
+	f, err := os.OpenFile(filePath, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+
+	defer f.Close()
+
+	for text := range ed.buffer.Iter() {
+		_, err := f.WriteString(text)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (ed *Editor) deleteChar() {
+	cur := ed.cursor
+
+	ed.buffer.Delete2(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
+	ed.syntax.Delete(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
+
+	ed.history.Push()
+}
+
+func (ed *Editor) deletePrevChar() {
+	cur := ed.cursor
+
+	if cur.Ln > 0 && cur.Col == 0 {
+		l := 0
+		for range ed.buffer.IterLine(cur.Ln, false) {
+			l += 1
+			if l == 2 {
+				break
+			}
+		}
+
+		if l == 1 {
+			ed.buffer.Delete2(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
+			ed.syntax.Delete(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
+			cur.Left(false)
+		} else {
+			cur.Left(false)
+			ed.buffer.Delete2(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
+			ed.syntax.Delete(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
+		}
+	} else {
+		ed.buffer.Delete2(cur.Ln, cur.Col-1, cur.Ln, cur.Col)
+		ed.syntax.Delete(cur.Ln, cur.Col-1, cur.Ln, cur.Col)
+		cur.Left(false)
+	}
+
+	ed.history.Push()
+}
+
+func (ed *Editor) deleteSelection() {
+	cur := ed.cursor
+
+	ed.buffer.Delete2(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol)
+	ed.syntax.Delete(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol)
+	ed.cursor.Set(cur.StartLn, cur.StartCol, false)
+
+	ed.history.Push()
+}
+
+func (ed *Editor) insertText(text string) {
+	cur := ed.cursor
+
+	if cur.Selecting {
+		ed.buffer.Delete2(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol)
+		ed.syntax.Delete(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol)
+		cur.Set(cur.StartLn, cur.StartCol, false)
+	}
+
+	ed.buffer.Insert2(cur.Ln, cur.Col, text)
+
+	startLn := cur.Ln
+	startCol := cur.Col
+
+	dLn, dCol := grapheme.Graphemes.MeasureText(text)
+	cur.Forward(dLn, dCol)
+
+	endLn := cur.Ln
+	endCol := cur.Col
+
+	ed.syntax.Insert(startLn, startCol, endLn, endCol)
+
+	ed.history.Push()
 }

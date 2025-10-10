@@ -1,17 +1,17 @@
-package data
+package editor
 
 import (
 	"github.com/eu-ge-ne/toy2/internal/key"
 )
 
 type Left struct {
-	data *Data
+	editor *Editor
 }
 
 func (h *Left) Match(k key.Key) bool {
 	return k.Name == "LEFT"
 }
 
-func (h *Left) Handle(k key.Key) bool {
-	return h.data.Left(k.Mods&key.Shift != 0)
+func (h *Left) Run(k key.Key) bool {
+	return h.editor.cursor.Left(k.Mods&key.Shift != 0)
 }

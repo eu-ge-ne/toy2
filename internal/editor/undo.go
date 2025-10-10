@@ -1,17 +1,21 @@
-package data
+package editor
 
 import (
 	"github.com/eu-ge-ne/toy2/internal/key"
 )
 
 type Undo struct {
-	data *Data
+	editor *Editor
 }
 
 func (h *Undo) Match(k key.Key) bool {
 	return k.Name == "z" && (k.Mods&key.Ctrl != 0 || k.Mods&key.Super != 0)
 }
 
-func (h *Undo) Handle(key.Key) bool {
-	return h.data.Undo()
+func (h *Undo) Run(key.Key) bool {
+	if !h.editor.enabled {
+		return false
+	}
+
+	return h.editor.history.Undo()
 }
