@@ -1,4 +1,4 @@
-package command
+package app
 
 import (
 	"github.com/eu-ge-ne/toy2/internal/key"
@@ -6,11 +6,11 @@ import (
 )
 
 type Debug struct {
-	app    App
+	app    *App
 	option palette.Option
 }
 
-func NewDebug(app App) *Debug {
+func NewDebug(app *App) *Debug {
 	return &Debug{
 		app:    app,
 		option: palette.NewOption("Debug", "Global: Toggle Debug Panel", []key.Key{}),
@@ -26,5 +26,7 @@ func (c *Debug) Match(key.Key) bool {
 }
 
 func (c *Debug) Run() {
-	c.app.Debug()
+	c.app.debug.ToggleEnabled()
+
+	c.app.editor.Render()
 }

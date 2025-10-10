@@ -1,4 +1,4 @@
-package command
+package app
 
 import (
 	"github.com/eu-ge-ne/toy2/internal/key"
@@ -6,11 +6,11 @@ import (
 )
 
 type Cut struct {
-	app    App
+	app    *App
 	option palette.Option
 }
 
-func NewCut(app App) *Cut {
+func NewCut(app *App) *Cut {
 	return &Cut{
 		app: app,
 		option: palette.NewOption(
@@ -30,5 +30,7 @@ func (c *Cut) Match(key.Key) bool {
 }
 
 func (c *Cut) Run() {
-	c.app.Cut()
+	if c.app.editor.Handlers["CUT"].Run(key.Key{}) {
+		c.app.editor.Render()
+	}
 }

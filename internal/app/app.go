@@ -11,7 +11,6 @@ import (
 	"syscall"
 
 	"github.com/eu-ge-ne/toy2/internal/alert"
-	"github.com/eu-ge-ne/toy2/internal/app/command"
 	"github.com/eu-ge-ne/toy2/internal/ask"
 	"github.com/eu-ge-ne/toy2/internal/debug"
 	"github.com/eu-ge-ne/toy2/internal/editor"
@@ -34,7 +33,7 @@ type App struct {
 	header     *header.Header
 	palette    *palette.Palette
 	saveas     *saveas.SaveAs
-	commands   []command.Command
+	commands   map[string]Command
 	restoreVt  func()
 	zenEnabled bool
 	filePath   string
@@ -45,26 +44,28 @@ var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 func New() *App {
 	app := App{}
 
-	app.commands = []command.Command{
-		command.NewCopy(&app),
-		command.NewCut(&app),
-		command.NewDebug(&app),
-		command.NewExit(&app),
-		command.NewPalette(&app),
-		command.NewPaste(&app),
-		command.NewRedo(&app),
-		command.NewSave(&app),
-		command.NewSelectAll(&app),
-		command.NewThemeBase16(&app),
-		command.NewThemeGray(&app),
-		command.NewThemeNeutral(&app),
-		command.NewThemeSlate(&app),
-		command.NewThemeStone(&app),
-		command.NewThemeZinc(&app),
-		command.NewUndo(&app),
-		command.NewWhitespace(&app),
-		command.NewWrap(&app),
-		command.NewZen(&app),
+	app.commands = map[string]Command{
+		"COPY":    NewCopy(&app),
+		"CUT":     NewCut(&app),
+		"DEBUG":   NewDebug(&app),
+		"EXIT":    NewExit(&app),
+		"PALETTE": NewPalette(&app),
+		"PASTE":   NewPaste(&app),
+		"REDO":    NewRedo(&app),
+		/*
+			command.NewSave(&app),
+			command.NewSelectAll(&app),
+			command.NewThemeBase16(&app),
+			command.NewThemeGray(&app),
+			command.NewThemeNeutral(&app),
+			command.NewThemeSlate(&app),
+			command.NewThemeStone(&app),
+			command.NewThemeZinc(&app),
+			command.NewUndo(&app),
+			command.NewWhitespace(&app),
+			command.NewWrap(&app),
+			command.NewZen(&app),
+		*/
 	}
 
 	options := []*palette.Option{}
@@ -228,7 +229,7 @@ func (app *App) processInput() {
 	for {
 		key := vt.ReadKey()
 
-		i := slices.IndexFunc(app.commands, func(c command.Command) bool {
+		i := slices.IndexFunc(app.commands, func(c Command) bool {
 			return c.Match(key)
 		})
 

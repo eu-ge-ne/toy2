@@ -1,4 +1,4 @@
-package command
+package app
 
 import (
 	"github.com/eu-ge-ne/toy2/internal/key"
@@ -6,13 +6,13 @@ import (
 )
 
 type Exit struct {
-	app    App
+	app    *App
 	option palette.Option
 }
 
-func NewExit(app App) *Exit {
+func NewExit(app *App) *Exit {
 	return &Exit{
-		app:    app,
+		app:    *app,
 		option: palette.NewOption("Exit", "Global: Exit", []key.Key{{Name: "F10"}}),
 	}
 }
@@ -26,5 +26,16 @@ func (c *Exit) Match(k key.Key) bool {
 }
 
 func (c *Exit) Run() {
-	c.app.Exit()
+	c.app.editor.SetEnabled(false)
+
+	if c.app.editor.HasChanges() {
+		save := make(chan bool)
+		go c.app.ask.Open("Save changes?", save)
+
+		if <-save {
+			c.app.save()
+		}
+	}
+
+	c.app.exit()
 }

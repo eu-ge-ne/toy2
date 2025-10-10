@@ -1,4 +1,4 @@
-package command
+package app
 
 import (
 	"github.com/eu-ge-ne/toy2/internal/key"
@@ -6,11 +6,11 @@ import (
 )
 
 type Paste struct {
-	app    App
+	app    *App
 	option palette.Option
 }
 
-func NewPaste(app App) *Paste {
+func NewPaste(app *App) *Paste {
 	return &Paste{
 		app: app,
 		option: palette.NewOption(
@@ -30,5 +30,7 @@ func (c *Paste) Match(key.Key) bool {
 }
 
 func (c *Paste) Run() {
-	c.app.Paste()
+	if c.app.editor.Handlers["PASTE"].Run(key.Key{}) {
+		c.app.editor.Render()
+	}
 }
