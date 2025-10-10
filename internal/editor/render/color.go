@@ -1,4 +1,4 @@
-package editor
+package render
 
 import (
 	"github.com/eu-ge-ne/toy2/internal/theme"

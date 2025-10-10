@@ -7,6 +7,7 @@ import (
 	"github.com/eu-ge-ne/toy2/internal/editor/cursor"
 	"github.com/eu-ge-ne/toy2/internal/editor/handler"
 	"github.com/eu-ge-ne/toy2/internal/editor/history"
+	"github.com/eu-ge-ne/toy2/internal/editor/render"
 	"github.com/eu-ge-ne/toy2/internal/editor/syntax"
 	"github.com/eu-ge-ne/toy2/internal/textbuf"
 	"github.com/eu-ge-ne/toy2/internal/theme"
@@ -20,28 +21,16 @@ type Editor struct {
 	OnChanged    func()
 
 	multiLine bool
-	area      ui.Area
 	enabled   bool
 	clipboard string
-
-	indexEnabled      bool
-	whitespaceEnabled bool
-	wrapEnabled       bool
-
-	indexWidth int
-	textWidth  int
-	cursorY    int
-	cursorX    int
-	scrollLn   int
-	scrollCol  int
+	pageSize  int
 
 	buffer   *textbuf.TextBuf
 	cursor   *cursor.Cursor
 	history  *history.History
 	syntax   *syntax.Syntax
+	render   render.Render
 	handlers []handler.Handler
-
-	colors Colors
 }
 
 func New(multiLine bool, withSyntax bool) *Editor {
@@ -54,6 +43,7 @@ func New(multiLine bool, withSyntax bool) *Editor {
 		buffer:    &b,
 		cursor:    &c,
 		history:   &h,
+		render:    render.New(&b, &c),
 	}
 
 	if withSyntax {
@@ -89,11 +79,26 @@ func New(multiLine bool, withSyntax bool) *Editor {
 }
 
 func (ed *Editor) SetColors(t theme.Tokens) {
-	ed.colors = NewColors(t)
+	ed.render.Colors = render.NewColors(t)
 }
 
 func (ed *Editor) Layout(a ui.Area) {
-	ed.area = a
+	ed.render.Area = a
+	ed.pageSize = a.H
+}
+
+func (ed *Editor) Render() {
+	started := time.Now()
+
+	if ed.OnCursor != nil {
+		ed.OnCursor(ed.cursor.Ln, ed.cursor.Col, ed.buffer.LineCount())
+	}
+
+	ed.render.Render()
+
+	if ed.OnRender != nil {
+		ed.OnRender(time.Since(started))
+	}
 }
 
 // TODO: why needed?
@@ -107,28 +112,29 @@ func (ed *Editor) ResetCursor() {
 
 func (ed *Editor) Enable(enable bool) {
 	ed.enabled = enable
+	ed.render.Enabled = enable
 }
 
 func (ed *Editor) EnableIndex(enable bool) {
-	ed.indexEnabled = enable
+	ed.render.IndexEnabled = enable
 }
 
 func (ed *Editor) EnableWhitespace(enable bool) {
-	ed.whitespaceEnabled = enable
+	ed.render.WhitespaceEnabled = enable
 }
 
 func (ed *Editor) ToggleWhitespace() {
-	ed.whitespaceEnabled = !ed.whitespaceEnabled
+	ed.render.WhitespaceEnabled = !ed.render.WhitespaceEnabled
 
 	ed.cursor.Home(false)
 }
 
 func (ed *Editor) EnableWrap(enable bool) {
-	ed.wrapEnabled = enable
+	ed.render.WrapEnabled = enable
 }
 
 func (ed *Editor) ToggleWrap() {
-	ed.wrapEnabled = !ed.wrapEnabled
+	ed.render.WrapEnabled = !ed.render.WrapEnabled
 
 	ed.cursor.Home(false)
 }

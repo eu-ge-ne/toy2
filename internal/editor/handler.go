@@ -140,7 +140,7 @@ func (ed *Editor) PageDown(sel bool) bool {
 		return false
 	}
 
-	return ed.cursor.Down(ed.area.H, sel)
+	return ed.cursor.Down(ed.pageSize, sel)
 }
 
 func (ed *Editor) PageUp(sel bool) bool {
@@ -148,7 +148,7 @@ func (ed *Editor) PageUp(sel bool) bool {
 		return false
 	}
 
-	return ed.cursor.Up(ed.area.H, sel)
+	return ed.cursor.Up(ed.pageSize, sel)
 }
 
 func (ed *Editor) Paste() bool {
