@@ -29,8 +29,6 @@ func (c *Redo) Match(key.Key) bool {
 	return false
 }
 
-func (c *Redo) Run() {
-	if c.app.editor.Handlers["REDO"].Run(key.Key{}) {
-		c.app.editor.Render()
-	}
+func (c *Redo) Run() bool {
+	return c.app.editor.Handlers["REDO"].Run(key.Key{})
 }

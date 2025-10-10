@@ -25,8 +25,8 @@ func (c *Whitespace) Match(k key.Key) bool {
 	return k.Name == "F5"
 }
 
-func (c *Whitespace) Run() {
+func (c *Whitespace) Run() bool {
 	c.app.editor.ToggleWhitespaceEnabled()
 
-	c.app.Render()
+	return true
 }

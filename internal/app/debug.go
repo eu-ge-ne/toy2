@@ -25,8 +25,8 @@ func (c *Debug) Match(key.Key) bool {
 	return false
 }
 
-func (c *Debug) Run() {
+func (c *Debug) Run() bool {
 	c.app.debug.ToggleEnabled()
 
-	c.app.editor.Render()
+	return true
 }

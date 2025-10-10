@@ -25,8 +25,8 @@ func (c *Wrap) Match(k key.Key) bool {
 	return k.Name == "F6"
 }
 
-func (c *Wrap) Run() {
+func (c *Wrap) Run() bool {
 	c.app.editor.ToggleWrapEnabled()
 
-	c.app.Render()
+	return true
 }

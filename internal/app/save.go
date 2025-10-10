@@ -25,7 +25,7 @@ func (c *Save) Match(k key.Key) bool {
 	return k.Name == "F2"
 }
 
-func (c *Save) Run() {
+func (c *Save) Run() bool {
 	c.app.editor.SetEnabled(false)
 
 	if c.app.save() {
@@ -34,5 +34,5 @@ func (c *Save) Run() {
 
 	c.app.editor.SetEnabled(true)
 
-	c.app.editor.Render()
+	return true
 }

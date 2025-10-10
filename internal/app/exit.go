@@ -25,7 +25,7 @@ func (c *Exit) Match(k key.Key) bool {
 	return k.Name == "F10"
 }
 
-func (c *Exit) Run() {
+func (c *Exit) Run() bool {
 	c.app.editor.SetEnabled(false)
 
 	if c.app.editor.HasChanges() {
@@ -38,4 +38,6 @@ func (c *Exit) Run() {
 	}
 
 	c.app.exit()
+
+	return true
 }

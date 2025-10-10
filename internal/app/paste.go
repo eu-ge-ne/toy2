@@ -29,8 +29,6 @@ func (c *Paste) Match(key.Key) bool {
 	return false
 }
 
-func (c *Paste) Run() {
-	if c.app.editor.Handlers["PASTE"].Run(key.Key{}) {
-		c.app.editor.Render()
-	}
+func (c *Paste) Run() bool {
+	return c.app.editor.Handlers["PASTE"].Run(key.Key{})
 }

@@ -29,8 +29,6 @@ func (c *Undo) Match(key.Key) bool {
 	return false
 }
 
-func (c *Undo) Run() {
-	if c.app.editor.Handlers["UNDO"].Run(key.Key{}) {
-		c.app.editor.Render()
-	}
+func (c *Undo) Run() bool {
+	return c.app.editor.Handlers["UNDO"].Run(key.Key{})
 }

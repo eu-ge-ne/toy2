@@ -25,8 +25,8 @@ func (c *Zen) Match(k key.Key) bool {
 	return k.Name == "F11"
 }
 
-func (c *Zen) Run() {
+func (c *Zen) Run() bool {
 	c.app.enableZen(!c.app.zenEnabled)
 
-	c.app.refresh()
+	return true
 }

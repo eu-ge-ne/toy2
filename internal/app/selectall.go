@@ -29,8 +29,6 @@ func (c *SelectAll) Match(key.Key) bool {
 	return false
 }
 
-func (c *SelectAll) Run() {
-	if c.app.editor.Handlers["SELECTALL"].Run(key.Key{}) {
-		c.app.editor.Render()
-	}
+func (c *SelectAll) Run() bool {
+	return c.app.editor.Handlers["SELECTALL"].Run(key.Key{})
 }
