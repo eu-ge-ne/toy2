@@ -9,13 +9,13 @@ import (
 )
 
 func (app *App) Copy() {
-	if app.editor.Copy() {
+	if app.editor.Data.Copy() {
 		app.editor.Render()
 	}
 }
 
 func (app *App) Cut() {
-	if app.editor.Cut() {
+	if app.editor.Data.Cut() {
 		app.editor.Render()
 	}
 }
@@ -67,13 +67,13 @@ func (app *App) Palette() {
 }
 
 func (app *App) Paste() {
-	if app.editor.Paste() {
+	if app.editor.Data.Paste() {
 		app.editor.Render()
 	}
 }
 
 func (app *App) Redo() {
-	if app.editor.Redo() {
+	if app.editor.Data.Redo() {
 		app.editor.Render()
 	}
 }
@@ -91,7 +91,7 @@ func (app *App) Save() {
 }
 
 func (app *App) SelectAll() {
-	if app.editor.SelectAll() {
+	if app.editor.Data.SelectAll() {
 		app.editor.Render()
 	}
 }
@@ -133,7 +133,7 @@ func (app *App) ThemeZinc() {
 }
 
 func (app *App) Undo() {
-	if app.editor.Undo() {
+	if app.editor.Data.Undo() {
 		app.editor.Render()
 	}
 }

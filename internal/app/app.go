@@ -117,7 +117,7 @@ func (app *App) Run() {
 	app.editor.SetEnabled(true)
 	app.editor.EnableWhitespace(true)
 	app.editor.SetWrapEnabled(true)
-	app.editor.SetSyntax()
+	app.editor.Data.SetSyntax()
 
 	app.debug.Enable(true)
 
@@ -244,7 +244,7 @@ func (app *App) processInput() {
 }
 
 func (app *App) open(filePath string) {
-	err := app.editor.Load(filePath)
+	err := app.editor.Data.Load(filePath)
 
 	if os.IsNotExist(err) {
 		return
@@ -272,7 +272,7 @@ func (app *App) save() bool {
 }
 
 func (app *App) saveFile() bool {
-	err := app.editor.Save(app.filePath)
+	err := app.editor.Data.Save(app.filePath)
 	if err == nil {
 		return true
 	}
@@ -294,7 +294,7 @@ func (app *App) saveFileAs() bool {
 			return false
 		}
 
-		err := app.editor.Save(filePath)
+		err := app.editor.Data.Save(filePath)
 		if err == nil {
 			app.setFilePath(filePath)
 			return true

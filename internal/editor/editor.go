@@ -1,18 +1,14 @@
 package editor
 
 import (
-	"io"
 	"math"
-	"os"
 	"slices"
 	"time"
-	"unicode/utf8"
 
 	"github.com/eu-ge-ne/toy2/internal/editor/cursor"
 	"github.com/eu-ge-ne/toy2/internal/editor/data"
 	"github.com/eu-ge-ne/toy2/internal/editor/history"
 	"github.com/eu-ge-ne/toy2/internal/editor/render"
-	"github.com/eu-ge-ne/toy2/internal/editor/syntax"
 	"github.com/eu-ge-ne/toy2/internal/key"
 	"github.com/eu-ge-ne/toy2/internal/textbuf"
 	"github.com/eu-ge-ne/toy2/internal/theme"
@@ -31,9 +27,9 @@ type Editor struct {
 	buffer  *textbuf.TextBuf
 	cursor  *cursor.Cursor
 	history *history.History
-	syntax  *syntax.Syntax
-	data    *data.Data
-	render  *render.Render
+
+	Data   *data.Data
+	render *render.Render
 }
 
 func New(multiLine bool) *Editor {
@@ -45,7 +41,7 @@ func New(multiLine bool) *Editor {
 	ed.cursor = cursor.New(ed.buffer)
 	ed.history = history.New(ed.buffer, ed.cursor)
 	ed.history.OnChanged = ed.OnChanged
-	ed.data = data.New(multiLine, ed.buffer, ed.cursor, ed.history)
+	ed.Data = data.New(multiLine, ed.buffer, ed.cursor, ed.history)
 	ed.render = render.New(ed.buffer, ed.cursor)
 
 	return &ed
@@ -55,16 +51,9 @@ func (ed *Editor) SetColors(t theme.Tokens) {
 	ed.render.SetColors(t)
 }
 
-func (ed *Editor) SetSyntax() {
-	ed.syntax = syntax.New(ed.buffer)
-	ed.syntax.Reset()
-
-	ed.data.SetSyntax(ed.syntax)
-}
-
 func (ed *Editor) Layout(a ui.Area) {
 	ed.render.SetArea(a)
-	ed.data.SetPageSize(a.H)
+	ed.Data.SetPageSize(a.H)
 }
 
 func (ed *Editor) Render() {
@@ -93,7 +82,7 @@ func (ed *Editor) ResetCursor() {
 func (ed *Editor) SetEnabled(enabled bool) {
 	ed.enabled = enabled
 
-	ed.data.SetEnabled(enabled)
+	ed.Data.SetEnabled(enabled)
 	ed.render.SetEnabled(enabled)
 }
 
@@ -128,7 +117,7 @@ func (ed *Editor) HandleKey(key key.Key) bool {
 
 	t0 := time.Now()
 
-	i := slices.IndexFunc(ed.data.Handlers, func(h data.Handler) bool {
+	i := slices.IndexFunc(ed.Data.Handlers, func(h data.Handler) bool {
 		return h.Match(key)
 	})
 
@@ -136,7 +125,7 @@ func (ed *Editor) HandleKey(key key.Key) bool {
 		return false
 	}
 
-	r := ed.data.Handlers[i].Handle(key)
+	r := ed.Data.Handlers[i].Handle(key)
 
 	if ed.OnKeyHandled != nil {
 		ed.OnKeyHandled(time.Since(t0))
@@ -145,90 +134,6 @@ func (ed *Editor) HandleKey(key key.Key) bool {
 	return r
 }
 
-func (ed *Editor) Load(filePath string) error {
-	f, err := os.Open(filePath)
-	if err != nil {
-		return err
-	}
-
-	defer f.Close()
-
-	buf := make([]byte, 1024*1024*64)
-
-	for {
-		bytesRead, err := f.Read(buf)
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return err
-		}
-
-		chunk := buf[:bytesRead]
-
-		if !utf8.Valid(chunk) {
-			panic("invalid utf8 chunk")
-		}
-
-		ed.buffer.Append(string(chunk))
-	}
-
-	ed.syntax.Reset()
-
-	return nil
-}
-
-func (ed *Editor) Save(filePath string) error {
-	f, err := os.OpenFile(filePath, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
-	if err != nil {
-		return err
-	}
-
-	defer f.Close()
-
-	for text := range ed.buffer.Iter() {
-		_, err := f.WriteString(text)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 func (ed *Editor) HasChanges() bool {
 	return !ed.history.IsEmpty()
-}
-
-func (ed *Editor) SetText(text string) {
-	ed.buffer.Reset(text)
-	ed.syntax.Reset()
-}
-
-func (ed *Editor) GetText() string {
-	return ed.buffer.All()
-}
-
-func (ed *Editor) Copy() bool {
-	return ed.data.Copy()
-}
-
-func (ed *Editor) Cut() bool {
-	return ed.data.Cut()
-}
-
-func (ed *Editor) Paste() bool {
-	return ed.data.Paste()
-}
-
-func (ed *Editor) Redo() bool {
-	return ed.data.Redo()
-}
-
-func (ed *Editor) Undo() bool {
-	return ed.data.Undo()
-}
-
-func (ed *Editor) SelectAll() bool {
-	return ed.data.SelectAll()
 }
