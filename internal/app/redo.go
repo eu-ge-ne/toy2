@@ -1,4 +1,4 @@
-package command
+package app
 
 import (
 	"github.com/eu-ge-ne/toy2/internal/key"
@@ -6,11 +6,11 @@ import (
 )
 
 type Redo struct {
-	app    App
+	app    *App
 	option palette.Option
 }
 
-func NewRedo(app App) *Redo {
+func NewRedo(app *App) *Redo {
 	return &Redo{
 		app: app,
 		option: palette.NewOption(
@@ -29,6 +29,6 @@ func (c *Redo) Match(key.Key) bool {
 	return false
 }
 
-func (c *Redo) Run() {
-	c.app.Redo()
+func (c *Redo) Run() bool {
+	return c.app.editor.Handlers["REDO"].Run(key.Key{})
 }

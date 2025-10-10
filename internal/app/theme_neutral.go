@@ -1,16 +1,17 @@
-package command
+package app
 
 import (
 	"github.com/eu-ge-ne/toy2/internal/key"
 	"github.com/eu-ge-ne/toy2/internal/palette"
+	"github.com/eu-ge-ne/toy2/internal/theme"
 )
 
 type ThemeNeutral struct {
-	app    App
+	app    *App
 	option palette.Option
 }
 
-func NewThemeNeutral(app App) *ThemeNeutral {
+func NewThemeNeutral(app *App) *ThemeNeutral {
 	return &ThemeNeutral{
 		app:    app,
 		option: palette.NewOption("Theme Neutral", "Theme: Neutral", []key.Key{}),
@@ -25,6 +26,8 @@ func (c *ThemeNeutral) Match(key.Key) bool {
 	return false
 }
 
-func (c *ThemeNeutral) Run() {
-	c.app.ThemeNeutral()
+func (c *ThemeNeutral) Run() bool {
+	c.app.setColors(theme.Neutral{})
+
+	return true
 }

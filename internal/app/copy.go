@@ -1,4 +1,4 @@
-package command
+package app
 
 import (
 	"github.com/eu-ge-ne/toy2/internal/key"
@@ -6,11 +6,11 @@ import (
 )
 
 type Copy struct {
-	app    App
+	app    *App
 	option palette.Option
 }
 
-func NewCopy(app App) *Copy {
+func NewCopy(app *App) *Copy {
 	return &Copy{
 		app: app,
 		option: palette.NewOption(
@@ -29,6 +29,6 @@ func (c *Copy) Match(key.Key) bool {
 	return false
 }
 
-func (c *Copy) Run() {
-	c.app.Copy()
+func (c *Copy) Run() bool {
+	return c.app.editor.Handlers["COPY"].Run(key.Key{})
 }

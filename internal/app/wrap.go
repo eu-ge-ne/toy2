@@ -1,4 +1,4 @@
-package command
+package app
 
 import (
 	"github.com/eu-ge-ne/toy2/internal/key"
@@ -6,11 +6,11 @@ import (
 )
 
 type Wrap struct {
-	app    App
+	app    *App
 	option palette.Option
 }
 
-func NewWrap(app App) *Wrap {
+func NewWrap(app *App) *Wrap {
 	return &Wrap{
 		app:    app,
 		option: palette.NewOption("Wrap", "View: Toggle Line Wrap", []key.Key{{Name: "F6"}}),
@@ -25,6 +25,8 @@ func (c *Wrap) Match(k key.Key) bool {
 	return k.Name == "F6"
 }
 
-func (c *Wrap) Run() {
-	c.app.Wrap()
+func (c *Wrap) Run() bool {
+	c.app.editor.ToggleWrapEnabled()
+
+	return true
 }
