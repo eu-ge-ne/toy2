@@ -30,7 +30,7 @@ func New(parent ui.Control, options []*Option) *Palette {
 	return &Palette{
 		parent:  parent,
 		options: options,
-		editor:  editor.New(false),
+		editor:  editor.New(false, false),
 	}
 }
 

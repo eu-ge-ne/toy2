@@ -3,7 +3,8 @@ package syntax
 type editKind int
 
 const (
-	editDelete editKind = iota
+	editReset editKind = iota
+	editDelete
 	editInsert
 )
 

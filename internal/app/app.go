@@ -81,7 +81,7 @@ func New() *App {
 	app.ask = ask.New()
 	app.alert = alert.New()
 	app.header = header.New()
-	app.editor = editor.New(true)
+	app.editor = editor.New(true, true)
 	app.footer = footer.New()
 	app.debug = debug.New()
 	app.palette = palette.New(&app, options)
@@ -127,7 +127,6 @@ func (app *App) Run() {
 		app.open(flag.Arg(0))
 	}
 
-	app.editor.SetSyntax()
 	app.editor.Render()
 
 	vt.ListenStdin()

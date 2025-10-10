@@ -52,18 +52,20 @@ type colors struct {
 	char       map[charColorEnum][]byte
 }
 
-func New(multiLine bool) *Editor {
+func New(multiLine bool, withSyntax bool) *Editor {
 	b := textbuf.New()
 	c := cursor.New(&b)
 	h := history.New(&b, &c)
-	s := syntax.New(&b)
 
 	ed := Editor{
 		multiLine: multiLine,
 		buffer:    &b,
 		cursor:    &c,
 		history:   &h,
-		syntax:    s,
+	}
+
+	if withSyntax {
+		ed.syntax = syntax.New(&b)
 	}
 
 	ed.history.OnChanged = ed.OnChanged
@@ -123,10 +125,6 @@ func (ed *Editor) ResetCursor() {
 	}
 }
 
-func (ed *Editor) SetSyntax() {
-	ed.syntax.SetLanguage()
-}
-
 func (ed *Editor) HasChanges() bool {
 	return !ed.history.IsEmpty()
 }
@@ -161,6 +159,7 @@ func (ed *Editor) ToggleWrap() {
 
 func (ed *Editor) SetText(text string) {
 	ed.buffer.Reset(text)
+	ed.syntax.Reset()
 }
 
 func (ed *Editor) GetText() string {
@@ -168,7 +167,14 @@ func (ed *Editor) GetText() string {
 }
 
 func (ed *Editor) LoadFromFile(filePath string) error {
-	return ed.buffer.LoadFromFile(filePath)
+	err := ed.buffer.LoadFromFile(filePath)
+	if err != nil {
+		return err
+	}
+
+	ed.syntax.Reset()
+
+	return nil
 }
 
 func (ed *Editor) SaveToFile(filePath string) error {
