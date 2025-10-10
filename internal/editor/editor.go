@@ -63,7 +63,7 @@ func New(multiLine bool) *Editor {
 		buffer:    &b,
 		cursor:    &c,
 		history:   &h,
-		syntax:    &s,
+		syntax:    s,
 	}
 
 	ed.history.OnChanged = ed.OnChanged

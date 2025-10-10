@@ -8,50 +8,69 @@ import (
 )
 
 type Syntax struct {
-	buffer *textbuf.TextBuf
-	parser *treeSitter.Parser
-	tree   *treeSitter.Tree
+	buffer  *textbuf.TextBuf
+	parser  *treeSitter.Parser
+	tree    *treeSitter.Tree
+	setLang chan struct{}
+	edits   chan edit
 }
 
-func New(buffer *textbuf.TextBuf) Syntax {
-	return Syntax{
-		buffer: buffer,
-		parser: treeSitter.NewParser(),
+func New(buffer *textbuf.TextBuf) *Syntax {
+	s := Syntax{
+		buffer:  buffer,
+		parser:  treeSitter.NewParser(),
+		setLang: make(chan struct{}, 1),
+		edits:   make(chan edit, 100),
 	}
+
+	go s.run()
+
+	return &s
 }
 
 func (s *Syntax) SetLanguage() {
-	err := s.parser.SetLanguage(treeSitter.NewLanguage(treeSitterTs.LanguageTypescript()))
-	if err != nil {
-		panic(err)
-	}
-
-	s.parse()
+	s.setLang <- struct{}{}
 }
 
 func (s *Syntax) Delete(startLn, startCol, endLn, endCol int) {
-	start, oldEnd, ok := s.buffer.Index2(startLn, startCol, endLn, endCol)
-	if !ok {
-		panic("in Syntax.Delete")
-	}
-
-	s.edit(start, oldEnd, start+1, startLn, startCol, endLn, endCol, startLn, startCol+1)
-
-	s.parse()
+	s.edits <- edit{editDelete, startLn, startCol, endLn, endCol}
 }
 
 func (s *Syntax) Insert(startLn, startCol, endLn, endCol int) {
-	start, newEnd, ok := s.buffer.Index2(startLn, startCol, endLn, endCol)
-	if !ok {
-		panic("in Syntax.Insert")
-	}
-
-	s.edit(start, start+1, newEnd, startLn, startCol, startLn, startCol+1, endLn, endCol)
-
-	s.parse()
+	s.edits <- edit{editInsert, startLn, startCol, endLn, endCol}
 }
 
-func (s *Syntax) edit(start, oldEnd, newEnd, startLn, startCol, oldEndLn, oldEndCol, newEndLn, newEndCol int) {
+func (s *Syntax) run() {
+	for {
+		select {
+		case <-s.setLang:
+			err := s.parser.SetLanguage(treeSitter.NewLanguage(treeSitterTs.LanguageTypescript()))
+			if err != nil {
+				panic(err)
+			}
+			s.tree = nil
+			s.parseTree()
+		case pos := <-s.edits:
+			if pos.edit == editDelete {
+				start, oldEnd, ok := s.buffer.Index2(pos.startLn, pos.startCol, pos.endLn, pos.endCol)
+				if !ok {
+					panic("in Syntax.Delete")
+				}
+				s.editTree(start, oldEnd, start+1, pos.startLn, pos.startCol, pos.endLn, pos.endCol, pos.startLn, pos.startCol+1)
+				s.parseTree()
+			} else {
+				start, newEnd, ok := s.buffer.Index2(pos.startLn, pos.startCol, pos.endLn, pos.endCol)
+				if !ok {
+					panic("in Syntax.Insert")
+				}
+				s.editTree(start, start+1, newEnd, pos.startLn, pos.startCol, pos.startLn, pos.startCol+1, pos.endLn, pos.endCol)
+				s.parseTree()
+			}
+		}
+	}
+}
+
+func (s *Syntax) editTree(start, oldEnd, newEnd, startLn, startCol, oldEndLn, oldEndCol, newEndLn, newEndCol int) {
 	s.tree.Edit(&treeSitter.InputEdit{
 		StartByte:      uint(start),
 		OldEndByte:     uint(oldEnd),
@@ -62,7 +81,7 @@ func (s *Syntax) edit(start, oldEnd, newEnd, startLn, startCol, oldEndLn, oldEnd
 	})
 }
 
-func (s *Syntax) parse() {
+func (s *Syntax) parseTree() {
 	s.tree = s.parser.ParseWithOptions(func(i int, p treeSitter.Point) []byte {
 		return []byte(s.buffer.Chunk(i))
 	}, s.tree, nil)
