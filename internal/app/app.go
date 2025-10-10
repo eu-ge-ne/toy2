@@ -251,10 +251,7 @@ func (app *App) open(filePath string) {
 	}
 
 	if err != nil {
-		done := make(chan struct{})
-		go app.alert.Open(err.Error(), done)
-		<-done
-
+		<-app.alert.Open(err.Error())
 		app.exit()
 	}
 
@@ -277,19 +274,14 @@ func (app *App) saveFile() bool {
 		return true
 	}
 
-	done := make(chan struct{})
-	go app.alert.Open(err.Error(), done)
-	<-done
+	<-app.alert.Open(err.Error())
 
 	return app.saveFileAs()
 }
 
 func (app *App) saveFileAs() bool {
 	for {
-		filePathResult := make(chan string)
-		go app.saveas.Open(app.filePath, filePathResult)
-
-		filePath := <-filePathResult
+		filePath := <-app.saveas.Open(app.filePath)
 		if len(filePath) == 0 {
 			return false
 		}
@@ -300,9 +292,7 @@ func (app *App) saveFileAs() bool {
 			return true
 		}
 
-		done := make(chan struct{})
-		go app.alert.Open(err.Error(), done)
-		<-done
+		<-app.alert.Open(err.Error())
 	}
 }
 

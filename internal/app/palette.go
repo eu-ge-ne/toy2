@@ -24,11 +24,7 @@ func (c *Palette) Match(k key.Key) bool {
 func (c *Palette) Run() bool {
 	c.app.editor.SetEnabled(false)
 
-	done := make(chan *palette.Option)
-
-	go c.app.palette.Open(done)
-
-	option := <-done
+	option := <-c.app.palette.Open()
 
 	c.app.editor.SetEnabled(true)
 

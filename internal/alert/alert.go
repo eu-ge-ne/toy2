@@ -74,17 +74,23 @@ func (al *Alert) Render() {
 	vt.Sync.Esu()
 }
 
-func (al *Alert) Open(text string, done chan<- struct{}) {
-	al.enabled = true
+func (al *Alert) Open(text string) <-chan struct{} {
+	done := make(chan struct{})
 
-	al.text = text
-	al.Render()
+	go func() {
+		al.enabled = true
 
-	al.processInput()
+		al.text = text
+		al.Render()
 
-	al.enabled = false
+		al.processInput()
 
-	done <- struct{}{}
+		al.enabled = false
+
+		done <- struct{}{}
+	}()
+
+	return done
 }
 
 func (al *Alert) processInput() {
