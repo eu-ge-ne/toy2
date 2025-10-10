@@ -36,9 +36,9 @@ func (ed *Editor) HandleKey(key key.Key) bool {
 
 func (ed *Editor) Backspace() bool {
 	if ed.cursor.Selecting {
-		ed.deleteSelection()
+		ed.data.DeleteSelection()
 	} else {
-		ed.deletePrevChar()
+		ed.data.DeletePrevChar()
 	}
 
 	return true
@@ -80,10 +80,10 @@ func (ed *Editor) Cut() bool {
 
 	if cur.Selecting {
 		ed.clipboard = ed.buffer.Read2(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol)
-		ed.deleteSelection()
+		ed.data.DeleteSelection()
 	} else {
 		ed.clipboard = ed.buffer.Read2(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
-		ed.deleteChar()
+		ed.data.DeleteChar()
 	}
 
 	vt.CopyToClipboard(vt.Sync, ed.clipboard)
@@ -93,9 +93,9 @@ func (ed *Editor) Cut() bool {
 
 func (ed *Editor) Delete() bool {
 	if ed.cursor.Selecting {
-		ed.deleteSelection()
+		ed.data.DeleteSelection()
 	} else {
-		ed.deleteChar()
+		ed.data.DeleteChar()
 	}
 
 	return true
@@ -126,7 +126,7 @@ func (ed *Editor) Home(sel bool) bool {
 }
 
 func (ed *Editor) Insert(text string) bool {
-	ed.insertText(text)
+	ed.data.InsertText(text)
 
 	return true
 }
