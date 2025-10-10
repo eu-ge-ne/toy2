@@ -39,7 +39,7 @@ func NewColors(t theme.Tokens) Colors {
 	}
 }
 
-func createCharColor(isSelected, isVisible, whitespaceEnabled bool) charColorEnum {
+func newCharColor(isSelected, isVisible, whitespaceEnabled bool) charColorEnum {
 	if isSelected {
 		if isVisible {
 			return charColorVisibleSelected
