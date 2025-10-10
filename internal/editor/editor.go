@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/eu-ge-ne/toy2/internal/editor/cursor"
-	"github.com/eu-ge-ne/toy2/internal/editor/data"
 	"github.com/eu-ge-ne/toy2/internal/editor/handler"
 	"github.com/eu-ge-ne/toy2/internal/editor/history"
 	"github.com/eu-ge-ne/toy2/internal/editor/render"
@@ -30,7 +29,6 @@ type Editor struct {
 	cursor   *cursor.Cursor
 	history  *history.History
 	syntax   *syntax.Syntax
-	data     *data.Data
 	render   *render.Render
 	handlers []handler.Handler
 }
@@ -39,7 +37,6 @@ func New(multiLine bool) *Editor {
 	b := textbuf.New()
 	c := cursor.New(&b)
 	h := history.New(&b, &c)
-	d := data.New(&b, &c, &h)
 	r := render.New(&b, &c)
 
 	ed := Editor{
@@ -47,7 +44,6 @@ func New(multiLine bool) *Editor {
 		buffer:    &b,
 		cursor:    &c,
 		history:   &h,
-		data:      &d,
 		render:    &r,
 	}
 
@@ -87,8 +83,6 @@ func (ed *Editor) SetSyntax() {
 	ed.syntax = syntax.New(ed.buffer)
 
 	ed.syntax.Reset()
-
-	ed.data.SetSyntax(ed.syntax)
 }
 
 func (ed *Editor) Layout(a ui.Area) {
