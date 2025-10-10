@@ -45,17 +45,17 @@ func New() *App {
 	app := App{}
 
 	app.commands = map[string]Command{
-		"COPY":      NewCopy(&app),
-		"CUT":       NewCut(&app),
-		"DEBUG":     NewDebug(&app),
-		"EXIT":      NewExit(&app),
-		"PALETTE":   NewPalette(&app),
-		"PASTE":     NewPaste(&app),
-		"REDO":      NewRedo(&app),
-		"SAVE":      NewSave(&app),
-		"SELECTALL": NewSelectAll(&app),
+		"COPY":        NewCopy(&app),
+		"CUT":         NewCut(&app),
+		"DEBUG":       NewDebug(&app),
+		"EXIT":        NewExit(&app),
+		"PALETTE":     NewPalette(&app),
+		"PASTE":       NewPaste(&app),
+		"REDO":        NewRedo(&app),
+		"SAVE":        NewSave(&app),
+		"SELECTALL":   NewSelectAll(&app),
+		"THEMEBASE16": NewThemeBase16(&app),
 		/*
-			command.NewThemeBase16(&app),
 			command.NewThemeGray(&app),
 			command.NewThemeNeutral(&app),
 			command.NewThemeSlate(&app),

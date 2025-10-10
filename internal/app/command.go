@@ -12,12 +12,6 @@ type Command interface {
 	Run()
 }
 
-func (app *App) ThemeBase16() {
-	app.setColors(theme.Base16{})
-
-	app.Render()
-}
-
 func (app *App) ThemeGray() {
 	app.setColors(theme.Gray{})
 
