@@ -12,18 +12,6 @@ type Command interface {
 	Run()
 }
 
-func (app *App) ThemeGray() {
-	app.setColors(theme.Gray{})
-
-	app.Render()
-}
-
-func (app *App) ThemeNeutral() {
-	app.setColors(theme.Neutral{})
-
-	app.Render()
-}
-
 func (app *App) ThemeSlate() {
 	app.setColors(theme.Slate{})
 
