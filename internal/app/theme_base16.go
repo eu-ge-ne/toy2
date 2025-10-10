@@ -26,8 +26,8 @@ func (c *ThemeBase16) Match(key.Key) bool {
 	return false
 }
 
-func (c *ThemeBase16) Run() {
+func (c *ThemeBase16) Run() bool {
 	c.app.setColors(theme.Base16{})
 
-	c.app.Render()
+	return true
 }

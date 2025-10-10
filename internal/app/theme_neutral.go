@@ -26,8 +26,8 @@ func (c *ThemeNeutral) Match(key.Key) bool {
 	return false
 }
 
-func (c *ThemeNeutral) Run() {
+func (c *ThemeNeutral) Run() bool {
 	c.app.setColors(theme.Neutral{})
 
-	c.app.Render()
+	return true
 }

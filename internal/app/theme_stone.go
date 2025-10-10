@@ -26,8 +26,8 @@ func (c *ThemeStone) Match(key.Key) bool {
 	return false
 }
 
-func (c *ThemeStone) Run() {
+func (c *ThemeStone) Run() bool {
 	c.app.setColors(theme.Stone{})
 
-	c.app.Render()
+	return true
 }

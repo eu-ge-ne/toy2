@@ -26,8 +26,8 @@ func (c *ThemeZinc) Match(key.Key) bool {
 	return false
 }
 
-func (c *ThemeZinc) Run() {
+func (c *ThemeZinc) Run() bool {
 	c.app.setColors(theme.Zinc{})
 
-	c.app.Render()
+	return true
 }

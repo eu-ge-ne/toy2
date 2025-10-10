@@ -26,8 +26,8 @@ func (c *ThemeSlate) Match(key.Key) bool {
 	return false
 }
 
-func (c *ThemeSlate) Run() {
+func (c *ThemeSlate) Run() bool {
 	c.app.setColors(theme.Slate{})
 
-	c.app.Render()
+	return true
 }
