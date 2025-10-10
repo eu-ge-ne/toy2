@@ -3,20 +3,12 @@ package app
 import (
 	"github.com/eu-ge-ne/toy2/internal/key"
 	"github.com/eu-ge-ne/toy2/internal/palette"
-	"github.com/eu-ge-ne/toy2/internal/theme"
 )
 
 type Command interface {
 	Option() *palette.Option
 	Match(key.Key) bool
 	Run()
-}
-
-
-func (app *App) ThemeZinc() {
-	app.setColors(theme.Zinc{})
-
-	app.Render()
 }
 
 func (app *App) Undo() {

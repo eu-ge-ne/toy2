@@ -59,8 +59,8 @@ func New() *App {
 		"THEMENEUTRAL": NewThemeNeutral(&app),
 		"THEMESLATE":   NewThemeSlate(&app),
 		"THEMESTONE":   NewThemeStone(&app),
+		"THEMEZINC":    NewThemeZinc(&app),
 		/*
-			command.NewThemeZinc(&app),
 			command.NewUndo(&app),
 			command.NewWhitespace(&app),
 			command.NewWrap(&app),
