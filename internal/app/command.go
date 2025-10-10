@@ -29,7 +29,7 @@ func (app *App) Debug() {
 func (app *App) Exit() {
 	app.editor.SetEnabled(false)
 
-	if app.editor.HasChanges() {
+	if app.editor.Data.HasChanges() {
 		save := make(chan bool)
 		go app.ask.Open("Save changes?", save)
 

@@ -91,7 +91,7 @@ func New() *App {
 	app.editor.OnKeyHandled = app.debug.SetInputTime
 	app.editor.OnRender = app.debug.SetRenderTime
 	app.editor.OnChanged = func() {
-		app.header.SetFlag(app.editor.HasChanges())
+		app.header.SetFlag(app.editor.Data.HasChanges())
 	}
 
 	return &app

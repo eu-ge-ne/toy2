@@ -24,9 +24,8 @@ type Editor struct {
 	multiLine bool
 	enabled   bool
 
-	buffer  *textbuf.TextBuf
-	cursor  *cursor.Cursor
-	history *history.History
+	buffer *textbuf.TextBuf
+	cursor *cursor.Cursor
 
 	Data   *data.Data
 	render *render.Render
@@ -39,9 +38,9 @@ func New(multiLine bool) *Editor {
 
 	ed.buffer = textbuf.New()
 	ed.cursor = cursor.New(ed.buffer)
-	ed.history = history.New(ed.buffer, ed.cursor)
-	ed.history.OnChanged = ed.OnChanged
-	ed.Data = data.New(multiLine, ed.buffer, ed.cursor, ed.history)
+	history := history.New(ed.buffer, ed.cursor)
+	history.OnChanged = ed.OnChanged
+	ed.Data = data.New(multiLine, ed.buffer, ed.cursor, history)
 	ed.render = render.New(ed.buffer, ed.cursor)
 
 	return &ed
@@ -132,8 +131,4 @@ func (ed *Editor) HandleKey(key key.Key) bool {
 	}
 
 	return r
-}
-
-func (ed *Editor) HasChanges() bool {
-	return !ed.history.IsEmpty()
 }

@@ -75,6 +75,10 @@ func (d *Data) SetPageSize(pageSize int) {
 	d.pageSize = pageSize
 }
 
+func (d *Data) HasChanges() bool {
+	return !d.history.IsEmpty()
+}
+
 func (d *Data) SetText(text string) {
 	d.buffer.Reset(text)
 	d.syntax.Reset()
