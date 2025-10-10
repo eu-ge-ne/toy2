@@ -1,4 +1,4 @@
-package command
+package app
 
 import (
 	"github.com/eu-ge-ne/toy2/internal/key"
@@ -6,11 +6,11 @@ import (
 )
 
 type Save struct {
-	app    App
+	app    *App
 	option palette.Option
 }
 
-func NewSave(app App) *Save {
+func NewSave(app *App) *Save {
 	return &Save{
 		app:    app,
 		option: palette.NewOption("Save", "Global: Save", []key.Key{{Name: "F2"}}),
@@ -26,5 +26,13 @@ func (c *Save) Match(k key.Key) bool {
 }
 
 func (c *Save) Run() {
-	c.app.Save()
+	c.app.editor.SetEnabled(false)
+
+	if c.app.save() {
+		//app.editor.Data.TopHome(false)
+	}
+
+	c.app.editor.SetEnabled(true)
+
+	c.app.editor.Render()
 }

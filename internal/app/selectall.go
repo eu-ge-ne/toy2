@@ -1,4 +1,4 @@
-package command
+package app
 
 import (
 	"github.com/eu-ge-ne/toy2/internal/key"
@@ -6,11 +6,11 @@ import (
 )
 
 type SelectAll struct {
-	app    App
+	app    *App
 	option palette.Option
 }
 
-func NewSelectAll(app App) *SelectAll {
+func NewSelectAll(app *App) *SelectAll {
 	return &SelectAll{
 		app: app,
 		option: palette.NewOption(
@@ -30,5 +30,7 @@ func (c *SelectAll) Match(key.Key) bool {
 }
 
 func (c *SelectAll) Run() {
-	c.app.SelectAll()
+	if c.app.editor.Handlers["SELECTALL"].Run(key.Key{}) {
+		c.app.editor.Render()
+	}
 }

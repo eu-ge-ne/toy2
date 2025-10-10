@@ -12,25 +12,6 @@ type Command interface {
 	Run()
 }
 
-
-func (app *App) Save() {
-	app.editor.SetEnabled(false)
-
-	if app.save() {
-		//app.editor.Data.TopHome(false)
-	}
-
-	app.editor.SetEnabled(true)
-
-	app.editor.Render()
-}
-
-func (app *App) SelectAll() {
-	if app.editor.Handlers["SELECTALL"].Run(key.Key{}) {
-		app.editor.Render()
-	}
-}
-
 func (app *App) ThemeBase16() {
 	app.setColors(theme.Base16{})
 
