@@ -29,10 +29,7 @@ func (c *Exit) Run() bool {
 	c.app.editor.SetEnabled(false)
 
 	if c.app.editor.HasChanges() {
-		save := make(chan bool)
-		go c.app.ask.Open("Save changes?", save)
-
-		if <-save {
+		if <-c.app.ask.Open("Save changes?") {
 			c.app.save()
 		}
 	}

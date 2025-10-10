@@ -47,22 +47,28 @@ func (p *Palette) Layout(a ui.Area) {
 	p.area = a
 }
 
-func (p *Palette) Open(done chan<- *Option) {
-	p.enabled = true
-	p.editor.SetEnabled(true)
+func (p *Palette) Open() <-chan *Option {
+	done := make(chan *Option)
 
-	p.editor.SetText("")
-	p.editor.Handlers["END"].Run(key.Key{})
+	go func() {
+		p.enabled = true
+		p.editor.SetEnabled(true)
 
-	p.filter()
-	p.parent.Render()
+		p.editor.SetText("")
+		p.editor.Handlers["END"].Run(key.Key{})
 
-	result := p.processInput()
+		p.filter()
+		p.parent.Render()
 
-	p.enabled = false
-	p.editor.SetEnabled(false)
+		result := p.processInput()
 
-	done <- result
+		p.enabled = false
+		p.editor.SetEnabled(false)
+
+		done <- result
+	}()
+
+	return done
 }
 
 func (p *Palette) filter() {

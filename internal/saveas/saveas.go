@@ -75,21 +75,27 @@ func (sv *SaveAs) Render() {
 	vt.Sync.Esu()
 }
 
-func (sv *SaveAs) Open(filePath string, done chan<- string) {
-	sv.enabled = true
-	sv.editor.SetEnabled(true)
+func (sv *SaveAs) Open(filePath string) <-chan string {
+	done := make(chan string)
 
-	sv.editor.SetText(filePath)
-	sv.editor.Handlers["END"].Run(key.Key{})
+	go func() {
+		sv.enabled = true
+		sv.editor.SetEnabled(true)
 
-	sv.Render()
+		sv.editor.SetText(filePath)
+		sv.editor.Handlers["END"].Run(key.Key{})
 
-	result := sv.processInput()
+		sv.Render()
 
-	sv.enabled = false
-	sv.editor.SetEnabled(false)
+		result := sv.processInput()
 
-	done <- result
+		sv.enabled = false
+		sv.editor.SetEnabled(false)
+
+		done <- result
+	}()
+
+	return done
 }
 
 func (sv *SaveAs) processInput() string {
