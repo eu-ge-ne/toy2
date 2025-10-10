@@ -82,7 +82,7 @@ func (app *App) Save() {
 	app.editor.SetEnabled(false)
 
 	if app.save() {
-		app.editor.ResetCursor()
+		app.editor.Data.TopHome(false)
 	}
 
 	app.editor.SetEnabled(true)

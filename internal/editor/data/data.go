@@ -43,7 +43,7 @@ func New(multiLine bool, buffer *textbuf.TextBuf, cursor *cursor.Cursor, history
 		&Copy{d},
 		&Cut{d},
 		&Delete{d},
-		&Down{d},
+		&GoDown{d},
 		&End{d},
 		&Enter{d},
 		&Home{d},
@@ -77,6 +77,10 @@ func (d *Data) SetPageSize(pageSize int) {
 
 func (d *Data) HasChanges() bool {
 	return !d.history.IsEmpty()
+}
+
+func (d *Data) CursorStatus() (int, int, int) {
+	return d.cursor.Ln, d.cursor.Col, d.buffer.LineCount()
 }
 
 func (d *Data) SetText(text string) {
@@ -216,7 +220,7 @@ func (d *Data) Down(sel bool) bool {
 	return d.cursor.Down(1, sel)
 }
 
-func (d *Data) End(sel bool) bool {
+func (d *Data) GoEnd(sel bool) bool {
 	return d.cursor.End(sel)
 }
 
@@ -315,6 +319,14 @@ func (d *Data) Up(sel bool) bool {
 	}
 
 	return d.cursor.Up(1, sel)
+}
+
+func (d *Data) TopHome(sel bool) bool {
+	if !d.multiLine {
+		return false
+	}
+
+	return d.cursor.Set(0, 0, false)
 }
 
 func (d *Data) deleteChar() {

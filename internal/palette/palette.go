@@ -51,7 +51,7 @@ func (p *Palette) Open(done chan<- *Option) {
 	p.editor.SetEnabled(true)
 
 	p.editor.Data.SetText("")
-	p.editor.ResetCursor()
+	p.editor.Data.GoEnd(false)
 
 	p.filter()
 	p.parent.Render()

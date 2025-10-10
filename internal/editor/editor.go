@@ -1,7 +1,6 @@
 package editor
 
 import (
-	"math"
 	"slices"
 	"time"
 
@@ -24,9 +23,6 @@ type Editor struct {
 	multiLine bool
 	enabled   bool
 
-	buffer *textbuf.TextBuf
-	cursor *cursor.Cursor
-
 	Data   *data.Data
 	render *render.Render
 }
@@ -36,12 +32,12 @@ func New(multiLine bool) *Editor {
 		multiLine: multiLine,
 	}
 
-	ed.buffer = textbuf.New()
-	ed.cursor = cursor.New(ed.buffer)
-	history := history.New(ed.buffer, ed.cursor)
+	buffer := textbuf.New()
+	cursor := cursor.New(buffer)
+	history := history.New(buffer, cursor)
 	history.OnChanged = ed.OnChanged
-	ed.Data = data.New(multiLine, ed.buffer, ed.cursor, history)
-	ed.render = render.New(ed.buffer, ed.cursor)
+	ed.Data = data.New(multiLine, buffer, cursor, history)
+	ed.render = render.New(buffer, cursor)
 
 	return &ed
 }
@@ -59,22 +55,13 @@ func (ed *Editor) Render() {
 	started := time.Now()
 
 	if ed.OnCursor != nil {
-		ed.OnCursor(ed.cursor.Ln, ed.cursor.Col, ed.buffer.LineCount())
+		ed.OnCursor(ed.Data.CursorStatus())
 	}
 
 	ed.render.Render()
 
 	if ed.OnRender != nil {
 		ed.OnRender(time.Since(started))
-	}
-}
-
-// TODO: why needed?
-func (ed *Editor) ResetCursor() {
-	if ed.multiLine {
-		ed.cursor.Set(0, 0, false)
-	} else {
-		ed.cursor.Set(math.MaxInt, math.MaxInt, false)
 	}
 }
 
@@ -96,7 +83,7 @@ func (ed *Editor) EnableWhitespace(enabled bool) {
 func (ed *Editor) ToggleWhitespaceEnabled() {
 	ed.render.ToggleWhitespaceEnabled()
 
-	ed.cursor.Home(false)
+	ed.Data.Home(false)
 }
 
 func (ed *Editor) SetWrapEnabled(enabled bool) {
@@ -106,7 +93,7 @@ func (ed *Editor) SetWrapEnabled(enabled bool) {
 func (ed *Editor) ToggleWrapEnabled() {
 	ed.render.ToggleWrapEnabled()
 
-	ed.cursor.Home(false)
+	ed.Data.Home(false)
 }
 
 func (ed *Editor) HandleKey(key key.Key) bool {
