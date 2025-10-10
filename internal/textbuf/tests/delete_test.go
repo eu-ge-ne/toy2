@@ -44,7 +44,7 @@ func TestDeleteCharsFromTheMiddleReversed(t *testing.T) {
 	}
 }
 
-func createTextBuf() textbuf.TextBuf {
+func createTextBuf() *textbuf.TextBuf {
 	buf := textbuf.New()
 
 	buf.Insert(buf.Count(), "Lorem")
@@ -70,7 +70,7 @@ func createTextBuf() textbuf.TextBuf {
 	return buf
 }
 
-func createTextBufReversed() textbuf.TextBuf {
+func createTextBufReversed() *textbuf.TextBuf {
 	buf := textbuf.New()
 
 	buf.Insert(0, " aliqua.")
@@ -98,7 +98,7 @@ func createTextBufReversed() textbuf.TextBuf {
 
 const text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
 
-func testDeleteHead(t *testing.T, buf textbuf.TextBuf, n int) {
+func testDeleteHead(t *testing.T, buf *textbuf.TextBuf, n int) {
 	expected := text
 
 	for len(expected) > 0 {
@@ -116,7 +116,7 @@ func testDeleteHead(t *testing.T, buf textbuf.TextBuf, n int) {
 	buf.Validate()
 }
 
-func testDeleteTail(t *testing.T, buf textbuf.TextBuf, n int) {
+func testDeleteTail(t *testing.T, buf *textbuf.TextBuf, n int) {
 	expected := text
 
 	for len(expected) > 0 {
@@ -134,7 +134,7 @@ func testDeleteTail(t *testing.T, buf textbuf.TextBuf, n int) {
 	buf.Validate()
 }
 
-func testDeleteMiddle(t *testing.T, buf textbuf.TextBuf, n int) {
+func testDeleteMiddle(t *testing.T, buf *textbuf.TextBuf, n int) {
 	expected := text
 
 	for len(expected) > 0 {

@@ -37,22 +37,16 @@ type Editor struct {
 }
 
 func New(multiLine bool) *Editor {
-	b := textbuf.New()
-	c := cursor.New(&b)
-	h := history.New(&b, c)
-	d := data.New(multiLine, &b, c, h)
-	r := render.New(&b, c)
-
 	ed := Editor{
 		multiLine: multiLine,
-		buffer:    &b,
-		cursor:    c,
-		history:   h,
-		data:      d,
-		render:    r,
 	}
 
+	ed.buffer = textbuf.New()
+	ed.cursor = cursor.New(ed.buffer)
+	ed.history = history.New(ed.buffer, ed.cursor)
 	ed.history.OnChanged = ed.OnChanged
+	ed.data = data.New(multiLine, ed.buffer, ed.cursor, ed.history)
+	ed.render = render.New(ed.buffer, ed.cursor)
 
 	return &ed
 }

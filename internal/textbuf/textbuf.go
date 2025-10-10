@@ -21,8 +21,8 @@ type Snapshot struct {
 	node *node.Node
 }
 
-func New() TextBuf {
-	return TextBuf{
+func New() *TextBuf {
+	return &TextBuf{
 		WrapWidth: math.MaxInt,
 
 		content: content.Content{},
