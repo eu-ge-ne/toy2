@@ -4,16 +4,21 @@ import (
 	"github.com/eu-ge-ne/toy2/internal/textbuf/node"
 )
 
-func (buf TextBuf) lnIndex(ln int) (int, bool) {
+type Pos struct {
+	ln  int
+	col int
+}
+
+func (buf TextBuf) lnIndex(pos Pos) (int, bool) {
 	if buf.Count() == 0 {
 		return 0, false
 	}
 
-	if ln == 0 {
+	if pos.ln == 0 {
 		return 0, true
 	}
 
-	eolIndex := ln - 1
+	eolIndex := pos.ln - 1
 	x := buf.tree.Root
 	i := 0
 
@@ -40,11 +45,11 @@ func (buf TextBuf) lnIndex(ln int) (int, bool) {
 	return 0, false
 }
 
-func (buf *TextBuf) colIndex(ln, col, lnIndex int) (int, bool) {
+func (buf *TextBuf) colIndex(pos Pos, lnIndex int) (int, bool) {
 	colIndex := 0
 
-	for i, cell := range buf.IterLine(ln, true) {
-		if i == col {
+	for i, cell := range buf.IterLine(pos.ln, true) {
+		if i == pos.col {
 			return lnIndex + colIndex, true
 		}
 
@@ -54,22 +59,22 @@ func (buf *TextBuf) colIndex(ln, col, lnIndex int) (int, bool) {
 	return 0, false
 }
 
-func (buf *TextBuf) lnColIndex(ln, col int) (int, bool) {
-	lnIndex, ok := buf.lnIndex(ln)
+func (buf *TextBuf) lnColIndex(pos Pos) (int, bool) {
+	lnIndex, ok := buf.lnIndex(pos)
 	if !ok {
 		return 0, false
 	}
 
-	return buf.colIndex(ln, col, lnIndex)
+	return buf.colIndex(pos, lnIndex)
 }
 
 func (buf *TextBuf) Index2(startLn, startCol, endLn, endCol int) (int, int, bool) {
-	start, ok := buf.lnColIndex(startLn, startCol)
+	start, ok := buf.lnColIndex(Pos{startLn, startCol})
 	if !ok {
 		return 0, 0, false
 	}
 
-	end, ok := buf.lnColIndex(endLn, endCol)
+	end, ok := buf.lnColIndex(Pos{endLn, endCol})
 	if !ok {
 		return 0, 0, false
 	}

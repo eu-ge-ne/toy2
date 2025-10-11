@@ -34,12 +34,12 @@ func (buf *TextBuf) Read(start int, end int) iter.Seq[string] {
 }
 
 func (buf *TextBuf) Read2(startLn, startCol, endLn, endCol int) string {
-	start, ok := buf.lnColIndex(startLn, startCol)
+	start, ok := buf.lnColIndex(Pos{startLn, startCol})
 	if !ok {
 		return ""
 	}
 
-	end, ok := buf.lnColIndex(endLn, endCol)
+	end, ok := buf.lnColIndex(Pos{endLn, endCol})
 	if !ok {
 		end = math.MaxInt
 	}
