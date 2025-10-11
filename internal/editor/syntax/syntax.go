@@ -48,9 +48,9 @@ func New(buffer *textbuf.TextBuf) *Syntax {
 		panic(err)
 	}
 
-	go s.run()
+	s.resetTree()
 
-	s.Reset()
+	go s.run()
 
 	return &s
 }
