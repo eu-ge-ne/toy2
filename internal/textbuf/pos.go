@@ -45,15 +45,15 @@ func (buf TextBuf) lnIndex(pos Pos) (int, bool) {
 	return 0, false
 }
 
-func (buf *TextBuf) colIndex(pos Pos, lnIndex int) (int, bool) {
-	colIndex := 0
+func (buf *TextBuf) colIndex(pos Pos) (int, bool) {
+	index := 0
 
 	for i, cell := range buf.IterLine(pos.ln, true) {
 		if i == pos.col {
-			return lnIndex + colIndex, true
+			return index, true
 		}
 
-		colIndex += len(cell.G.Seg)
+		index += len(cell.G.Seg)
 	}
 
 	return 0, false
@@ -65,7 +65,12 @@ func (buf *TextBuf) index(pos Pos) (int, bool) {
 		return 0, false
 	}
 
-	return buf.colIndex(pos, lnIndex)
+	colIndex, ok := buf.colIndex(pos)
+	if !ok {
+		return 0, false
+	}
+
+	return lnIndex + colIndex, true
 }
 
 func (buf *TextBuf) Index2(startLn, startCol, endLn, endCol int) (int, int, bool) {
