@@ -1,6 +1,8 @@
 package syntax
 
 import (
+	"fmt"
+	"os"
 	"time"
 
 	"github.com/eu-ge-ne/toy2/internal/textbuf"
@@ -30,8 +32,8 @@ type edit struct {
 type editKind int
 
 const (
-	editDelete editKind = iota
-	editInsert
+	editKindDelete editKind = iota
+	editKindInsert
 )
 
 func New(buffer *textbuf.TextBuf) *Syntax {
@@ -42,6 +44,8 @@ func New(buffer *textbuf.TextBuf) *Syntax {
 		reset:  make(chan struct{}),
 		edits:  make(chan edit, 100),
 	}
+
+	s.log()
 
 	err := s.parser.SetLanguage(treeSitter.NewLanguage(treeSitterTs.LanguageTypescript()))
 	if err != nil {
@@ -69,14 +73,38 @@ func (s *Syntax) Reset() {
 
 func (s *Syntax) Delete(startLn, startCol, endLn, endCol int) {
 	if s != nil {
-		s.edits <- edit{editDelete, startLn, startCol, endLn, endCol}
+		s.edits <- edit{editKindDelete, startLn, startCol, endLn, endCol}
 	}
 }
 
 func (s *Syntax) Insert(startLn, startCol, endLn, endCol int) {
 	if s != nil {
-		s.edits <- edit{editInsert, startLn, startCol, endLn, endCol}
+		s.edits <- edit{editKindInsert, startLn, startCol, endLn, endCol}
 	}
+}
+
+func (s *Syntax) log() {
+	f, err := os.OpenFile("tmp/syntax.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+	if err != nil {
+		panic(err)
+	}
+
+	logI := 0
+
+	s.parser.SetLogger(func(t treeSitter.LogType, msg string) {
+		var tt string
+
+		switch t {
+		case treeSitter.LogTypeParse:
+			tt = "Parse"
+		case treeSitter.LogTypeLex:
+			tt = "Lex"
+		}
+
+		fmt.Fprintf(f, "%d: %s: %s\n", logI, tt, msg)
+
+		logI += 1
+	})
 }
 
 func (s *Syntax) run() {
@@ -123,7 +151,7 @@ func (s *Syntax) editTree(p edit) {
 	}
 
 	switch p.kind {
-	case editDelete:
+	case editKindDelete:
 		start = a
 		oldEnd = b
 		newEnd = start + 1
@@ -137,7 +165,7 @@ func (s *Syntax) editTree(p edit) {
 		newEndLn = p.startLn
 		newEndCol = p.startCol + 1
 
-	case editInsert:
+	case editKindInsert:
 		start = a
 		oldEnd = start + 1
 		newEnd = b
