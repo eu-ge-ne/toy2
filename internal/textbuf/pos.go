@@ -73,7 +73,7 @@ func (buf *TextBuf) index(pos Pos) (int, bool) {
 	return lnIndex + colIndex, true
 }
 
-func (buf *TextBuf) Index2(startLn, startCol, endLn, endCol int) (int, int, bool) {
+func (buf *TextBuf) IndexTODO(startLn, startCol, endLn, endCol int) (int, int, bool) {
 	start, ok := buf.index(Pos{startLn, startCol})
 	if !ok {
 		return 0, 0, false

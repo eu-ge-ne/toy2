@@ -145,7 +145,7 @@ func (s *Syntax) parseTree() {
 func (s *Syntax) editTree(p edit) {
 	var start, oldEnd, newEnd, startLn, startCol, oldEndLn, oldEndCol, newEndLn, newEndCol int
 
-	a, b, ok := s.buffer.Index2(p.startLn, p.startCol, p.endLn, p.endCol)
+	a, b, ok := s.buffer.IndexTODO(p.startLn, p.startCol, p.endLn, p.endCol)
 	if !ok {
 		panic("in Syntax.editTree")
 	}
