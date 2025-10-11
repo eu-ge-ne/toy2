@@ -4,39 +4,6 @@ import (
 	"github.com/eu-ge-ne/toy2/internal/textbuf/node"
 )
 
-func (buf *TextBuf) Index(ln, col int) (int, bool) {
-	lnIndex, ok := buf.lnIndex(ln)
-	if !ok {
-		return 0, false
-	}
-
-	colIndex := 0
-
-	for i, cell := range buf.IterLine(ln, true) {
-		if i == col {
-			return lnIndex + colIndex, true
-		}
-
-		colIndex += len(cell.G.Seg)
-	}
-
-	return 0, false
-}
-
-func (buf *TextBuf) Index2(startLn, startCol, endLn, endCol int) (int, int, bool) {
-	start, ok := buf.Index(startLn, startCol)
-	if !ok {
-		return 0, 0, false
-	}
-
-	end, ok := buf.Index(endLn, endCol)
-	if !ok {
-		return 0, 0, false
-	}
-
-	return start, end, true
-}
-
 func (buf TextBuf) lnIndex(ln int) (int, bool) {
 	if buf.Count() == 0 {
 		return 0, false
@@ -71,4 +38,37 @@ func (buf TextBuf) lnIndex(ln int) (int, bool) {
 	}
 
 	return 0, false
+}
+
+func (buf *TextBuf) lnColIndex(ln, col int) (int, bool) {
+	lnIndex, ok := buf.lnIndex(ln)
+	if !ok {
+		return 0, false
+	}
+
+	colIndex := 0
+
+	for i, cell := range buf.IterLine(ln, true) {
+		if i == col {
+			return lnIndex + colIndex, true
+		}
+
+		colIndex += len(cell.G.Seg)
+	}
+
+	return 0, false
+}
+
+func (buf *TextBuf) Index2(startLn, startCol, endLn, endCol int) (int, int, bool) {
+	start, ok := buf.lnColIndex(startLn, startCol)
+	if !ok {
+		return 0, 0, false
+	}
+
+	end, ok := buf.lnColIndex(endLn, endCol)
+	if !ok {
+		return 0, 0, false
+	}
+
+	return start, end, true
 }
