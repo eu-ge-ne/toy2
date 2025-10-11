@@ -125,20 +125,27 @@ func (s *Syntax) editTree(p edit) {
 		start = a
 		oldEnd = b
 		newEnd = start + 1
+
 		startLn = p.startLn
 		startCol = p.startCol
+
 		oldEndLn = p.endLn
 		oldEndCol = p.endCol
+
 		newEndLn = p.startLn
 		newEndCol = p.startCol + 1
+
 	case editInsert:
 		start = a
 		oldEnd = start + 1
 		newEnd = b
+
 		startLn = p.startLn
 		startCol = p.startCol
+
 		oldEndLn = p.startLn
 		oldEndCol = p.startCol + 1
+
 		newEndLn = p.endLn
 		newEndCol = p.endCol
 	}
