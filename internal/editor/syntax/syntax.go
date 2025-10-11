@@ -50,6 +50,8 @@ func New(buffer *textbuf.TextBuf) *Syntax {
 
 	go s.run()
 
+	s.Reset()
+
 	return &s
 }
 
