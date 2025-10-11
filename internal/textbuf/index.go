@@ -40,12 +40,7 @@ func (buf TextBuf) lnIndex(ln int) (int, bool) {
 	return 0, false
 }
 
-func (buf *TextBuf) lnColIndex(ln, col int) (int, bool) {
-	lnIndex, ok := buf.lnIndex(ln)
-	if !ok {
-		return 0, false
-	}
-
+func (buf *TextBuf) colIndex(ln, col, lnIndex int) (int, bool) {
 	colIndex := 0
 
 	for i, cell := range buf.IterLine(ln, true) {
@@ -57,6 +52,15 @@ func (buf *TextBuf) lnColIndex(ln, col int) (int, bool) {
 	}
 
 	return 0, false
+}
+
+func (buf *TextBuf) lnColIndex(ln, col int) (int, bool) {
+	lnIndex, ok := buf.lnIndex(ln)
+	if !ok {
+		return 0, false
+	}
+
+	return buf.colIndex(ln, col, lnIndex)
 }
 
 func (buf *TextBuf) Index2(startLn, startCol, endLn, endCol int) (int, int, bool) {
