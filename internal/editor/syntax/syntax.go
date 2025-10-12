@@ -89,7 +89,7 @@ func (s *Syntax) log() {
 		panic(err)
 	}
 
-	logI := 0
+	i := 0
 
 	s.parser.SetLogger(func(t treeSitter.LogType, msg string) {
 		var tp string
@@ -101,9 +101,9 @@ func (s *Syntax) log() {
 			tp = "Lex"
 		}
 
-		fmt.Fprintf(f, "%d: %s: %s\n", logI, tp, msg)
+		fmt.Fprintf(f, "%d: %s: %s\n", i, tp, msg)
 
-		logI += 1
+		i += 1
 	})
 }
 
