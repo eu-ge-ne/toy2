@@ -44,9 +44,9 @@ func New(buffer *textbuf.TextBuf) *Syntax {
 		panic(err)
 	}
 
-	queryHighlights, qerr := treeSitter.NewQuery(lang, scmHighlights)
-	if qerr != nil {
-		panic(qerr)
+	queryHighlights, err0 := treeSitter.NewQuery(lang, scmHighlights)
+	if err0 != nil {
+		panic(err0)
 	}
 
 	s.queryHighlights = queryHighlights
