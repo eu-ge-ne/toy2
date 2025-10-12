@@ -29,16 +29,15 @@ type Syntax struct {
 func New(buffer *textbuf.TextBuf) *Syntax {
 	s := Syntax{
 		buffer: buffer,
-		parser: treeSitter.NewParser(),
 		close:  make(chan struct{}),
 		reset:  make(chan struct{}),
 		edits:  make(chan edit, 100),
 	}
 
-	s.log()
+	s.parser = treeSitter.NewParser()
+	log(s.parser)
 
 	lang := treeSitter.NewLanguage(treeSitterTs.LanguageTypescript())
-
 	err := s.parser.SetLanguage(lang)
 	if err != nil {
 		panic(err)
@@ -82,7 +81,7 @@ func (s *Syntax) Insert(startLn, startCol, endLn, endCol int) {
 	}
 }
 
-func (s *Syntax) log() {
+func log(parser *treeSitter.Parser) {
 	f, err := os.OpenFile("tmp/syntax.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
 	if err != nil {
 		panic(err)
@@ -90,7 +89,7 @@ func (s *Syntax) log() {
 
 	i := 0
 
-	s.parser.SetLogger(func(t treeSitter.LogType, msg string) {
+	parser.SetLogger(func(t treeSitter.LogType, msg string) {
 		var tp string
 
 		switch t {
