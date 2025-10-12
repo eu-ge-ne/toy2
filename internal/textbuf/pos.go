@@ -4,7 +4,7 @@ import (
 	"github.com/eu-ge-ne/toy2/internal/textbuf/node"
 )
 
-func (buf TextBuf) lnIndex(ln int) (int, bool) {
+func (buf TextBuf) LnIndex(ln int) (int, bool) {
 	if buf.Count() == 0 {
 		return 0, false
 	}
@@ -40,7 +40,7 @@ func (buf TextBuf) lnIndex(ln int) (int, bool) {
 	return 0, false
 }
 
-func (buf *TextBuf) colIndex(ln, col int) (int, bool) {
+func (buf *TextBuf) ColIndex(ln, col int) (int, bool) {
 	index := 0
 
 	for i, cell := range buf.IterLine(ln, true) {
@@ -55,12 +55,12 @@ func (buf *TextBuf) colIndex(ln, col int) (int, bool) {
 }
 
 func (buf *TextBuf) Index(ln, col int) (int, bool) {
-	lnIndex, ok := buf.lnIndex(ln)
+	lnIndex, ok := buf.LnIndex(ln)
 	if !ok {
 		return 0, false
 	}
 
-	colIndex, ok := buf.colIndex(ln, col)
+	colIndex, ok := buf.ColIndex(ln, col)
 	if !ok {
 		return 0, false
 	}
