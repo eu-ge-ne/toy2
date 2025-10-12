@@ -81,6 +81,33 @@ func (s *Syntax) Insert(startLn, startCol, endLn, endCol int) {
 	}
 }
 
+func (s *Syntax) Highlight(startLn, startCol, endLn, endCol int) {
+	if s != nil {
+		qc := treeSitter.NewQueryCursor()
+		defer qc.Close()
+
+		f, err := os.OpenFile("tmp/highlight.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+		if err != nil {
+			panic(err)
+		}
+		defer f.Close()
+
+		matches := qc.Matches(s.queryHighlights, s.tree.RootNode(), []byte(s.buffer.All()))
+
+		for match := matches.Next(); match != nil; match = matches.Next() {
+			for _, capture := range match.Captures {
+				fmt.Fprintf(f,
+					"Match %d, Capture %d (%s): %s\n",
+					match.PatternIndex,
+					capture.Index,
+					s.queryHighlights.CaptureNames()[capture.Index],
+					capture.Node.Utf8Text([]byte(s.buffer.All())),
+				)
+			}
+		}
+	}
+}
+
 func log(parser *treeSitter.Parser) {
 	f, err := os.OpenFile("tmp/syntax.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
 	if err != nil {
