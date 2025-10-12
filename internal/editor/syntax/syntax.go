@@ -22,11 +22,11 @@ type Syntax struct {
 }
 
 type edit struct {
-	kind     editKind
-	startLn  int
-	startCol int
-	endLn    int
-	endCol   int
+	kind editKind
+	ln0  int
+	col0 int
+	ln1  int
+	col1 int
 }
 
 type editKind int
@@ -92,16 +92,16 @@ func (s *Syntax) log() {
 	logI := 0
 
 	s.parser.SetLogger(func(t treeSitter.LogType, msg string) {
-		var tt string
+		var tp string
 
 		switch t {
 		case treeSitter.LogTypeParse:
-			tt = "Parse"
+			tp = "Parse"
 		case treeSitter.LogTypeLex:
-			tt = "Lex"
+			tp = "Lex"
 		}
 
-		fmt.Fprintf(f, "%d: %s: %s\n", logI, tt, msg)
+		fmt.Fprintf(f, "%d: %s: %s\n", logI, tp, msg)
 
 		logI += 1
 	})
@@ -143,41 +143,56 @@ func (s *Syntax) parseTree() {
 }
 
 func (s *Syntax) editTree(p edit) {
-	var start, oldEnd, newEnd, startLn, startCol, oldEndLn, oldEndCol, newEndLn, newEndCol int
-
-	a, b, ok := index2(s.buffer, p.startLn, p.startCol, p.endLn, p.endCol)
+	i0, ok := s.buffer.Index(p.ln0, p.col0)
 	if !ok {
 		panic("in Syntax.editTree")
 	}
 
+	i1, ok := s.buffer.Index(p.ln1, p.col1)
+	if !ok {
+		panic("in Syntax.editTree")
+	}
+
+	col0i, ok := s.buffer.ColIndex(p.ln0, p.col0)
+	if !ok {
+		panic("in Syntax.editTree")
+	}
+
+	col1i, ok := s.buffer.ColIndex(p.ln1, p.col1)
+	if !ok {
+		panic("in Syntax.editTree")
+	}
+
+	var start, oldEnd, newEnd, startLn, startCol, oldEndLn, oldEndCol, newEndLn, newEndCol int
+
 	switch p.kind {
 	case editKindDelete:
-		start = a
-		oldEnd = b
+		start = i0
+		oldEnd = i1
 		newEnd = start + 1
 
-		startLn = p.startLn
-		startCol = p.startCol
+		startLn = p.ln0
+		startCol = col0i
 
-		oldEndLn = p.endLn
-		oldEndCol = p.endCol
+		oldEndLn = p.ln1
+		oldEndCol = col1i
 
-		newEndLn = p.startLn
-		newEndCol = p.startCol + 1
+		newEndLn = p.ln0
+		newEndCol = col0i + 1
 
 	case editKindInsert:
-		start = a
+		start = i0
 		oldEnd = start + 1
-		newEnd = b
+		newEnd = i1
 
-		startLn = p.startLn
-		startCol = p.startCol
+		startLn = p.ln0
+		startCol = col0i
 
-		oldEndLn = p.startLn
-		oldEndCol = p.startCol + 1
+		oldEndLn = p.ln0
+		oldEndCol = col0i + 1
 
-		newEndLn = p.endLn
-		newEndCol = p.endCol
+		newEndLn = p.ln1
+		newEndCol = col1i
 	}
 
 	s.tree.Edit(&treeSitter.InputEdit{
