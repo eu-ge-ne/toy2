@@ -127,52 +127,13 @@ func (s *Syntax) parseTree() {
 	s.isDirty = false
 }
 
-func (s *Syntax) editTree(p edit) {
-	i0, i1, col0i, col1i, ok := p.index(s.buffer)
+func (s *Syntax) editTree(e edit) {
+	p, ok := e.index(s.buffer)
 	if !ok {
 		panic("in Syntax.editTree")
 	}
 
-	var start, oldEnd, newEnd, startLn, startCol, oldEndLn, oldEndCol, newEndLn, newEndCol int
-
-	switch p.kind {
-	case editKindDelete:
-		start = i0
-		oldEnd = i1
-		newEnd = start + 1
-
-		startLn = p.ln0
-		startCol = col0i
-
-		oldEndLn = p.ln1
-		oldEndCol = col1i
-
-		newEndLn = p.ln0
-		newEndCol = col0i + 1
-
-	case editKindInsert:
-		start = i0
-		oldEnd = start + 1
-		newEnd = i1
-
-		startLn = p.ln0
-		startCol = col0i
-
-		oldEndLn = p.ln0
-		oldEndCol = col0i + 1
-
-		newEndLn = p.ln1
-		newEndCol = col1i
-	}
-
-	s.tree.Edit(&treeSitter.InputEdit{
-		StartByte:      uint(start),
-		OldEndByte:     uint(oldEnd),
-		NewEndByte:     uint(newEnd),
-		StartPosition:  treeSitter.NewPoint(uint(startLn), uint(startCol)),
-		OldEndPosition: treeSitter.NewPoint(uint(oldEndLn), uint(oldEndCol)),
-		NewEndPosition: treeSitter.NewPoint(uint(newEndLn), uint(newEndCol)),
-	})
+	s.tree.Edit(&p)
 
 	s.isDirty = true
 }
