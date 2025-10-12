@@ -21,21 +21,6 @@ type Syntax struct {
 	isDirty bool
 }
 
-type edit struct {
-	kind editKind
-	ln0  int
-	col0 int
-	ln1  int
-	col1 int
-}
-
-type editKind int
-
-const (
-	editKindDelete editKind = iota
-	editKindInsert
-)
-
 func New(buffer *textbuf.TextBuf) *Syntax {
 	s := Syntax{
 		buffer: buffer,
@@ -143,22 +128,7 @@ func (s *Syntax) parseTree() {
 }
 
 func (s *Syntax) editTree(p edit) {
-	i0, ok := s.buffer.Index(p.ln0, p.col0)
-	if !ok {
-		panic("in Syntax.editTree")
-	}
-
-	i1, ok := s.buffer.Index(p.ln1, p.col1)
-	if !ok {
-		panic("in Syntax.editTree")
-	}
-
-	col0i, ok := s.buffer.ColIndex(p.ln0, p.col0)
-	if !ok {
-		panic("in Syntax.editTree")
-	}
-
-	col1i, ok := s.buffer.ColIndex(p.ln1, p.col1)
+	i0, i1, col0i, col1i, ok := p.index(s.buffer)
 	if !ok {
 		panic("in Syntax.editTree")
 	}
