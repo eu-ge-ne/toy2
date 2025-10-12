@@ -69,7 +69,7 @@ func (buf *TextBuf) Insert(index int, text string) {
 }
 
 func (buf *TextBuf) Insert2(ln, col int, text string) {
-	index, ok := buf.lnIndex(Pos{ln, 0})
+	index, ok := buf.lnIndex(ln)
 
 	if !ok {
 		if ln == 0 {
