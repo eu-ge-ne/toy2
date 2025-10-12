@@ -1,6 +1,7 @@
 package syntax
 
 import (
+	_ "embed"
 	"fmt"
 	"os"
 	"time"
@@ -11,14 +12,18 @@ import (
 	treeSitterTs "github.com/tree-sitter/tree-sitter-typescript/bindings/go"
 )
 
+//go:embed highlights.scm
+var scmHighlights string
+
 type Syntax struct {
-	buffer  *textbuf.TextBuf
-	parser  *treeSitter.Parser
-	tree    *treeSitter.Tree
-	close   chan struct{}
-	reset   chan struct{}
-	edits   chan edit
-	isDirty bool
+	buffer          *textbuf.TextBuf
+	parser          *treeSitter.Parser
+	queryHighlights *treeSitter.Query
+	tree            *treeSitter.Tree
+	close           chan struct{}
+	reset           chan struct{}
+	edits           chan edit
+	isDirty         bool
 }
 
 func New(buffer *textbuf.TextBuf) *Syntax {
@@ -32,10 +37,19 @@ func New(buffer *textbuf.TextBuf) *Syntax {
 
 	s.log()
 
-	err := s.parser.SetLanguage(treeSitter.NewLanguage(treeSitterTs.LanguageTypescript()))
+	lang := treeSitter.NewLanguage(treeSitterTs.LanguageTypescript())
+
+	err := s.parser.SetLanguage(lang)
 	if err != nil {
 		panic(err)
 	}
+
+	queryHighlights, qerr := treeSitter.NewQuery(lang, scmHighlights)
+	if qerr != nil {
+		panic(qerr)
+	}
+
+	s.queryHighlights = queryHighlights
 
 	s.resetTree()
 
