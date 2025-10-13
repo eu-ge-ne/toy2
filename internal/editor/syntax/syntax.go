@@ -116,14 +116,17 @@ func (s *Syntax) run() {
 		timeout := time.After(100 * time.Millisecond)
 
 		select {
-		case <-s.reset:
-			s.resetTree()
-		case p := <-s.edits:
-			s.editTree(p)
-		case <-timeout:
-			s.parseTree()
 		case <-s.close:
 			return
+
+		case <-s.reset:
+			s.resetTree()
+
+		case p := <-s.edits:
+			s.editTree(p)
+
+		case <-timeout:
+			s.parseTree()
 		}
 	}
 }
@@ -132,6 +135,17 @@ func (s *Syntax) resetTree() {
 	s.tree = nil
 	s.isDirty = true
 	s.parseTree()
+}
+
+func (s *Syntax) editTree(e edit) {
+	p, ok := e.index(s.buffer)
+	if !ok {
+		panic("in Syntax.editTree")
+	}
+
+	s.tree.Edit(&p)
+
+	s.isDirty = true
 }
 
 func (s *Syntax) parseTree() {
@@ -149,17 +163,6 @@ func (s *Syntax) parseTree() {
 	s.isDirty = false
 
 	s.highlight()
-}
-
-func (s *Syntax) editTree(e edit) {
-	p, ok := e.index(s.buffer)
-	if !ok {
-		panic("in Syntax.editTree")
-	}
-
-	s.tree.Edit(&p)
-
-	s.isDirty = true
 }
 
 func (s *Syntax) highlight() {
