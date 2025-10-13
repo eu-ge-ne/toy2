@@ -76,8 +76,11 @@ func New(multiLine bool) *Editor {
 }
 
 func (ed *Editor) SetSyntax() {
+	if ed.syntax != nil {
+		ed.syntax.Close()
+	}
+
 	ed.syntax = syntax.New(ed.buffer)
-	ed.syntax.Reset()
 }
 
 func (ed *Editor) SetColors(t theme.Tokens) {
