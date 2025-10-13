@@ -160,10 +160,13 @@ func (s *Syntax) parseTree() {
 		return
 	}
 
-	s.tree = s.parser.ParseWithOptions(func(i int, p treeSitter.Point) []byte {
+	newTree := s.parser.ParseWithOptions(func(i int, p treeSitter.Point) []byte {
 		return []byte(s.buffer.Chunk(i))
 	}, s.tree, nil)
 
+	s.tree.Close()
+
+	s.tree = newTree
 	s.isDirty = false
 }
 
