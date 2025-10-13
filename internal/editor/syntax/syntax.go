@@ -116,14 +116,14 @@ func (s *Syntax) run() {
 		timeout := time.After(100 * time.Millisecond)
 
 		select {
-		case <-s.close:
-			return
-		case <-timeout:
-			s.parseTree()
 		case <-s.reset:
 			s.resetTree()
 		case p := <-s.edits:
 			s.editTree(p)
+		case <-timeout:
+			s.parseTree()
+		case <-s.close:
+			return
 		}
 	}
 }
