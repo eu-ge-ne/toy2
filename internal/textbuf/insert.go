@@ -46,12 +46,12 @@ func (buf *TextBuf) Insert(index int, text string) {
 	}
 
 	if (insertCase == InsertRight) && buf.content.Growable(p) {
-		buf.content.Grow(p, text)
+		buf.content.Grow(p, []byte(text))
 		node.Bubble(p)
 		return
 	}
 
-	child := buf.content.Create(text)
+	child := buf.content.Create([]byte(text))
 
 	switch insertCase {
 	case InsertRoot:

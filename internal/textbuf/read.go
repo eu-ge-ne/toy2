@@ -21,16 +21,23 @@ func (buf *TextBuf) Chunk(i int) string {
 		return ""
 	}
 
-	return buf.content.Chunk(x, offset)
+	return string(buf.content.Chunk(x, offset))
 }
 
 func (buf *TextBuf) Read(start int, end int) iter.Seq[string] {
-	x, offset := buf.tree.Root.Find(start)
-	if x == nil {
-		return none
+	return func(yield func(string) bool) {
+		x, offset := buf.tree.Root.Find(start)
+		if x == nil {
+			return
+		}
+
+		for b := range buf.content.Read(x, offset, end-start) {
+			if !yield(string(b)) {
+				return
+			}
+		}
 	}
 
-	return buf.content.Read(x, offset, end-start)
 }
 
 func (buf *TextBuf) Read2(startLn, startCol, endLn, endCol int) string {
@@ -47,7 +54,4 @@ func (buf *TextBuf) Read2(startLn, startCol, endLn, endCol int) string {
 	it := buf.Read(start, end)
 
 	return strings.Join(slices.Collect(it), "")
-}
-
-func none(yield func(string) bool) {
 }
