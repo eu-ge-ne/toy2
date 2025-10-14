@@ -160,7 +160,7 @@ func (ed *Editor) HasChanges() bool {
 }
 
 func (ed *Editor) SetText(text string) {
-	ed.buffer.Reset(text)
+	ed.buffer.ResetString(text)
 	ed.syntax.Reset()
 }
 
@@ -193,7 +193,7 @@ func (ed *Editor) Load(filePath string) error {
 			panic("invalid utf8 chunk")
 		}
 
-		ed.buffer.Append(string(chunk))
+		ed.buffer.Append(chunk)
 	}
 
 	ed.syntax.Reset()
@@ -277,7 +277,7 @@ func (ed *Editor) insertText(text string) {
 		cur.Set(cur.StartLn, cur.StartCol, false)
 	}
 
-	ed.buffer.Insert2(cur.Ln, cur.Col, text)
+	ed.buffer.InsertString2(cur.Ln, cur.Col, text)
 
 	startLn := cur.Ln
 	startCol := cur.Col
