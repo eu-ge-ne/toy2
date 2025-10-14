@@ -100,7 +100,3 @@ func (buf *TextBuf) InsertString2(ln, col int, text string) {
 func (buf *TextBuf) Append(data []byte) {
 	buf.Insert(buf.Count(), data)
 }
-
-func (buf *TextBuf) AppendString(text string) {
-	buf.Append([]byte(text))
-}

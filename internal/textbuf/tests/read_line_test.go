@@ -20,7 +20,7 @@ func TestReadEmptyLine(t *testing.T) {
 
 func Test1Line(t *testing.T) {
 	buf := textbuf.New()
-	buf.AppendString("0")
+	buf.Append([]byte("0"))
 
 	assert.Equal(t, 1, buf.LineCount())
 	assert.Equal(t, "0", buf.Read2(0, 0, 1, 0))
@@ -30,7 +30,7 @@ func Test1Line(t *testing.T) {
 
 func Test2Lines(t *testing.T) {
 	buf := textbuf.New()
-	buf.AppendString("0\n")
+	buf.Append([]byte("0\n"))
 
 	assert.Equal(t, 2, buf.LineCount())
 	assert.Equal(t, "0\n", buf.Read2(0, 0, 1, 0))
@@ -41,7 +41,7 @@ func Test2Lines(t *testing.T) {
 
 func Test3Lines(t *testing.T) {
 	buf := textbuf.New()
-	buf.AppendString("0\n1\n")
+	buf.Append([]byte("0\n1\n"))
 
 	assert.Equal(t, 3, buf.LineCount())
 	assert.Equal(t, "0\n", buf.Read2(0, 0, 1, 0))
@@ -90,7 +90,7 @@ func TestReadLineAtValidIndex(t *testing.T) {
 
 func TestReadLineAtIndexGTELineCount(t *testing.T) {
 	buf := textbuf.New()
-	buf.AppendString("Lorem\nipsum\ndolor\nsit\namet")
+	buf.Append([]byte("Lorem\nipsum\ndolor\nsit\namet"))
 
 	assert.Equal(t, "amet", buf.Read2(4, 0, 5, 0))
 	assert.Equal(t, "", buf.Read2(5, 0, 6, 0))
@@ -101,7 +101,7 @@ func TestReadLineAtIndexGTELineCount(t *testing.T) {
 
 func TestReadLineAtIndexLT0(t *testing.T) {
 	buf := textbuf.New()
-	buf.AppendString("Lorem\nipsum\ndolor\nsit\namet")
+	buf.Append([]byte("Lorem\nipsum\ndolor\nsit\namet"))
 
 	assert.Equal(t, "Lorem\n", buf.Read2(0, 0, 1, 0))
 	assert.Equal(t, "amet", buf.Read2(buf.LineCount()-1, 0, buf.LineCount(), 0))

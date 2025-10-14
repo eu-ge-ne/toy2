@@ -10,7 +10,7 @@ import (
 
 func TestDeleteLine(t *testing.T) {
 	buf := textbuf.New()
-	buf.AppendString("Lorem \nipsum \ndolor \nsit \namet ")
+	buf.Append([]byte("Lorem \nipsum \ndolor \nsit \namet "))
 
 	assert.Equal(t, 5, buf.LineCount())
 

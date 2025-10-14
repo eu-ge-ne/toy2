@@ -11,7 +11,7 @@ import (
 
 func TestLineAtValidIndex(t *testing.T) {
 	buf := textbuf.New()
-	buf.AppendString("Lorem\nipsum\ndolor\nsit\namet")
+	buf.Append([]byte("Lorem\nipsum\ndolor\nsit\namet"))
 
 	assert.Equal(t, "Lorem\nipsum\ndolor\nsit\namet", buf.Read2(0, 0, math.MaxInt, math.MaxInt))
 	assert.Equal(t, "ipsum\ndolor\nsit\namet", buf.Read2(1, 0, math.MaxInt, math.MaxInt))
@@ -24,7 +24,7 @@ func TestLineAtValidIndex(t *testing.T) {
 
 func TestLineAtIndexGTELineCount(t *testing.T) {
 	buf := textbuf.New()
-	buf.AppendString("Lorem\nipsum\ndolor\nsit\namet")
+	buf.Append([]byte("Lorem\nipsum\ndolor\nsit\namet"))
 
 	assert.Equal(t, "amet", buf.Read2(4, 0, math.MaxInt, math.MaxInt))
 	assert.Equal(t, "", buf.Read2(5, 0, math.MaxInt, math.MaxInt))
@@ -35,7 +35,7 @@ func TestLineAtIndexGTELineCount(t *testing.T) {
 
 func TestLineAtIndexLT0(t *testing.T) {
 	buf := textbuf.New()
-	buf.AppendString("Lorem\nipsum\ndolor\nsit\namet")
+	buf.Append([]byte("Lorem\nipsum\ndolor\nsit\namet"))
 
 	assert.Equal(t, "Lorem\nipsum\ndolor\nsit\namet", buf.Read2(0, 0, math.MaxInt, math.MaxInt))
 	assert.Equal(t, "amet", buf.Read2(buf.LineCount()-1, 0, math.MaxInt, math.MaxInt))
