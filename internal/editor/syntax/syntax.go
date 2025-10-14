@@ -30,6 +30,7 @@ type Syntax struct {
 	reset           chan struct{}
 	edits           chan edit
 	isDirty         bool
+	hlCounter       int
 }
 
 func New(buffer *textbuf.TextBuf) *Syntax {
@@ -168,29 +169,32 @@ func (s *Syntax) parseTree() {
 }
 
 func (s *Syntax) highlight() {
-	if s != nil {
-		qc := treeSitter.NewQueryCursor()
-		defer qc.Close()
+	started := time.Now()
 
-		f, err := os.OpenFile("tmp/highlight.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
-		if err != nil {
-			panic(err)
-		}
-		defer f.Close()
+	qc := treeSitter.NewQueryCursor()
+	defer qc.Close()
 
-		text := std.IterToBytes(s.buffer.Read(0, math.MaxInt))
-		matches := qc.Matches(s.queryHighlights, s.tree.RootNode(), text)
+	f, err := os.OpenFile("tmp/highlight.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
 
-		for match := matches.Next(); match != nil; match = matches.Next() {
-			for _, capture := range match.Captures {
-				fmt.Fprintf(f,
-					"Match %d, Capture %d (%s): %s\n",
-					match.PatternIndex,
-					capture.Index,
-					s.queryHighlights.CaptureNames()[capture.Index],
-					capture.Node.Utf8Text(text),
-				)
-			}
+	text := std.IterToBytes(s.buffer.Read(0, math.MaxInt))
+	matches := qc.Matches(s.queryHighlights, s.tree.RootNode(), text)
+
+	for match := matches.Next(); match != nil; match = matches.Next() {
+		for _, capture := range match.Captures {
+			fmt.Fprintf(f,
+				"Match %d, Capture %d (%s): %s\n",
+				match.PatternIndex,
+				capture.Index,
+				s.queryHighlights.CaptureNames()[capture.Index],
+				capture.Node.Utf8Text(text),
+			)
 		}
 	}
+
+	fmt.Fprintf(f, "%d: Elapsed %v\n", s.hlCounter, time.Since(started))
+	s.hlCounter += 1
 }

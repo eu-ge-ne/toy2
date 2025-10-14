@@ -9,14 +9,17 @@
             "type": "go",
             "request": "launch",
             "mode": "debug",
-            "program": "bin/toy2/main.go"
+            "program": "bin/toy2/main.go",
+            "args": ["tmp/checker.ts"],
+            "cwd": "${workspaceFolder}"
         },
         {
             "name": "Attach",
             "type": "go",
             "request": "attach",
             "mode": "local",
-            "processId": "toy2_debug"
+            "processId": "toy2_debug",
+            "cwd": "${workspaceFolder}"
         },
     ]
 }
