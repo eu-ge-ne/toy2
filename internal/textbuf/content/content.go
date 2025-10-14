@@ -11,8 +11,8 @@ type Content struct {
 	Table []*piece.Piece
 }
 
-func (c *Content) Create(text string) *node.Node {
-	piece := piece.Create(text)
+func (c *Content) Create(data []byte) *node.Node {
+	piece := piece.Create(data)
 	c.Table = append(c.Table, &piece)
 	pieceIndex := len(c.Table) - 1
 
@@ -35,8 +35,8 @@ func (c *Content) Split(x *node.Node, index int, gap int) *node.Node {
 	return node.Create(x.PieceIndex, start, len, eols_start, eols_len)
 }
 
-func (c *Content) Read(x *node.Node, offset int, n int) iter.Seq[string] {
-	return func(yield func(string) bool) {
+func (c *Content) Read(x *node.Node, offset int, n int) iter.Seq[[]byte] {
+	return func(yield func([]byte) bool) {
 		for x != node.NIL && (n > 0) {
 			count := min(x.Len-offset, n)
 
@@ -51,7 +51,7 @@ func (c *Content) Read(x *node.Node, offset int, n int) iter.Seq[string] {
 	}
 }
 
-func (c *Content) Chunk(x *node.Node, offset int) string {
+func (c *Content) Chunk(x *node.Node, offset int) []byte {
 	count := x.Len - offset
 
 	return c.Table[x.PieceIndex].Read(x.Start+offset, x.Start+offset+count)
@@ -63,10 +63,10 @@ func (c *Content) Growable(x *node.Node) bool {
 	return (piece.Len < 100) && (x.Start+x.Len == piece.Len)
 }
 
-func (c *Content) Grow(x *node.Node, text string) {
-	c.Table[x.PieceIndex].Append(text)
+func (c *Content) Grow(x *node.Node, data []byte) {
+	c.Table[x.PieceIndex].Append(data)
 
-	c.resize(x, x.Len+len(text))
+	c.resize(x, x.Len+len(data))
 }
 
 func (c *Content) TrimStart(x *node.Node, n int) {

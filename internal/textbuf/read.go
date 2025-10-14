@@ -3,40 +3,32 @@ package textbuf
 import (
 	"iter"
 	"math"
-	"slices"
-	"strings"
 )
 
-func (buf *TextBuf) Iter() iter.Seq[string] {
-	return buf.Read(0, math.MaxInt)
-}
+var empty = func(yield func([]byte) bool) {}
 
-func (buf *TextBuf) All() string {
-	return strings.Join(slices.Collect(buf.Iter()), "")
-}
-
-func (buf *TextBuf) Chunk(i int) string {
+func (buf *TextBuf) Chunk(i int) []byte {
 	x, offset := buf.tree.Root.Find(i)
 	if x == nil {
-		return ""
+		return nil
 	}
 
 	return buf.content.Chunk(x, offset)
 }
 
-func (buf *TextBuf) Read(start int, end int) iter.Seq[string] {
+func (buf *TextBuf) Read(start int, end int) iter.Seq[[]byte] {
 	x, offset := buf.tree.Root.Find(start)
 	if x == nil {
-		return none
+		return empty
 	}
 
 	return buf.content.Read(x, offset, end-start)
 }
 
-func (buf *TextBuf) Read2(startLn, startCol, endLn, endCol int) string {
+func (buf *TextBuf) Read2(startLn, startCol, endLn, endCol int) iter.Seq[[]byte] {
 	start, ok := buf.Index(startLn, startCol)
 	if !ok {
-		return ""
+		return empty
 	}
 
 	end, ok := buf.Index(endLn, endCol)
@@ -44,10 +36,5 @@ func (buf *TextBuf) Read2(startLn, startCol, endLn, endCol int) string {
 		end = math.MaxInt
 	}
 
-	it := buf.Read(start, end)
-
-	return strings.Join(slices.Collect(it), "")
-}
-
-func none(yield func(string) bool) {
+	return buf.Read(start, end)
 }

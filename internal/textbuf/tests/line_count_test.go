@@ -10,11 +10,11 @@ import (
 
 func TestLineCount0Newlines(t *testing.T) {
 	buf1 := textbuf.New()
-	buf1.Append("A")
+	buf1.Append([]byte("A"))
 	buf2 := textbuf.New()
-	buf2.Append("😄")
+	buf2.Append([]byte("😄"))
 	buf3 := textbuf.New()
-	buf3.Append("🤦🏼‍♂️")
+	buf3.Append([]byte("🤦🏼‍♂️"))
 
 	assert.Equal(t, 1, buf1.LineCount())
 	assert.Equal(t, 1, buf2.LineCount())
@@ -23,11 +23,11 @@ func TestLineCount0Newlines(t *testing.T) {
 
 func TestLineCountLF(t *testing.T) {
 	buf1 := textbuf.New()
-	buf1.Append("A\nA")
+	buf1.Append([]byte("A\nA"))
 	buf2 := textbuf.New()
-	buf2.Append("😄\n😄")
+	buf2.Append([]byte("😄\n😄"))
 	buf3 := textbuf.New()
-	buf3.Append("🤦🏼‍♂️\n🤦🏼‍♂️")
+	buf3.Append([]byte("🤦🏼‍♂️\n🤦🏼‍♂️"))
 
 	assert.Equal(t, 2, buf1.LineCount())
 	assert.Equal(t, 2, buf2.LineCount())
@@ -36,11 +36,11 @@ func TestLineCountLF(t *testing.T) {
 
 func TestLineCountCRLF(t *testing.T) {
 	buf1 := textbuf.New()
-	buf1.Append("A\r\nA")
+	buf1.Append([]byte("A\r\nA"))
 	buf2 := textbuf.New()
-	buf2.Append("😄\r\n😄")
+	buf2.Append([]byte("😄\r\n😄"))
 	buf3 := textbuf.New()
-	buf3.Append("🤦🏼‍♂️\r\n🤦🏼‍♂️")
+	buf3.Append([]byte("🤦🏼‍♂️\r\n🤦🏼‍♂️"))
 
 	assert.Equal(t, 2, buf1.LineCount())
 	assert.Equal(t, 2, buf2.LineCount())

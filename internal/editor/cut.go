@@ -2,6 +2,7 @@ package editor
 
 import (
 	"github.com/eu-ge-ne/toy2/internal/key"
+	"github.com/eu-ge-ne/toy2/internal/std"
 	"github.com/eu-ge-ne/toy2/internal/vt"
 )
 
@@ -23,10 +24,10 @@ func (h *Cut) Run(key.Key) bool {
 	cur := ed.cursor
 
 	if cur.Selecting {
-		ed.clipboard = ed.buffer.Read2(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol)
+		ed.clipboard = std.IterToStr(ed.buffer.Read2(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol))
 		ed.deleteSelection()
 	} else {
-		ed.clipboard = ed.buffer.Read2(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
+		ed.clipboard = std.IterToStr(ed.buffer.Read2(cur.Ln, cur.Col, cur.Ln, cur.Col+1))
 		ed.deleteChar()
 	}
 

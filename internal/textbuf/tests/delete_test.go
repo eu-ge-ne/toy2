@@ -1,10 +1,12 @@
 package textbuf_test
 
 import (
+	"math"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/eu-ge-ne/toy2/internal/std"
 	"github.com/eu-ge-ne/toy2/internal/textbuf"
 )
 
@@ -47,25 +49,25 @@ func TestDeleteCharsFromTheMiddleReversed(t *testing.T) {
 func createTextBuf() *textbuf.TextBuf {
 	buf := textbuf.New()
 
-	buf.Insert(buf.Count(), "Lorem")
-	buf.Insert(buf.Count(), " ipsum")
-	buf.Insert(buf.Count(), " dolor")
-	buf.Insert(buf.Count(), " sit")
-	buf.Insert(buf.Count(), " amet,")
-	buf.Insert(buf.Count(), " consectetur")
-	buf.Insert(buf.Count(), " adipiscing")
-	buf.Insert(buf.Count(), " elit,")
-	buf.Insert(buf.Count(), " sed")
-	buf.Insert(buf.Count(), " do")
-	buf.Insert(buf.Count(), " eiusmod")
-	buf.Insert(buf.Count(), " tempor")
-	buf.Insert(buf.Count(), " incididunt")
-	buf.Insert(buf.Count(), " ut")
-	buf.Insert(buf.Count(), " labore")
-	buf.Insert(buf.Count(), " et")
-	buf.Insert(buf.Count(), " dolore")
-	buf.Insert(buf.Count(), " magna")
-	buf.Insert(buf.Count(), " aliqua.")
+	buf.Insert(buf.Count(), []byte("Lorem"))
+	buf.Insert(buf.Count(), []byte(" ipsum"))
+	buf.Insert(buf.Count(), []byte(" dolor"))
+	buf.Insert(buf.Count(), []byte(" sit"))
+	buf.Insert(buf.Count(), []byte(" amet,"))
+	buf.Insert(buf.Count(), []byte(" consectetur"))
+	buf.Insert(buf.Count(), []byte(" adipiscing"))
+	buf.Insert(buf.Count(), []byte(" elit,"))
+	buf.Insert(buf.Count(), []byte(" sed"))
+	buf.Insert(buf.Count(), []byte(" do"))
+	buf.Insert(buf.Count(), []byte(" eiusmod"))
+	buf.Insert(buf.Count(), []byte(" tempor"))
+	buf.Insert(buf.Count(), []byte(" incididunt"))
+	buf.Insert(buf.Count(), []byte(" ut"))
+	buf.Insert(buf.Count(), []byte(" labore"))
+	buf.Insert(buf.Count(), []byte(" et"))
+	buf.Insert(buf.Count(), []byte(" dolore"))
+	buf.Insert(buf.Count(), []byte(" magna"))
+	buf.Insert(buf.Count(), []byte(" aliqua."))
 
 	return buf
 }
@@ -73,25 +75,25 @@ func createTextBuf() *textbuf.TextBuf {
 func createTextBufReversed() *textbuf.TextBuf {
 	buf := textbuf.New()
 
-	buf.Insert(0, " aliqua.")
-	buf.Insert(0, " magna")
-	buf.Insert(0, " dolore")
-	buf.Insert(0, " et")
-	buf.Insert(0, " labore")
-	buf.Insert(0, " ut")
-	buf.Insert(0, " incididunt")
-	buf.Insert(0, " tempor")
-	buf.Insert(0, " eiusmod")
-	buf.Insert(0, " do")
-	buf.Insert(0, " sed")
-	buf.Insert(0, " elit,")
-	buf.Insert(0, " adipiscing")
-	buf.Insert(0, " consectetur")
-	buf.Insert(0, " amet,")
-	buf.Insert(0, " sit")
-	buf.Insert(0, " dolor")
-	buf.Insert(0, " ipsum")
-	buf.Insert(0, "Lorem")
+	buf.Insert(0, []byte(" aliqua."))
+	buf.Insert(0, []byte(" magna"))
+	buf.Insert(0, []byte(" dolore"))
+	buf.Insert(0, []byte(" et"))
+	buf.Insert(0, []byte(" labore"))
+	buf.Insert(0, []byte(" ut"))
+	buf.Insert(0, []byte(" incididunt"))
+	buf.Insert(0, []byte(" tempor"))
+	buf.Insert(0, []byte(" eiusmod"))
+	buf.Insert(0, []byte(" do"))
+	buf.Insert(0, []byte(" sed"))
+	buf.Insert(0, []byte(" elit,"))
+	buf.Insert(0, []byte(" adipiscing"))
+	buf.Insert(0, []byte(" consectetur"))
+	buf.Insert(0, []byte(" amet,"))
+	buf.Insert(0, []byte(" sit"))
+	buf.Insert(0, []byte(" dolor"))
+	buf.Insert(0, []byte(" ipsum"))
+	buf.Insert(0, []byte("Lorem"))
 
 	return buf
 }
@@ -102,7 +104,7 @@ func testDeleteHead(t *testing.T, buf *textbuf.TextBuf, n int) {
 	expected := text
 
 	for len(expected) > 0 {
-		assert.Equal(t, expected, buf.All())
+		assert.Equal(t, expected, std.IterToStr(buf.Read(0, math.MaxInt)))
 		assert.Equal(t, len(expected), buf.Count())
 		buf.Validate()
 
@@ -111,7 +113,7 @@ func testDeleteHead(t *testing.T, buf *textbuf.TextBuf, n int) {
 		expected = expected[i:]
 	}
 
-	assert.Equal(t, expected, buf.All())
+	assert.Equal(t, expected, std.IterToStr(buf.Read(0, math.MaxInt)))
 	assert.Equal(t, len(expected), buf.Count())
 	buf.Validate()
 }
@@ -120,7 +122,7 @@ func testDeleteTail(t *testing.T, buf *textbuf.TextBuf, n int) {
 	expected := text
 
 	for len(expected) > 0 {
-		assert.Equal(t, expected, buf.All())
+		assert.Equal(t, expected, std.IterToStr(buf.Read(0, math.MaxInt)))
 		assert.Equal(t, len(expected), buf.Count())
 		buf.Validate()
 
@@ -129,7 +131,7 @@ func testDeleteTail(t *testing.T, buf *textbuf.TextBuf, n int) {
 		expected = expected[0:i]
 	}
 
-	assert.Equal(t, expected, buf.All())
+	assert.Equal(t, expected, std.IterToStr(buf.Read(0, math.MaxInt)))
 	assert.Equal(t, len(expected), buf.Count())
 	buf.Validate()
 }
@@ -138,7 +140,7 @@ func testDeleteMiddle(t *testing.T, buf *textbuf.TextBuf, n int) {
 	expected := text
 
 	for len(expected) > 0 {
-		assert.Equal(t, expected, buf.All())
+		assert.Equal(t, expected, std.IterToStr(buf.Read(0, math.MaxInt)))
 		assert.Equal(t, len(expected), buf.Count())
 		buf.Validate()
 
@@ -148,7 +150,7 @@ func testDeleteMiddle(t *testing.T, buf *textbuf.TextBuf, n int) {
 		expected = expected[0:pos] + expected[i:]
 	}
 
-	assert.Equal(t, expected, buf.All())
+	assert.Equal(t, expected, std.IterToStr(buf.Read(0, math.MaxInt)))
 	assert.Equal(t, len(expected), buf.Count())
 	buf.Validate()
 }

@@ -2,6 +2,7 @@ package editor
 
 import (
 	"io"
+	"math"
 	"os"
 	"time"
 	"unicode/utf8"
@@ -12,6 +13,7 @@ import (
 	"github.com/eu-ge-ne/toy2/internal/editor/syntax"
 	"github.com/eu-ge-ne/toy2/internal/grapheme"
 	"github.com/eu-ge-ne/toy2/internal/key"
+	"github.com/eu-ge-ne/toy2/internal/std"
 	"github.com/eu-ge-ne/toy2/internal/textbuf"
 	"github.com/eu-ge-ne/toy2/internal/theme"
 	"github.com/eu-ge-ne/toy2/internal/ui"
@@ -160,12 +162,12 @@ func (ed *Editor) HasChanges() bool {
 }
 
 func (ed *Editor) SetText(text string) {
-	ed.buffer.Reset(text)
+	ed.buffer.Reset([]byte(text))
 	ed.syntax.Reset()
 }
 
 func (ed *Editor) GetText() string {
-	return ed.buffer.All()
+	return std.IterToStr(ed.buffer.Read(0, math.MaxInt))
 }
 
 func (ed *Editor) Load(filePath string) error {
@@ -193,7 +195,7 @@ func (ed *Editor) Load(filePath string) error {
 			panic("invalid utf8 chunk")
 		}
 
-		ed.buffer.Append(string(chunk))
+		ed.buffer.Append(chunk)
 	}
 
 	ed.syntax.Reset()
@@ -209,8 +211,8 @@ func (ed *Editor) Save(filePath string) error {
 
 	defer f.Close()
 
-	for text := range ed.buffer.Iter() {
-		_, err := f.WriteString(text)
+	for data := range ed.buffer.Read(0, math.MaxInt) {
+		_, err := f.Write(data)
 		if err != nil {
 			return err
 		}
@@ -277,7 +279,7 @@ func (ed *Editor) insertText(text string) {
 		cur.Set(cur.StartLn, cur.StartCol, false)
 	}
 
-	ed.buffer.Insert2(cur.Ln, cur.Col, text)
+	ed.buffer.Insert2(cur.Ln, cur.Col, []byte(text))
 
 	startLn := cur.Ln
 	startCol := cur.Col
