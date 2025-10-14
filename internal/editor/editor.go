@@ -162,7 +162,7 @@ func (ed *Editor) HasChanges() bool {
 }
 
 func (ed *Editor) SetText(text string) {
-	ed.buffer.ResetString(text)
+	ed.buffer.Reset([]byte(text))
 	ed.syntax.Reset()
 }
 

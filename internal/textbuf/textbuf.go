@@ -59,10 +59,6 @@ func (buf *TextBuf) Reset(data []byte) {
 	}
 }
 
-func (buf *TextBuf) ResetString(text string) {
-	buf.Reset([]byte(text))
-}
-
 func (buf *TextBuf) Validate() {
 	buf.tree.Root.Validate()
 }
