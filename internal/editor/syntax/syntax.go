@@ -22,8 +22,9 @@ var scmJsHighlights string
 var scmTsHighlights string
 
 type Syntax struct {
-	buffer          *textbuf.TextBuf
-	parser          *treeSitter.Parser
+	buffer *textbuf.TextBuf
+	parser *treeSitter.Parser
+
 	queryHighlights *treeSitter.Query
 	tree            *treeSitter.Tree
 	close           chan struct{}
