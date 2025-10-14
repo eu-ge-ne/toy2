@@ -21,7 +21,7 @@ func TestInsertInto0Line(t *testing.T) {
 
 func TestInsertIntoALine(t *testing.T) {
 	buf := textbuf.New()
-	buf.InsertString(0, "Lorem")
+	buf.Insert(0, []byte("Lorem"))
 
 	buf.Insert2(0, 5, []byte(" ipsum"))
 

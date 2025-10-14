@@ -68,10 +68,6 @@ func (buf *TextBuf) Insert(index int, data []byte) {
 	}
 }
 
-func (buf *TextBuf) InsertString(index int, text string) {
-	buf.Insert(index, []byte(text))
-}
-
 func (buf *TextBuf) Insert2(ln, col int, data []byte) {
 	index, ok := buf.LnIndex(ln)
 

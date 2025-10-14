@@ -54,16 +54,16 @@ func Test3Lines(t *testing.T) {
 func TestReadLineAtValidIndex(t *testing.T) {
 	buf := textbuf.New()
 
-	buf.InsertString(0, "Lorem\naliqua.")
-	buf.InsertString(6, "ipsum\nmagna\n")
-	buf.InsertString(12, "dolor\ndolore\n")
-	buf.InsertString(18, "sit\net\n")
-	buf.InsertString(22, "amet,\nlabore\n")
-	buf.InsertString(28, "consectetur\nut\n")
-	buf.InsertString(40, "adipiscing\nincididunt\n")
-	buf.InsertString(51, "elit,\ntempor\n")
-	buf.InsertString(57, "sed\neiusmod\n")
-	buf.InsertString(61, "do\n")
+	buf.Insert(0, []byte("Lorem\naliqua."))
+	buf.Insert(6, []byte("ipsum\nmagna\n"))
+	buf.Insert(12, []byte("dolor\ndolore\n"))
+	buf.Insert(18, []byte("sit\net\n"))
+	buf.Insert(22, []byte("amet,\nlabore\n"))
+	buf.Insert(28, []byte("consectetur\nut\n"))
+	buf.Insert(40, []byte("adipiscing\nincididunt\n"))
+	buf.Insert(51, []byte("elit,\ntempor\n"))
+	buf.Insert(57, []byte("sed\neiusmod\n"))
+	buf.Insert(61, []byte("do\n"))
 
 	assert.Equal(t, "Lorem\n", buf.Read2(0, 0, 1, 0))
 	assert.Equal(t, "ipsum\n", buf.Read2(1, 0, 2, 0))
@@ -114,7 +114,7 @@ func TestInsertAddsLines(t *testing.T) {
 	buf := textbuf.New()
 
 	for i := 0; i < 10; i += 1 {
-		buf.InsertString(buf.Count(), fmt.Sprintf("%d\n", i))
+		buf.Insert(buf.Count(), []byte(fmt.Sprintf("%d\n", i)))
 
 		assert.Equal(t, i+2, buf.LineCount())
 		assert.Equal(t, fmt.Sprintf("%d\n", i), buf.Read2(i, 0, i+1, 0))
