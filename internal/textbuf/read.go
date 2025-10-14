@@ -1,29 +1,19 @@
 package textbuf
 
 import (
-	"bytes"
 	"iter"
 	"math"
-	"slices"
 )
 
 var empty = func(yield func([]byte) bool) {}
 
-func (buf *TextBuf) Iter() iter.Seq[[]byte] {
-	return buf.Read(0, math.MaxInt)
-}
-
-func (buf *TextBuf) All() string {
-	return string(bytes.Join(slices.Collect(buf.Iter()), []byte{}))
-}
-
-func (buf *TextBuf) Chunk(i int) string {
+func (buf *TextBuf) Chunk(i int) []byte {
 	x, offset := buf.tree.Root.Find(i)
 	if x == nil {
-		return ""
+		return nil
 	}
 
-	return string(buf.content.Chunk(x, offset))
+	return buf.content.Chunk(x, offset)
 }
 
 func (buf *TextBuf) Read(start int, end int) iter.Seq[[]byte] {

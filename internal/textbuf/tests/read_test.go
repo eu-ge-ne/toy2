@@ -13,7 +13,7 @@ import (
 func TestReadEmpty(t *testing.T) {
 	buf := textbuf.New()
 
-	assert.Equal(t, "", buf.All())
+	assert.Equal(t, "", std.IterToStr(buf.Read(0, math.MaxInt)))
 	buf.Validate()
 }
 
@@ -40,7 +40,7 @@ func TestReadAtStartLT0(t *testing.T) {
 	buf := textbuf.New()
 	buf.Append([]byte("Lorem"))
 
-	assert.Equal(t, "Lorem", buf.All())
+	assert.Equal(t, "Lorem", std.IterToStr(buf.Read(0, math.MaxInt)))
 	assert.Equal(t, "m", std.IterToStr(buf.Read(buf.Count()-1, math.MaxInt)))
 	assert.Equal(t, "em", std.IterToStr(buf.Read(buf.Count()-2, math.MaxInt)))
 

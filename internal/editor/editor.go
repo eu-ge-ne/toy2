@@ -2,6 +2,7 @@ package editor
 
 import (
 	"io"
+	"math"
 	"os"
 	"time"
 	"unicode/utf8"
@@ -12,6 +13,7 @@ import (
 	"github.com/eu-ge-ne/toy2/internal/editor/syntax"
 	"github.com/eu-ge-ne/toy2/internal/grapheme"
 	"github.com/eu-ge-ne/toy2/internal/key"
+	"github.com/eu-ge-ne/toy2/internal/std"
 	"github.com/eu-ge-ne/toy2/internal/textbuf"
 	"github.com/eu-ge-ne/toy2/internal/theme"
 	"github.com/eu-ge-ne/toy2/internal/ui"
@@ -165,7 +167,7 @@ func (ed *Editor) SetText(text string) {
 }
 
 func (ed *Editor) GetText() string {
-	return ed.buffer.All()
+	return std.IterToStr(ed.buffer.Read(0, math.MaxInt))
 }
 
 func (ed *Editor) Load(filePath string) error {
@@ -209,7 +211,7 @@ func (ed *Editor) Save(filePath string) error {
 
 	defer f.Close()
 
-	for data := range ed.buffer.Iter() {
+	for data := range ed.buffer.Read(0, math.MaxInt) {
 		_, err := f.Write(data)
 		if err != nil {
 			return err

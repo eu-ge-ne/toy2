@@ -3,9 +3,11 @@ package syntax
 import (
 	_ "embed"
 	"fmt"
+	"math"
 	"os"
 	"time"
 
+	"github.com/eu-ge-ne/toy2/internal/std"
 	"github.com/eu-ge-ne/toy2/internal/textbuf"
 
 	treeSitter "github.com/tree-sitter/go-tree-sitter"
@@ -154,7 +156,7 @@ func (s *Syntax) parseTree() {
 	}
 
 	newTree := s.parser.ParseWithOptions(func(i int, p treeSitter.Point) []byte {
-		return []byte(s.buffer.Chunk(i))
+		return s.buffer.Chunk(i)
 	}, s.tree, nil)
 
 	s.tree.Close()
@@ -176,7 +178,8 @@ func (s *Syntax) highlight() {
 		}
 		defer f.Close()
 
-		matches := qc.Matches(s.queryHighlights, s.tree.RootNode(), []byte(s.buffer.All()))
+		text := std.IterToBytes(s.buffer.Read(0, math.MaxInt))
+		matches := qc.Matches(s.queryHighlights, s.tree.RootNode(), text)
 
 		for match := matches.Next(); match != nil; match = matches.Next() {
 			for _, capture := range match.Captures {
@@ -185,7 +188,7 @@ func (s *Syntax) highlight() {
 					match.PatternIndex,
 					capture.Index,
 					s.queryHighlights.CaptureNames()[capture.Index],
-					capture.Node.Utf8Text([]byte(s.buffer.All())),
+					capture.Node.Utf8Text(text),
 				)
 			}
 		}
