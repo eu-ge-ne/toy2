@@ -38,17 +38,17 @@ type Syntax struct {
 func New(buffer *textbuf.TextBuf) *Syntax {
 	s := Syntax{
 		buffer: buffer,
+
+		parser: treeSitter.NewParser(),
 		close:  make(chan struct{}),
 		reset:  make(chan struct{}),
 		edits:  make(chan edit, 100),
 	}
 
-	s.parser = treeSitter.NewParser()
 	log(s.parser)
 
 	treeSitter.NewLanguage(treeSitterJs.Language())
 	langTs := treeSitter.NewLanguage(treeSitterTs.LanguageTypescript())
-
 	err := s.parser.SetLanguage(langTs)
 	if err != nil {
 		panic(err)
@@ -61,11 +61,31 @@ func New(buffer *textbuf.TextBuf) *Syntax {
 
 	s.queryHighlights = queryHighlights
 
+	return &s
+}
+
+func (s *Syntax) Run() {
 	s.resetTree()
 
-	go s.run()
+	go func() {
+		for {
+			timeout := time.After(100 * time.Millisecond)
 
-	return &s
+			select {
+			case <-s.close:
+				return
+
+			case <-s.reset:
+				s.resetTree()
+
+			case p := <-s.edits:
+				s.editTree(p)
+
+			case <-timeout:
+				s.parseTree()
+			}
+		}
+	}()
 }
 
 func (s *Syntax) Close() {
@@ -114,26 +134,6 @@ func log(parser *treeSitter.Parser) {
 
 		i += 1
 	})
-}
-
-func (s *Syntax) run() {
-	for {
-		timeout := time.After(100 * time.Millisecond)
-
-		select {
-		case <-s.close:
-			return
-
-		case <-s.reset:
-			s.resetTree()
-
-		case p := <-s.edits:
-			s.editTree(p)
-
-		case <-timeout:
-			s.parseTree()
-		}
-	}
 }
 
 func (s *Syntax) resetTree() {
