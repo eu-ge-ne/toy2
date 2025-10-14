@@ -23,14 +23,15 @@ var scmTsHighlights string
 
 type Syntax struct {
 	buffer *textbuf.TextBuf
-	parser *treeSitter.Parser
+
+	parser  *treeSitter.Parser
+	tree    *treeSitter.Tree
+	close   chan struct{}
+	reset   chan struct{}
+	edits   chan edit
+	isDirty bool
 
 	queryHighlights *treeSitter.Query
-	tree            *treeSitter.Tree
-	close           chan struct{}
-	reset           chan struct{}
-	edits           chan edit
-	isDirty         bool
 	hlCounter       int
 }
 
