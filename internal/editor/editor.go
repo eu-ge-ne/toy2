@@ -162,7 +162,7 @@ func (ed *Editor) HasChanges() bool {
 }
 
 func (ed *Editor) SetText(text string) {
-	ed.buffer.Reset([]byte(text))
+	ed.buffer.Reset(text)
 	ed.syntax.Reset()
 }
 
@@ -195,7 +195,7 @@ func (ed *Editor) Load(filePath string) error {
 			panic("invalid utf8 chunk")
 		}
 
-		ed.buffer.Append(chunk)
+		ed.buffer.Append(string(chunk))
 	}
 
 	ed.syntax.Reset()
@@ -211,8 +211,8 @@ func (ed *Editor) Save(filePath string) error {
 
 	defer f.Close()
 
-	for data := range ed.buffer.Read(0, math.MaxInt) {
-		_, err := f.Write(data)
+	for text := range ed.buffer.Read(0, math.MaxInt) {
+		_, err := f.WriteString(text)
 		if err != nil {
 			return err
 		}
@@ -279,12 +279,12 @@ func (ed *Editor) insertText(text string) {
 		cur.Set(cur.StartLn, cur.StartCol, false)
 	}
 
-	ed.buffer.Insert2(cur.Ln, cur.Col, []byte(text))
+	ed.buffer.Insert2(cur.Ln, cur.Col, text)
 
 	startLn := cur.Ln
 	startCol := cur.Col
 
-	dLn, dCol := grapheme.Graphemes.MeasureText(text)
+	dLn, dCol := grapheme.Graphemes.MeasureString(text)
 	cur.Forward(dLn, dCol)
 
 	endLn := cur.Ln

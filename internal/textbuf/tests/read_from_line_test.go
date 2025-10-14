@@ -12,7 +12,7 @@ import (
 
 func TestLineAtValidIndex(t *testing.T) {
 	buf := textbuf.New()
-	buf.Append([]byte("Lorem\nipsum\ndolor\nsit\namet"))
+	buf.Append("Lorem\nipsum\ndolor\nsit\namet")
 
 	assert.Equal(t, "Lorem\nipsum\ndolor\nsit\namet",
 		std.IterToStr(buf.Read2(0, 0, math.MaxInt, math.MaxInt)))
@@ -30,7 +30,7 @@ func TestLineAtValidIndex(t *testing.T) {
 
 func TestLineAtIndexGTELineCount(t *testing.T) {
 	buf := textbuf.New()
-	buf.Append([]byte("Lorem\nipsum\ndolor\nsit\namet"))
+	buf.Append("Lorem\nipsum\ndolor\nsit\namet")
 
 	assert.Equal(t, "amet",
 		std.IterToStr(buf.Read2(4, 0, math.MaxInt, math.MaxInt)))
@@ -44,7 +44,7 @@ func TestLineAtIndexGTELineCount(t *testing.T) {
 
 func TestLineAtIndexLT0(t *testing.T) {
 	buf := textbuf.New()
-	buf.Append([]byte("Lorem\nipsum\ndolor\nsit\namet"))
+	buf.Append("Lorem\nipsum\ndolor\nsit\namet")
 
 	assert.Equal(t, "Lorem\nipsum\ndolor\nsit\namet",
 		std.IterToStr(buf.Read2(0, 0, math.MaxInt, math.MaxInt)))

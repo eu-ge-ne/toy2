@@ -1,7 +1,7 @@
 package piece
 
 type Piece struct {
-	data []byte
+	text string
 	Len  int
 	Eols []Eol
 }
@@ -11,25 +11,25 @@ type Eol struct {
 	End   int
 }
 
-func Create(data []byte) Piece {
+func Create(text string) Piece {
 	x := Piece{}
 
-	x.appendEols(data)
-	x.data = data
-	x.Len = len(data)
+	x.appendEols(text)
+	x.text = text
+	x.Len = len(text)
 
 	return x
 }
 
-func (p *Piece) Append(data []byte) {
-	p.appendEols(data)
+func (p *Piece) Append(text string) {
+	p.appendEols(text)
 
-	p.data = append(p.data, data...)
-	p.Len += len(data)
+	p.text += text
+	p.Len += len(text)
 }
 
-func (p *Piece) Read(start int, end int) []byte {
-	return p.data[start:end]
+func (p *Piece) Read(start int, end int) string {
+	return p.text[start:end]
 }
 
 func (p *Piece) FindEolIndex(index int, a int) int {
@@ -57,10 +57,10 @@ outer:
 	return a
 }
 
-func (p *Piece) appendEols(data []byte) {
-	var pr byte
+func (p *Piece) appendEols(text string) {
+	var pr rune
 
-	for i, r := range data {
+	for i, r := range text {
 		switch {
 		case pr == '\r' && r == '\n':
 			a := p.Len + i - 1
@@ -75,7 +75,7 @@ func (p *Piece) appendEols(data []byte) {
 	}
 
 	if pr == '\r' {
-		a := p.Len + len(data) - 1
+		a := p.Len + len(text) - 1
 		b := a + 1
 		p.Eols = append(p.Eols, Eol{Start: a, End: b})
 	}

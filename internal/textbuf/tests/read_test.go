@@ -19,7 +19,7 @@ func TestReadEmpty(t *testing.T) {
 
 func TestRead(t *testing.T) {
 	buf := textbuf.New()
-	buf.Append([]byte("Lorem ipsum dolor"))
+	buf.Append("Lorem ipsum dolor")
 
 	assert.Equal(t, "ipsum ", std.IterToStr(buf.Read(6, 12)))
 	buf.Validate()
@@ -27,7 +27,7 @@ func TestRead(t *testing.T) {
 
 func TestReadAtStartGTECount(t *testing.T) {
 	buf := textbuf.New()
-	buf.Append([]byte("Lorem"))
+	buf.Append("Lorem")
 
 	assert.Equal(t, "m", std.IterToStr(buf.Read(4, math.MaxInt)))
 	assert.Equal(t, "", std.IterToStr(buf.Read(5, math.MaxInt)))
@@ -38,7 +38,7 @@ func TestReadAtStartGTECount(t *testing.T) {
 
 func TestReadAtStartLT0(t *testing.T) {
 	buf := textbuf.New()
-	buf.Append([]byte("Lorem"))
+	buf.Append("Lorem")
 
 	assert.Equal(t, "Lorem", std.IterToStr(buf.Read(0, math.MaxInt)))
 	assert.Equal(t, "m", std.IterToStr(buf.Read(buf.Count()-1, math.MaxInt)))

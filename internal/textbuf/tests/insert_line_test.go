@@ -13,7 +13,7 @@ import (
 func TestInsertInto0Line(t *testing.T) {
 	buf := textbuf.New()
 
-	buf.Insert2(0, 0, []byte("Lorem ipsum"))
+	buf.Insert2(0, 0, "Lorem ipsum")
 
 	assert.Equal(t, "Lorem ipsum", std.IterToStr(buf.Read(0, math.MaxInt)))
 	assert.Equal(t, "Lorem ipsum", std.IterToStr(buf.Read2(0, 0, 1, 0)))
@@ -23,9 +23,9 @@ func TestInsertInto0Line(t *testing.T) {
 
 func TestInsertIntoALine(t *testing.T) {
 	buf := textbuf.New()
-	buf.Insert(0, []byte("Lorem"))
+	buf.Insert(0, "Lorem")
 
-	buf.Insert2(0, 5, []byte(" ipsum"))
+	buf.Insert2(0, 5, " ipsum")
 
 	assert.Equal(t, "Lorem ipsum", std.IterToStr(buf.Read(0, math.MaxInt)))
 	assert.Equal(t, "Lorem ipsum", std.IterToStr(buf.Read2(0, 0, 1, 0)))
@@ -36,7 +36,7 @@ func TestInsertIntoALine(t *testing.T) {
 func TestInsertIntoALineWhichDoesNotExist(t *testing.T) {
 	buf := textbuf.New()
 
-	buf.Insert2(1, 0, []byte("Lorem ipsum"))
+	buf.Insert2(1, 0, "Lorem ipsum")
 
 	assert.Equal(t, "Lorem ipsum", std.IterToStr(buf.Read(0, math.MaxInt)))
 	assert.Equal(t, "Lorem ipsum", std.IterToStr(buf.Read2(0, 0, 1, 0)))
@@ -47,7 +47,7 @@ func TestInsertIntoALineWhichDoesNotExist(t *testing.T) {
 func TestInsertIntoAColumnWhichDoesNotExist(t *testing.T) {
 	buf := textbuf.New()
 
-	buf.Insert2(0, 1, []byte("Lorem ipsum"))
+	buf.Insert2(0, 1, "Lorem ipsum")
 
 	assert.Equal(t, "Lorem ipsum", std.IterToStr(buf.Read(0, math.MaxInt)))
 	assert.Equal(t, "Lorem ipsum", std.IterToStr(buf.Read2(0, 0, 1, 0)))

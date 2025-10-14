@@ -157,7 +157,7 @@ func (s *Syntax) parseTree() {
 	}
 
 	newTree := s.parser.ParseWithOptions(func(i int, p treeSitter.Point) []byte {
-		return s.buffer.Chunk(i)
+		return []byte(s.buffer.Chunk(i))
 	}, s.tree, nil)
 
 	s.tree.Close()
@@ -180,7 +180,7 @@ func (s *Syntax) highlight() {
 	}
 	defer f.Close()
 
-	text := std.IterToBytes(s.buffer.Read(0, math.MaxInt))
+	text := []byte(std.IterToStr(s.buffer.Read(0, math.MaxInt)))
 	matches := qc.Matches(s.queryHighlights, s.tree.RootNode(), text)
 
 	for match := matches.Next(); match != nil; match = matches.Next() {
