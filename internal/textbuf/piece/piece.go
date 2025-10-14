@@ -58,7 +58,7 @@ outer:
 }
 
 func (p *Piece) appendEols(data []byte) {
-	var pr rune
+	var pr byte
 
 	for i, r := range data {
 		switch {
@@ -71,7 +71,7 @@ func (p *Piece) appendEols(data []byte) {
 			b := a + 1
 			p.Eols = append(p.Eols, Eol{Start: a, End: b})
 		}
-		pr = rune(r)
+		pr = r
 	}
 
 	if pr == '\r' {
