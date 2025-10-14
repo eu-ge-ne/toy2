@@ -277,7 +277,7 @@ func (ed *Editor) insertText(text string) {
 		cur.Set(cur.StartLn, cur.StartCol, false)
 	}
 
-	ed.buffer.InsertString2(cur.Ln, cur.Col, text)
+	ed.buffer.Insert2(cur.Ln, cur.Col, []byte(text))
 
 	startLn := cur.Ln
 	startCol := cur.Col

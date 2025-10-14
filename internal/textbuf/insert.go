@@ -93,10 +93,6 @@ func (buf *TextBuf) Insert2(ln, col int, data []byte) {
 	buf.Insert(index, data)
 }
 
-func (buf *TextBuf) InsertString2(ln, col int, text string) {
-	buf.Insert2(ln, col, []byte(text))
-}
-
 func (buf *TextBuf) Append(data []byte) {
 	buf.Insert(buf.Count(), data)
 }
