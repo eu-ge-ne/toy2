@@ -1,4 +1,4 @@
-package textbuf_test
+package std
 
 import (
 	"bytes"
@@ -6,6 +6,6 @@ import (
 	"slices"
 )
 
-func iterToStr(itr iter.Seq[[]byte]) string {
+func IterToStr(itr iter.Seq[[]byte]) string {
 	return string(bytes.Join(slices.Collect(itr), []byte{}))
 }
