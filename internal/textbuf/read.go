@@ -1,18 +1,18 @@
 package textbuf
 
 import (
+	"bytes"
 	"iter"
 	"math"
 	"slices"
-	"strings"
 )
 
-func (buf *TextBuf) Iter() iter.Seq[string] {
+func (buf *TextBuf) Iter() iter.Seq[[]byte] {
 	return buf.Read(0, math.MaxInt)
 }
 
 func (buf *TextBuf) All() string {
-	return strings.Join(slices.Collect(buf.Iter()), "")
+	return string(bytes.Join(slices.Collect(buf.Iter()), []byte{}))
 }
 
 func (buf *TextBuf) Chunk(i int) string {
@@ -24,20 +24,13 @@ func (buf *TextBuf) Chunk(i int) string {
 	return string(buf.content.Chunk(x, offset))
 }
 
-func (buf *TextBuf) Read(start int, end int) iter.Seq[string] {
-	return func(yield func(string) bool) {
-		x, offset := buf.tree.Root.Find(start)
-		if x == nil {
-			return
-		}
-
-		for b := range buf.content.Read(x, offset, end-start) {
-			if !yield(string(b)) {
-				return
-			}
-		}
+func (buf *TextBuf) Read(start int, end int) iter.Seq[[]byte] {
+	x, offset := buf.tree.Root.Find(start)
+	if x == nil {
+		return func(yield func([]byte) bool) {}
 	}
 
+	return buf.content.Read(x, offset, end-start)
 }
 
 func (buf *TextBuf) Read2(startLn, startCol, endLn, endCol int) string {
@@ -53,5 +46,5 @@ func (buf *TextBuf) Read2(startLn, startCol, endLn, endCol int) string {
 
 	it := buf.Read(start, end)
 
-	return strings.Join(slices.Collect(it), "")
+	return string(bytes.Join(slices.Collect(it), []byte{}))
 }

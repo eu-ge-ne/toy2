@@ -1,11 +1,11 @@
 package textbuf_test
 
 import (
+	"bytes"
 	"iter"
 	"slices"
-	"strings"
 )
 
-func iterToStr(itr iter.Seq[string]) string {
-	return strings.Join(slices.Collect(itr), "")
+func iterToStr(itr iter.Seq[[]byte]) string {
+	return string(bytes.Join(slices.Collect(itr), []byte{}))
 }

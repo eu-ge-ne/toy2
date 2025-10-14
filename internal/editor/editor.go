@@ -209,8 +209,8 @@ func (ed *Editor) Save(filePath string) error {
 
 	defer f.Close()
 
-	for text := range ed.buffer.Iter() {
-		_, err := f.WriteString(text)
+	for data := range ed.buffer.Iter() {
+		_, err := f.Write(data)
 		if err != nil {
 			return err
 		}
