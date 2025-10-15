@@ -27,7 +27,7 @@ type Syntax struct {
 	ranges  []treeSitter.Range
 	tree    *treeSitter.Tree
 	close   chan struct{}
-	edits   chan edit
+	ops     chan op
 	isDirty bool
 
 	queryHighlights *treeSitter.Query
@@ -36,6 +36,22 @@ type Syntax struct {
 	hlCounter    int
 }
 
+type op struct {
+	kind opKind
+	ln0  int
+	col0 int
+	ln1  int
+	col1 int
+}
+
+type opKind int
+
+const (
+	opKindScroll opKind = iota
+	opKindDelete
+	opKindInsert
+)
+
 func New(buffer *textbuf.TextBuf) *Syntax {
 	s := Syntax{
 		buffer: buffer,
@@ -43,7 +59,7 @@ func New(buffer *textbuf.TextBuf) *Syntax {
 		parser: treeSitter.NewParser(),
 		ranges: []treeSitter.Range{{}},
 		close:  make(chan struct{}),
-		edits:  make(chan edit, 100),
+		ops:    make(chan op, 100),
 	}
 
 	//Log(s.parser)
@@ -81,39 +97,20 @@ func (s *Syntax) Restart() {
 }
 
 func (s *Syntax) Scroll(startLn, endLn int) {
-	if s == nil {
-		return
+	if s != nil {
+		s.ops <- op{opKindScroll, startLn, 0, endLn, 0}
 	}
-
-	i0, ok := s.buffer.LnIndex(startLn)
-	if !ok {
-		return
-		panic("in Syntax.SetArea")
-	}
-
-	i1, ok := s.buffer.LnIndex(endLn)
-	if !ok {
-		return
-		panic("in Syntax.SetArea")
-	}
-
-	s.ranges[0].StartByte = uint(i0)
-	s.ranges[0].EndByte = uint(i1)
-	s.ranges[0].StartPoint.Row = uint(startLn)
-	s.ranges[0].EndPoint.Row = uint(endLn)
-
-	s.parseTree()
 }
 
 func (s *Syntax) Delete(startLn, startCol, endLn, endCol int) {
 	if s != nil {
-		s.edits <- edit{editKindDelete, startLn, startCol, endLn, endCol}
+		s.ops <- op{opKindDelete, startLn, startCol, endLn, endCol}
 	}
 }
 
 func (s *Syntax) Insert(startLn, startCol, endLn, endCol int) {
 	if s != nil {
-		s.edits <- edit{editKindInsert, startLn, startCol, endLn, endCol}
+		s.ops <- op{opKindInsert, startLn, startCol, endLn, endCol}
 	}
 }
 
@@ -162,26 +159,55 @@ func (s *Syntax) run() {
 
 			select {
 			case <-s.close:
-				s.tree.Close()
-				s.tree = nil
+				s.handleClose()
 				return
 
-			case p := <-s.edits:
-				ed, ok := p.index(s.buffer)
-				if !ok {
-					panic("in Syntax.edits")
-				}
-				s.tree.Edit(&ed)
-				s.isDirty = true
+			case op := <-s.ops:
+				s.handleOp(op)
 
 			case <-timeout:
-				if s.isDirty {
-					s.parseTree()
-					s.isDirty = false
-				}
+				s.handleTimeout()
 			}
 		}
 	}()
+}
+
+func (s *Syntax) handleClose() {
+	s.tree.Close()
+	s.tree = nil
+}
+
+func (s *Syntax) handleOp(op op) {
+	if op.kind == opKindScroll {
+		ln0 := max(s.buffer.LineCount(), op.ln0)
+		ln1 := max(s.buffer.LineCount(), op.ln1)
+
+		i0, _ := s.buffer.LnIndex(ln0)
+		i1, _ := s.buffer.LnIndex(ln1)
+
+		s.ranges[0].StartByte = uint(i0)
+		s.ranges[0].EndByte = uint(i1)
+		s.ranges[0].StartPoint.Row = uint(ln0)
+		s.ranges[0].EndPoint.Row = uint(ln1)
+
+		s.parseTree()
+		return
+	}
+
+	ed, ok := s.inputEdit(op)
+	if !ok {
+		panic(fmt.Sprintf("in Syntax.handleEdit: %v", op))
+	}
+
+	s.tree.Edit(&ed)
+	s.isDirty = true
+}
+
+func (s *Syntax) handleTimeout() {
+	if s.isDirty {
+		s.parseTree()
+		s.isDirty = false
+	}
 }
 
 func (s *Syntax) parseTree() {
@@ -198,12 +224,7 @@ func (s *Syntax) parseTree() {
 
 	newTree := s.parser.ParseWithOptions(func(i int, p treeSitter.Point) []byte {
 		text := s.buffer.Chunk(i)
-
-		if len(text) < 1024 {
-			return []byte(text)
-		}
-
-		return []byte(text[0:1024])
+		return []byte(text)
 	}, s.tree, nil)
 
 	s.tree.Close()
@@ -211,4 +232,47 @@ func (s *Syntax) parseTree() {
 
 	fmt.Fprintf(f, "%d: Elapsed %v\n", s.parseCounter, time.Since(started))
 	s.parseCounter += 1
+}
+
+func (s *Syntax) inputEdit(op op) (r treeSitter.InputEdit, ok bool) {
+	i0, ok := s.buffer.Index(op.ln0, op.col0)
+	if !ok {
+		return
+	}
+
+	i1, ok := s.buffer.Index(op.ln1, op.col1)
+	if !ok {
+		return
+	}
+
+	col0i, ok := s.buffer.ColIndex(op.ln0, op.col0)
+	if !ok {
+		return
+	}
+
+	col1i, ok := s.buffer.ColIndex(op.ln1, op.col1)
+	if !ok {
+		return
+	}
+
+	switch op.kind {
+	case opKindDelete:
+		r.StartByte = uint(i0)
+		r.OldEndByte = uint(i1)
+		r.NewEndByte = uint(i0 + 1)
+		r.StartPosition = treeSitter.NewPoint(uint(op.ln0), uint(col0i))
+		r.OldEndPosition = treeSitter.NewPoint(uint(op.ln1), uint(col1i))
+		r.NewEndPosition = treeSitter.NewPoint(uint(op.ln0), uint(col0i+1))
+	case opKindInsert:
+		r.StartByte = uint(i0)
+		r.OldEndByte = uint(i0 + 1)
+		r.NewEndByte = uint(i1)
+		r.StartPosition = treeSitter.NewPoint(uint(op.ln0), uint(col0i))
+		r.OldEndPosition = treeSitter.NewPoint(uint(op.ln0), uint(col0i+1))
+		r.NewEndPosition = treeSitter.NewPoint(uint(op.ln1), uint(col1i))
+	}
+
+	ok = true
+
+	return
 }
