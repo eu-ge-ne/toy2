@@ -130,9 +130,11 @@ func (s *Syntax) Highlight() {
 	}
 	defer f.Close()
 
+	fmt.Fprintf(f, "%d: Ranges %v\n", s.hlCounter, s.ranges)
 	qc.SetPointRange(s.ranges[0].StartPoint, s.ranges[0].EndPoint)
+
 	text := []byte(std.IterToStr(s.buffer.Read2(int(s.ranges[0].StartPoint.Row), 0, int(s.ranges[0].EndPoint.Row), 0)))
-	matches := qc.Matches(s.queryHighlights, s.tree.RootNode(), text)
+	matches := qc.Matches(s.queryHighlights, s.tree.Clone().RootNode(), text)
 
 	for match := matches.Next(); match != nil; match = matches.Next() {
 		for _, capture := range match.Captures {
@@ -179,8 +181,8 @@ func (s *Syntax) handleClose() {
 
 func (s *Syntax) handleOp(op op) {
 	if op.kind == opKindScroll {
-		ln0 := max(s.buffer.LineCount(), op.ln0)
-		ln1 := max(s.buffer.LineCount(), op.ln1)
+		ln0 := min(s.buffer.LineCount(), op.ln0)
+		ln1 := min(s.buffer.LineCount(), op.ln1)
 
 		i0, _ := s.buffer.LnIndex(ln0)
 		i1, _ := s.buffer.LnIndex(ln1)

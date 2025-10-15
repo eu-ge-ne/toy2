@@ -101,7 +101,7 @@ func (r *Render) Render() {
 	vt.Sync.Esu()
 }
 
-func (r *Render) Scroll3() {
+func (r *Render) Scroll() {
 	if r.indexEnabled && r.buffer.LineCount() > 0 {
 		r.indexWidth = int(math.Log10(float64(r.buffer.LineCount()))) + 3
 	} else {
@@ -212,6 +212,8 @@ func (r *Render) scrollH() {
 }
 
 func (r *Render) renderLines() {
+	r.syntax.Highlight()
+
 	row := r.area.Y
 
 	for ln := r.ScrollLn; ; ln += 1 {
