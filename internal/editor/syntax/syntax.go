@@ -96,21 +96,21 @@ func (s *Syntax) Restart() {
 	}
 }
 
-func (s *Syntax) Scroll(startLn, endLn int) {
+func (s *Syntax) Scroll(ln0, ln1 int) {
 	if s != nil {
-		s.ops <- op{opKindScroll, startLn, 0, endLn, 0}
+		s.ops <- op{opKindScroll, ln0, 0, ln1, 0}
 	}
 }
 
-func (s *Syntax) Delete(startLn, startCol, endLn, endCol int) {
+func (s *Syntax) Delete(ln0, col0, ln1, col1 int) {
 	if s != nil {
-		s.ops <- op{opKindDelete, startLn, startCol, endLn, endCol}
+		s.ops <- op{opKindDelete, ln0, col0, ln1, col1}
 	}
 }
 
-func (s *Syntax) Insert(startLn, startCol, endLn, endCol int) {
+func (s *Syntax) Insert(ln0, col0, ln1, col1 int) {
 	if s != nil {
-		s.ops <- op{opKindInsert, startLn, startCol, endLn, endCol}
+		s.ops <- op{opKindInsert, ln0, col0, ln1, col1}
 	}
 }
 
@@ -206,7 +206,6 @@ func (s *Syntax) handleOp(op op) {
 func (s *Syntax) handleTimeout() {
 	if s.isDirty {
 		s.parseTree()
-		s.isDirty = false
 	}
 }
 
@@ -232,6 +231,8 @@ func (s *Syntax) parseTree() {
 
 	fmt.Fprintf(f, "%d: Elapsed %v\n", s.parseCounter, time.Since(started))
 	s.parseCounter += 1
+
+	s.isDirty = false
 }
 
 func (s *Syntax) inputEdit(op op) (r treeSitter.InputEdit, ok bool) {
