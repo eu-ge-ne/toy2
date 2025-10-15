@@ -9,7 +9,7 @@ import (
 )
 
 func Log(parser *treeSitter.Parser) {
-	f, err := os.OpenFile("tmp/syntax.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+	f, err := os.OpenFile("tmp/syntax-trace.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
 	if err != nil {
 		panic(err)
 	}
