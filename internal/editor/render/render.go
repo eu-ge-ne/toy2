@@ -213,8 +213,6 @@ func (r *Render) scrollH() {
 }
 
 func (r *Render) renderLines() {
-	r.syntax.Highlight(r.scrollLn, r.scrollLn+r.area.H)
-
 	row := r.area.Y
 
 	for ln := r.scrollLn; ; ln += 1 {

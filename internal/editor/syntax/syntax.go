@@ -24,6 +24,7 @@ type Syntax struct {
 	buffer *textbuf.TextBuf
 
 	parser  *treeSitter.Parser
+	ranges  []treeSitter.Range
 	tree    *treeSitter.Tree
 	close   chan struct{}
 	edits   chan edit
@@ -40,6 +41,7 @@ func New(buffer *textbuf.TextBuf) *Syntax {
 		buffer: buffer,
 
 		parser: treeSitter.NewParser(),
+		ranges: []treeSitter.Range{{}},
 		close:  make(chan struct{}),
 		edits:  make(chan edit, 100),
 	}
@@ -60,6 +62,8 @@ func New(buffer *textbuf.TextBuf) *Syntax {
 
 	s.queryHighlights = queryHighlights
 
+	s.run()
+
 	return &s
 }
 
@@ -76,6 +80,27 @@ func (s *Syntax) Reset() {
 	}
 }
 
+func (s *Syntax) SetArea(startLn, endLn int) {
+	i0, ok := s.buffer.LnIndex(startLn)
+	if !ok {
+		return
+		panic("in Syntax.SetArea")
+	}
+
+	i1, ok := s.buffer.LnIndex(endLn)
+	if !ok {
+		return
+		panic("in Syntax.SetArea")
+	}
+
+	s.ranges[0].StartByte = uint(i0)
+	s.ranges[0].EndByte = uint(i1)
+	s.ranges[0].StartPoint.Row = uint(startLn)
+	s.ranges[0].EndPoint.Row = uint(endLn)
+
+	s.parseTree()
+}
+
 func (s *Syntax) Delete(startLn, startCol, endLn, endCol int) {
 	if s != nil {
 		s.edits <- edit{editKindDelete, startLn, startCol, endLn, endCol}
@@ -88,7 +113,7 @@ func (s *Syntax) Insert(startLn, startCol, endLn, endCol int) {
 	}
 }
 
-func (s *Syntax) Highlight(startLn, endLn int) {
+func (s *Syntax) Highlight() {
 	if s == nil || s.tree == nil {
 		return
 	}
@@ -104,8 +129,8 @@ func (s *Syntax) Highlight(startLn, endLn int) {
 	}
 	defer f.Close()
 
-	qc.SetPointRange(treeSitter.NewPoint(uint(startLn), 0), treeSitter.NewPoint(uint(endLn), 0))
-	text := []byte(std.IterToStr(s.buffer.Read2(startLn, 0, endLn, 0)))
+	qc.SetPointRange(s.ranges[0].StartPoint, s.ranges[0].EndPoint)
+	text := []byte(std.IterToStr(s.buffer.Read2(int(s.ranges[0].StartPoint.Row), 0, int(s.ranges[0].EndPoint.Row), 0)))
 	matches := qc.Matches(s.queryHighlights, s.tree.RootNode(), text)
 
 	for match := matches.Next(); match != nil; match = matches.Next() {
@@ -158,6 +183,7 @@ func (s *Syntax) run() {
 }
 
 func (s *Syntax) parseTree() {
+	/*
 	started := time.Now()
 
 	f, err := os.OpenFile("tmp/parse.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
@@ -166,7 +192,9 @@ func (s *Syntax) parseTree() {
 	}
 	defer f.Close()
 
-	//s.parser.SetIncludedRanges([]treeSitter.Range{{}})
+	fmt.Fprintf(f, "%d: Ranges %v\n", s.parseCounter, s.ranges)
+	*/
+	s.parser.SetIncludedRanges(s.ranges)
 
 	newTree := s.parser.ParseWithOptions(func(i int, p treeSitter.Point) []byte {
 		text := s.buffer.Chunk(i)
@@ -181,6 +209,6 @@ func (s *Syntax) parseTree() {
 	s.tree.Close()
 	s.tree = newTree
 
-	fmt.Fprintf(f, "%d: Elapsed %v\n", s.parseCounter, time.Since(started))
+	//fmt.Fprintf(f, "%d: Elapsed %v\n", s.parseCounter, time.Since(started))
 	s.parseCounter += 1
 }
