@@ -29,8 +29,8 @@ type Render struct {
 	textWidth  int
 	cursorY    int
 	cursorX    int
-	scrollLn   int
-	scrollCol  int
+	ScrollLn   int
+	ScrollCol  int
 }
 
 func New(buffer *textbuf.TextBuf, cursor *cursor.Cursor) *Render {
@@ -84,11 +84,7 @@ func (r *Render) Render() {
 	vt.Buf.Write(r.colors.background)
 	vt.ClearArea(vt.Buf, r.area)
 
-	r.determineLayout()
-
 	if r.area.W >= r.indexWidth {
-		r.scrollV()
-		r.scrollH()
 		r.renderLines()
 	}
 
@@ -105,7 +101,7 @@ func (r *Render) Render() {
 	vt.Sync.Esu()
 }
 
-func (r *Render) determineLayout() {
+func (r *Render) Scroll3() {
 	if r.indexEnabled && r.buffer.LineCount() > 0 {
 		r.indexWidth = int(math.Log10(float64(r.buffer.LineCount()))) + 3
 	} else {
@@ -125,27 +121,30 @@ func (r *Render) determineLayout() {
 
 	r.buffer.MeasureY = r.area.Y
 	r.buffer.MeasureX = r.area.X + r.indexWidth
+
+	r.scrollV()
+	r.scrollH()
 }
 
 func (r *Render) scrollV() {
-	deltaLn := r.cursor.Ln - r.scrollLn
+	deltaLn := r.cursor.Ln - r.ScrollLn
 
 	// Above?
 	if deltaLn <= 0 {
-		r.scrollLn = r.cursor.Ln
+		r.ScrollLn = r.cursor.Ln
 		return
 	}
 
 	// Below?
 
 	if deltaLn > r.area.H {
-		r.scrollLn = r.cursor.Ln - r.area.H
+		r.ScrollLn = r.cursor.Ln - r.area.H
 	}
 
-	xs := make([]int, r.cursor.Ln+1-r.scrollLn)
+	xs := make([]int, r.cursor.Ln+1-r.ScrollLn)
 	for i := 0; i < len(xs); i += 1 {
 		xs[i] = 1
-		for j, cell := range r.buffer.IterLine(r.scrollLn+i, false) {
+		for j, cell := range r.buffer.IterLine(r.ScrollLn+i, false) {
 			if j > 0 && cell.Col == 0 {
 				xs[i] += 1
 			}
@@ -157,7 +156,7 @@ func (r *Render) scrollV() {
 
 	for height > r.area.H {
 		height -= xs[i]
-		r.scrollLn += 1
+		r.ScrollLn += 1
 		i += 1
 	}
 
@@ -182,12 +181,12 @@ func (r *Render) scrollH() {
 		col = cell.Col
 	}
 
-	deltaCol := col - r.scrollCol
+	deltaCol := col - r.ScrollCol
 
 	// Before?
 
 	if deltaCol <= 0 {
-		r.scrollCol = col
+		r.ScrollCol = col
 		return
 	}
 
@@ -205,7 +204,7 @@ func (r *Render) scrollH() {
 			break
 		}
 
-		r.scrollCol += 1
+		r.ScrollCol += 1
 		width -= w
 	}
 
@@ -215,7 +214,7 @@ func (r *Render) scrollH() {
 func (r *Render) renderLines() {
 	row := r.area.Y
 
-	for ln := r.scrollLn; ; ln += 1 {
+	for ln := r.ScrollLn; ; ln += 1 {
 		if ln < r.buffer.LineCount() {
 			row = r.renderLine(ln, row)
 		} else {
@@ -259,7 +258,7 @@ func (r *Render) renderLine(ln int, row int) int {
 			availableW = r.area.W - r.indexWidth
 		}
 
-		if (cell.Col < r.scrollCol) || (cell.G.Width > availableW) {
+		if (cell.Col < r.ScrollCol) || (cell.G.Width > availableW) {
 			continue
 		}
 
