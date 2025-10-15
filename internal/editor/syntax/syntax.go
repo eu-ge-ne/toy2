@@ -80,7 +80,11 @@ func (s *Syntax) Reset() {
 	}
 }
 
-func (s *Syntax) SetArea(startLn, endLn int) {
+func (s *Syntax) Scroll(startLn, endLn int) {
+	if s == nil {
+		return
+	}
+
 	i0, ok := s.buffer.LnIndex(startLn)
 	if !ok {
 		return
@@ -152,8 +156,6 @@ func (s *Syntax) Highlight() {
 }
 
 func (s *Syntax) run() {
-	s.parseTree()
-
 	go func() {
 		for {
 			timeout := time.After(100 * time.Millisecond)
@@ -183,7 +185,6 @@ func (s *Syntax) run() {
 }
 
 func (s *Syntax) parseTree() {
-	/*
 	started := time.Now()
 
 	f, err := os.OpenFile("tmp/parse.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
@@ -193,7 +194,6 @@ func (s *Syntax) parseTree() {
 	defer f.Close()
 
 	fmt.Fprintf(f, "%d: Ranges %v\n", s.parseCounter, s.ranges)
-	*/
 	s.parser.SetIncludedRanges(s.ranges)
 
 	newTree := s.parser.ParseWithOptions(func(i int, p treeSitter.Point) []byte {
@@ -209,6 +209,6 @@ func (s *Syntax) parseTree() {
 	s.tree.Close()
 	s.tree = newTree
 
-	//fmt.Fprintf(f, "%d: Elapsed %v\n", s.parseCounter, time.Since(started))
+	fmt.Fprintf(f, "%d: Elapsed %v\n", s.parseCounter, time.Since(started))
 	s.parseCounter += 1
 }
