@@ -169,7 +169,7 @@ func (ed *Editor) HasChanges() bool {
 
 func (ed *Editor) SetText(text string) {
 	ed.buffer.Reset(text)
-	ed.syntax.Reset()
+	ed.syntax.Restart()
 	ed.scroll()
 }
 
@@ -205,7 +205,7 @@ func (ed *Editor) Load(filePath string) error {
 		ed.buffer.Append(string(chunk))
 	}
 
-	ed.syntax.Reset()
+	ed.syntax.Restart()
 	ed.scroll()
 
 	return nil

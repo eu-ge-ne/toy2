@@ -73,7 +73,7 @@ func (s *Syntax) Close() {
 	}
 }
 
-func (s *Syntax) Reset() {
+func (s *Syntax) Restart() {
 	if s != nil {
 		s.Close()
 		s.run()
