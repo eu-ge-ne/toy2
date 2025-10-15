@@ -32,8 +32,7 @@ type Syntax struct {
 
 	queryHighlights *treeSitter.Query
 
-	parseCounter int
-	hlCounter    int
+	counter int
 }
 
 type op struct {
@@ -152,7 +151,7 @@ func (s *Syntax) handleOp(op op) {
 		s.ranges[0].StartPoint.Row = uint(ln0)
 		s.ranges[0].EndPoint.Row = uint(ln1)
 
-		s.parseTree()
+		s.update()
 		return
 	}
 
@@ -167,35 +166,67 @@ func (s *Syntax) handleOp(op op) {
 
 func (s *Syntax) handleTimeout() {
 	if s.isDirty {
-		s.parseTree()
+		s.update()
 	}
 }
 
-func (s *Syntax) parseTree() {
+func (s *Syntax) update() {
 	started := time.Now()
 
-	f, err := os.OpenFile("tmp/parse.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+	f, err := os.OpenFile("tmp/syntax.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
 	if err != nil {
 		panic(err)
 	}
 	defer f.Close()
 
-	fmt.Fprintf(f, "%d: Ranges %v\n", s.parseCounter, s.ranges)
+	fmt.Fprintf(f, "update: counter=%d\n", s.counter)
+	fmt.Fprintf(f, "update: ranges=%d\n", s.ranges)
+
+	// parse
+
 	s.parser.SetIncludedRanges(s.ranges)
 
-	newTree := s.parser.ParseWithOptions(func(i int, p treeSitter.Point) []byte {
+	maxChunkLen := int(s.ranges[0].EndByte - s.ranges[0].StartByte)
+	t := s.parser.ParseWithOptions(func(i int, p treeSitter.Point) []byte {
 		text := s.buffer.Chunk(i)
+		if len(text) > maxChunkLen {
+			text = text[0:maxChunkLen]
+		}
 		return []byte(text)
 	}, s.tree, nil)
 
 	s.tree.Close()
-	s.tree = newTree
+	s.tree = t
 
-	fmt.Fprintf(f, "%d: Elapsed %v\n", s.parseCounter, time.Since(started))
-	s.parseCounter += 1
+	// query
 
-	s.highlight()
+	qc := treeSitter.NewQueryCursor()
+	defer qc.Close()
 
+	qc.SetPointRange(s.ranges[0].StartPoint, s.ranges[0].EndPoint)
+
+	text := []byte(std.IterToStr(s.buffer.Read2(int(s.ranges[0].StartPoint.Row), 0, int(s.ranges[0].EndPoint.Row), 0)))
+	matches := qc.Matches(s.queryHighlights, s.tree.RootNode(), text)
+
+	for match := matches.Next(); match != nil; match = matches.Next() {
+		for range match.Captures {
+			/*
+				fmt.Fprintf(f,
+					"highlight: Match %d, Capture %d: %s |%s| %v, %v\n",
+					match.PatternIndex,
+					capture.Index,
+					s.queryHighlights.CaptureNames()[capture.Index],
+					capture.Node.Utf8Text(text),
+					capture.Node.StartPosition(),
+					capture.Node.EndPosition(),
+				)
+			*/
+		}
+	}
+
+	fmt.Fprintf(f, "Elapsed %v\n", time.Since(started))
+
+	s.counter += 1
 	s.isDirty = false
 }
 
@@ -240,40 +271,4 @@ func (s *Syntax) inputEdit(op op) (r treeSitter.InputEdit, ok bool) {
 	ok = true
 
 	return
-}
-
-func (s *Syntax) highlight() {
-	started := time.Now()
-
-	qc := treeSitter.NewQueryCursor()
-	defer qc.Close()
-
-	f, err := os.OpenFile("tmp/highlight.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-
-	fmt.Fprintf(f, "%d: Ranges %v\n", s.hlCounter, s.ranges)
-	qc.SetPointRange(s.ranges[0].StartPoint, s.ranges[0].EndPoint)
-
-	text := []byte(std.IterToStr(s.buffer.Read2(int(s.ranges[0].StartPoint.Row), 0, int(s.ranges[0].EndPoint.Row), 0)))
-	matches := qc.Matches(s.queryHighlights, s.tree.RootNode(), text)
-
-	for match := matches.Next(); match != nil; match = matches.Next() {
-		for _, capture := range match.Captures {
-			fmt.Fprintf(f,
-				"Match %d, Capture %d: %s |%s| %v, %v\n",
-				match.PatternIndex,
-				capture.Index,
-				s.queryHighlights.CaptureNames()[capture.Index],
-				capture.Node.Utf8Text(text),
-				capture.Node.StartPosition(),
-				capture.Node.EndPosition(),
-			)
-		}
-	}
-
-	fmt.Fprintf(f, "%d: Elapsed %v\n", s.hlCounter, time.Since(started))
-	s.hlCounter += 1
 }
