@@ -82,8 +82,10 @@ func (ed *Editor) SetSyntax() {
 		ed.syntax.Close()
 	}
 
-	ed.syntax = syntax.New(ed.buffer)
-	ed.syntax.Run()
+	s := syntax.New(ed.buffer)
+
+	ed.syntax = s
+	ed.render.SetSyntax(s)
 }
 
 func (ed *Editor) SetColors(t theme.Tokens) {
