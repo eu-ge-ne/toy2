@@ -3,7 +3,6 @@ package syntax
 import (
 	_ "embed"
 	"fmt"
-	"math"
 	"os"
 	"time"
 
@@ -27,12 +26,13 @@ type Syntax struct {
 	parser  *treeSitter.Parser
 	tree    *treeSitter.Tree
 	close   chan struct{}
-	reset   chan struct{}
 	edits   chan edit
 	isDirty bool
 
 	queryHighlights *treeSitter.Query
-	hlCounter       int
+
+	parseCounter int
+	hlCounter    int
 }
 
 func New(buffer *textbuf.TextBuf) *Syntax {
@@ -41,11 +41,10 @@ func New(buffer *textbuf.TextBuf) *Syntax {
 
 		parser: treeSitter.NewParser(),
 		close:  make(chan struct{}),
-		reset:  make(chan struct{}),
 		edits:  make(chan edit, 100),
 	}
 
-	log(s.parser)
+	//Log(s.parser)
 
 	treeSitter.NewLanguage(treeSitterJs.Language())
 	langTs := treeSitter.NewLanguage(treeSitterTs.LanguageTypescript())
@@ -64,30 +63,6 @@ func New(buffer *textbuf.TextBuf) *Syntax {
 	return &s
 }
 
-func (s *Syntax) Run() {
-	s.resetTree()
-
-	go func() {
-		for {
-			timeout := time.After(100 * time.Millisecond)
-
-			select {
-			case <-s.close:
-				return
-
-			case <-s.reset:
-				s.resetTree()
-
-			case p := <-s.edits:
-				s.editTree(p)
-
-			case <-timeout:
-				s.parseTree()
-			}
-		}
-	}()
-}
-
 func (s *Syntax) Close() {
 	if s != nil {
 		s.close <- struct{}{}
@@ -96,7 +71,8 @@ func (s *Syntax) Close() {
 
 func (s *Syntax) Reset() {
 	if s != nil {
-		s.reset <- struct{}{}
+		s.Close()
+		s.run()
 	}
 }
 
@@ -112,65 +88,11 @@ func (s *Syntax) Insert(startLn, startCol, endLn, endCol int) {
 	}
 }
 
-func log(parser *treeSitter.Parser) {
-	f, err := os.OpenFile("tmp/syntax.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
-	if err != nil {
-		panic(err)
-	}
-
-	i := 0
-
-	parser.SetLogger(func(t treeSitter.LogType, msg string) {
-		var tp string
-
-		switch t {
-		case treeSitter.LogTypeParse:
-			tp = "Parse"
-		case treeSitter.LogTypeLex:
-			tp = "Lex"
-		}
-
-		fmt.Fprintf(f, "%d: %s: %s\n", i, tp, msg)
-
-		i += 1
-	})
-}
-
-func (s *Syntax) resetTree() {
-	s.tree = nil
-	s.isDirty = true
-	s.parseTree()
-}
-
-func (s *Syntax) editTree(e edit) {
-	p, ok := e.index(s.buffer)
-	if !ok {
-		panic("in Syntax.editTree")
-	}
-
-	s.tree.Edit(&p)
-
-	s.isDirty = true
-}
-
-func (s *Syntax) parseTree() {
-	if !s.isDirty {
+func (s *Syntax) Highlight(startLn, endLn int) {
+	if s == nil || s.tree == nil {
 		return
 	}
 
-	newTree := s.parser.ParseWithOptions(func(i int, p treeSitter.Point) []byte {
-		return []byte(s.buffer.Chunk(i))
-	}, s.tree, nil)
-
-	s.tree.Close()
-
-	s.tree = newTree
-	s.isDirty = false
-
-	s.highlight()
-}
-
-func (s *Syntax) highlight() {
 	started := time.Now()
 
 	qc := treeSitter.NewQueryCursor()
@@ -182,21 +104,83 @@ func (s *Syntax) highlight() {
 	}
 	defer f.Close()
 
-	text := []byte(std.IterToStr(s.buffer.Read(0, math.MaxInt)))
+	qc.SetPointRange(treeSitter.NewPoint(uint(startLn), 0), treeSitter.NewPoint(uint(endLn), 0))
+	text := []byte(std.IterToStr(s.buffer.Read2(startLn, 0, endLn, 0)))
 	matches := qc.Matches(s.queryHighlights, s.tree.RootNode(), text)
 
 	for match := matches.Next(); match != nil; match = matches.Next() {
 		for _, capture := range match.Captures {
 			fmt.Fprintf(f,
-				"Match %d, Capture %d (%s): %s\n",
+				"Match %d, Capture %d: %s |%s| %v, %v\n",
 				match.PatternIndex,
 				capture.Index,
 				s.queryHighlights.CaptureNames()[capture.Index],
 				capture.Node.Utf8Text(text),
+				capture.Node.StartPosition(),
+				capture.Node.EndPosition(),
 			)
 		}
 	}
 
 	fmt.Fprintf(f, "%d: Elapsed %v\n", s.hlCounter, time.Since(started))
 	s.hlCounter += 1
+}
+
+func (s *Syntax) run() {
+	s.parseTree()
+
+	go func() {
+		for {
+			timeout := time.After(100 * time.Millisecond)
+
+			select {
+			case <-s.close:
+				s.tree.Close()
+				s.tree = nil
+				return
+
+			case p := <-s.edits:
+				ed, ok := p.index(s.buffer)
+				if !ok {
+					panic("in Syntax.edits")
+				}
+				s.tree.Edit(&ed)
+				s.isDirty = true
+
+			case <-timeout:
+				if s.isDirty {
+					s.parseTree()
+					s.isDirty = false
+				}
+			}
+		}
+	}()
+}
+
+func (s *Syntax) parseTree() {
+	started := time.Now()
+
+	f, err := os.OpenFile("tmp/parse.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	//s.parser.SetIncludedRanges([]treeSitter.Range{{}})
+
+	newTree := s.parser.ParseWithOptions(func(i int, p treeSitter.Point) []byte {
+		text := s.buffer.Chunk(i)
+
+		if len(text) < 1024 {
+			return []byte(text)
+		}
+
+		return []byte(text[0:1024])
+	}, s.tree, nil)
+
+	s.tree.Close()
+	s.tree = newTree
+
+	fmt.Fprintf(f, "%d: Elapsed %v\n", s.parseCounter, time.Since(started))
+	s.parseCounter += 1
 }
