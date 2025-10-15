@@ -5,6 +5,7 @@ import (
 	"math"
 
 	"github.com/eu-ge-ne/toy2/internal/editor/cursor"
+	"github.com/eu-ge-ne/toy2/internal/editor/syntax"
 	"github.com/eu-ge-ne/toy2/internal/std"
 	"github.com/eu-ge-ne/toy2/internal/textbuf"
 	"github.com/eu-ge-ne/toy2/internal/theme"
@@ -15,6 +16,7 @@ import (
 type Render struct {
 	buffer *textbuf.TextBuf
 	cursor *cursor.Cursor
+	syntax *syntax.Syntax
 
 	colors            Colors
 	area              ui.Area
@@ -68,6 +70,10 @@ func (r *Render) SetWrapEnabled(enabled bool) {
 
 func (r *Render) ToggleWrapEnabled() {
 	r.wrapEnabled = !r.wrapEnabled
+}
+
+func (r *Render) SetSyntax(s *syntax.Syntax) {
+	r.syntax = s
 }
 
 func (r *Render) Render() {
@@ -207,6 +213,8 @@ func (r *Render) scrollH() {
 }
 
 func (r *Render) renderLines() {
+	r.syntax.Highlight(r.scrollLn, r.scrollLn+r.area.H)
+
 	row := r.area.Y
 
 	for ln := r.scrollLn; ; ln += 1 {
