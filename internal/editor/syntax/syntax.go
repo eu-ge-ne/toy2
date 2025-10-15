@@ -155,7 +155,7 @@ func (s *Syntax) Highlight() {
 func (s *Syntax) run() {
 	go func() {
 		for {
-			timeout := time.After(100 * time.Millisecond)
+			timeout := time.After(10 * time.Millisecond)
 
 			select {
 			case <-s.close:
