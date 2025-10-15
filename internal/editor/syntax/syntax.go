@@ -114,46 +114,6 @@ func (s *Syntax) Insert(ln0, col0, ln1, col1 int) {
 	}
 }
 
-func (s *Syntax) Highlight() {
-	if s == nil || s.tree == nil {
-		return
-	}
-
-	started := time.Now()
-
-	qc := treeSitter.NewQueryCursor()
-	defer qc.Close()
-
-	f, err := os.OpenFile("tmp/highlight.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-
-	fmt.Fprintf(f, "%d: Ranges %v\n", s.hlCounter, s.ranges)
-	qc.SetPointRange(s.ranges[0].StartPoint, s.ranges[0].EndPoint)
-
-	text := []byte(std.IterToStr(s.buffer.Read2(int(s.ranges[0].StartPoint.Row), 0, int(s.ranges[0].EndPoint.Row), 0)))
-	matches := qc.Matches(s.queryHighlights, s.tree.Clone().RootNode(), text)
-
-	for match := matches.Next(); match != nil; match = matches.Next() {
-		for _, capture := range match.Captures {
-			fmt.Fprintf(f,
-				"Match %d, Capture %d: %s |%s| %v, %v\n",
-				match.PatternIndex,
-				capture.Index,
-				s.queryHighlights.CaptureNames()[capture.Index],
-				capture.Node.Utf8Text(text),
-				capture.Node.StartPosition(),
-				capture.Node.EndPosition(),
-			)
-		}
-	}
-
-	fmt.Fprintf(f, "%d: Elapsed %v\n", s.hlCounter, time.Since(started))
-	s.hlCounter += 1
-}
-
 func (s *Syntax) run() {
 	go func() {
 		for {
@@ -234,6 +194,8 @@ func (s *Syntax) parseTree() {
 	fmt.Fprintf(f, "%d: Elapsed %v\n", s.parseCounter, time.Since(started))
 	s.parseCounter += 1
 
+	s.highlight()
+
 	s.isDirty = false
 }
 
@@ -278,4 +240,40 @@ func (s *Syntax) inputEdit(op op) (r treeSitter.InputEdit, ok bool) {
 	ok = true
 
 	return
+}
+
+func (s *Syntax) highlight() {
+	started := time.Now()
+
+	qc := treeSitter.NewQueryCursor()
+	defer qc.Close()
+
+	f, err := os.OpenFile("tmp/highlight.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	fmt.Fprintf(f, "%d: Ranges %v\n", s.hlCounter, s.ranges)
+	qc.SetPointRange(s.ranges[0].StartPoint, s.ranges[0].EndPoint)
+
+	text := []byte(std.IterToStr(s.buffer.Read2(int(s.ranges[0].StartPoint.Row), 0, int(s.ranges[0].EndPoint.Row), 0)))
+	matches := qc.Matches(s.queryHighlights, s.tree.RootNode(), text)
+
+	for match := matches.Next(); match != nil; match = matches.Next() {
+		for _, capture := range match.Captures {
+			fmt.Fprintf(f,
+				"Match %d, Capture %d: %s |%s| %v, %v\n",
+				match.PatternIndex,
+				capture.Index,
+				s.queryHighlights.CaptureNames()[capture.Index],
+				capture.Node.Utf8Text(text),
+				capture.Node.StartPosition(),
+				capture.Node.EndPosition(),
+			)
+		}
+	}
+
+	fmt.Fprintf(f, "%d: Elapsed %v\n", s.hlCounter, time.Since(started))
+	s.hlCounter += 1
 }
