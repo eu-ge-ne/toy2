@@ -31,11 +31,11 @@ type Render struct {
 	ScrollLn   int
 	ScrollCol  int
 
-	colorBackground         []byte
-	colorSelectedBackground []byte
-	colorVoid               []byte
-	colorIndex              []byte
-	colors                  map[syntax.CharColor][]byte
+	colorMainBg     []byte
+	colorSelectedBg []byte
+	colorVoidBg     []byte
+	colorIndex      []byte
+	colorCharFg     map[syntax.CharColor][]byte
 }
 
 func New(buffer *textbuf.TextBuf, cursor *cursor.Cursor) *Render {
@@ -46,16 +46,16 @@ func New(buffer *textbuf.TextBuf, cursor *cursor.Cursor) *Render {
 }
 
 func (r *Render) SetColors(t theme.Tokens) {
-	r.colorBackground = t.MainBg()
-	r.colorSelectedBackground = t.Light2Bg()
-	r.colorVoid = t.Dark0Bg()
+	r.colorMainBg = t.MainBg()
+	r.colorSelectedBg = t.Light2Bg()
+	r.colorVoidBg = t.Dark0Bg()
 	r.colorIndex = append(t.Light0Bg(), t.Dark0Fg()...)
 
-	r.colors = map[syntax.CharColor][]byte{
-		syntax.CharColorVisible:    append(t.MainBg(), t.Light1Fg()...),
-		syntax.CharColorWhitespace: append(t.MainBg(), t.Dark0Fg()...),
-		syntax.CharColorEmpty:      append(t.MainBg(), t.MainFg()...),
-		syntax.CharColorDelimiter:  append(t.MainBg(), vt.CharFg(theme.Red_900)...),
+	r.colorCharFg = map[syntax.CharColor][]byte{
+		syntax.CharColorVisible:    t.Light1Fg(),
+		syntax.CharColorWhitespace: t.Dark0Fg(),
+		syntax.CharColorEmpty:      t.MainFg(),
+		syntax.CharColorDelimiter:  vt.CharFg(theme.Red_900),
 	}
 }
 
@@ -96,7 +96,7 @@ func (r *Render) Render() {
 
 	vt.Buf.Write(vt.HideCursor)
 	vt.Buf.Write(vt.SaveCursor)
-	vt.Buf.Write(r.colorBackground)
+	vt.Buf.Write(r.colorMainBg)
 	vt.ClearArea(vt.Buf, r.area)
 
 	if r.area.W >= r.indexWidth {
@@ -234,7 +234,7 @@ func (r *Render) renderLines() {
 			row = r.renderLine(ln, row)
 		} else {
 			vt.SetCursor(vt.Buf, row, r.area.X)
-			vt.Buf.Write(r.colorVoid)
+			vt.Buf.Write(r.colorVoidBg)
 			vt.ClearLine(vt.Buf, r.area.W)
 		}
 
@@ -265,7 +265,7 @@ func (r *Render) renderLine(ln int, row int) int {
 					vt.Buf.Write(r.colorIndex)
 					fmt.Fprintf(vt.Buf, "%*d ", r.indexWidth-1, ln+1)
 				} else {
-					vt.Buf.Write(r.colorBackground)
+					vt.Buf.Write(r.colorMainBg)
 					vt.WriteSpaces(vt.Buf, r.indexWidth)
 				}
 			}
@@ -287,7 +287,7 @@ func (r *Render) renderLine(ln int, row int) int {
 
 		if color != currentColor {
 			currentColor = color
-			vt.Buf.Write(r.colors[color])
+			vt.Buf.Write(r.colorCharFg[color])
 		}
 
 		vt.Buf.Write(cell.G.Bytes)
