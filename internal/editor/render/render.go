@@ -247,6 +247,7 @@ func (r *Render) renderLines() {
 
 func (r *Render) renderLine(ln int, row int) int {
 	currentFg := syntax.CharFgColorUndefined
+	currentBgSelected := false
 	availableW := 0
 
 	for i, cell := range r.buffer.IterLine(ln, false) {
@@ -278,11 +279,20 @@ func (r *Render) renderLine(ln int, row int) int {
 			continue
 		}
 
+		colorBgSelected := r.cursor.IsSelected(ln, i)
+		if colorBgSelected != currentBgSelected {
+			currentBgSelected = colorBgSelected
+			if currentBgSelected {
+				vt.Buf.Write(r.colorSelectedBg)
+			} else {
+				vt.Buf.Write(r.colorMainBg)
+			}
+		}
+
 		start, _ := r.buffer.Index(ln, i)
 		end := start + len(cell.G.Seg)
 		color := r.syntax.HighlightSpan(start, end)
 		if color == syntax.CharFgColorUndefined {
-			//color = whitespaceCharColor( /*r.cursor.IsSelected(ln, i),*/ cell.G.IsVisible, r.whitespaceEnabled)
 			if cell.G.IsVisible {
 				color = syntax.CharFgColorVisible
 			} else if r.whitespaceEnabled {
@@ -290,7 +300,6 @@ func (r *Render) renderLine(ln int, row int) int {
 			} else {
 				color = syntax.CharFgColorEmpty
 			}
-
 		}
 		if color != currentFg {
 			currentFg = color
