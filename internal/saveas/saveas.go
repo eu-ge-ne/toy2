@@ -24,7 +24,7 @@ func New() *SaveAs {
 	}
 }
 
-func (sv *SaveAs) SetColors(t theme.Tokens) {
+func (sv *SaveAs) SetColors(t theme.Theme) {
 	sv.colorBackground = t.Light1Bg()
 	sv.colorText = append(t.Light1Bg(), t.Light1Fg()...)
 

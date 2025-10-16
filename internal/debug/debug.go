@@ -36,7 +36,7 @@ func (d *Debug) ToggleEnabled() {
 	d.enabled = !d.enabled
 }
 
-func (d *Debug) SetColors(t theme.Tokens) {
+func (d *Debug) SetColors(t theme.Theme) {
 	d.colorBackground = t.Light0Bg()
 	d.colorText = append(t.Light0Bg(), t.Dark0Fg()...)
 }

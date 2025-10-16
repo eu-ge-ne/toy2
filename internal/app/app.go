@@ -176,7 +176,7 @@ func (app *App) layout(a ui.Area) {
 	app.saveas.Layout(editorArea)
 }
 
-func (app *App) setColors(t theme.Tokens) {
+func (app *App) setColors(t theme.Theme) {
 	app.ask.SetColors(t)
 	app.alert.SetColors(t)
 	app.debug.SetColors(t)

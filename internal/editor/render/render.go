@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 
+	"github.com/eu-ge-ne/toy2/internal/color"
 	"github.com/eu-ge-ne/toy2/internal/editor/cursor"
 	"github.com/eu-ge-ne/toy2/internal/editor/syntax"
 	"github.com/eu-ge-ne/toy2/internal/std"
@@ -45,7 +46,7 @@ func New(buffer *textbuf.TextBuf, cursor *cursor.Cursor) *Render {
 	}
 }
 
-func (r *Render) SetColors(t theme.Tokens) {
+func (r *Render) SetColors(t theme.Theme) {
 	r.colorMainBg = t.MainBg()
 	r.colorSelectedBg = t.Light2Bg()
 	r.colorVoidBg = t.Dark0Bg()
@@ -55,7 +56,7 @@ func (r *Render) SetColors(t theme.Tokens) {
 		syntax.CharFgColorVisible:    t.Light1Fg(),
 		syntax.CharFgColorWhitespace: t.Dark0Fg(),
 		syntax.CharFgColorEmpty:      t.MainFg(),
-		syntax.CharFgColorDelimiter:  vt.CharFg(theme.Red_900),
+		syntax.CharFgColorDelimiter:  vt.CharFg(color.Red900),
 	}
 }
 

@@ -88,7 +88,7 @@ func (ed *Editor) SetSyntax() {
 	ed.render.SetSyntax(s)
 }
 
-func (ed *Editor) SetColors(t theme.Tokens) {
+func (ed *Editor) SetColors(t theme.Theme) {
 	ed.render.SetColors(t)
 }
 
