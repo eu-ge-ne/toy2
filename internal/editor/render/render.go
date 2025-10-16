@@ -38,14 +38,6 @@ type Render struct {
 	colorCharFg     map[syntax.CharFgColor][]byte
 }
 
-type CharBgColor int
-
-const (
-	CharBgColorUndefined CharBgColor = iota
-	CharBgColorNormal
-	CharBgColorSelected
-)
-
 func New(buffer *textbuf.TextBuf, cursor *cursor.Cursor) *Render {
 	return &Render{
 		buffer: buffer,
@@ -272,6 +264,7 @@ func (r *Render) renderLine(ln int, row int) int {
 				if i == 0 {
 					vt.Buf.Write(r.colorIndex)
 					fmt.Fprintf(vt.Buf, "%*d ", r.indexWidth-1, ln+1)
+					vt.Buf.Write(r.colorMainBg)
 				} else {
 					vt.Buf.Write(r.colorMainBg)
 					vt.WriteSpaces(vt.Buf, r.indexWidth)
