@@ -228,14 +228,23 @@ func (s *Syntax) updateHighlights(f *os.File) {
 
 	for match := matches.Next(); match != nil; match = matches.Next() {
 		for _, capture := range match.Captures {
+			/*
+				fmt.Fprintf(f,
+					"highlight: Match %d, Capture %d: %s |%s| %v, %v\n",
+					match.PatternIndex,
+					capture.Index,
+					s.queryHighlights.CaptureNames()[capture.Index],
+					capture.Node.Utf8Text(s.hlText),
+					capture.Node.StartPosition(),
+					capture.Node.EndPosition(),
+				)
+			*/
 			fmt.Fprintf(f,
-				"highlight: Match %d, Capture %d: %s |%s| %v, %v\n",
-				match.PatternIndex,
-				capture.Index,
-				s.queryHighlights.CaptureNames()[capture.Index],
-				capture.Node.Utf8Text(s.hlText),
+				"highlight: [%v:%v] %s (%s)\n",
 				capture.Node.StartPosition(),
 				capture.Node.EndPosition(),
+				capture.Node.Utf8Text(s.hlText),
+				s.queryHighlights.CaptureNames()[capture.Index],
 			)
 		}
 	}
