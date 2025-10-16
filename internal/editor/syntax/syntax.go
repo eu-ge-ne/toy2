@@ -184,7 +184,7 @@ func (s *Syntax) update() {
 	fmt.Fprintf(f, "update: ranges=%d\n", s.ranges)
 
 	s.updateTree()
-	s.updateHighlights()
+	s.updateHighlights(f)
 
 	fmt.Fprintf(f, "Elapsed %v\n", time.Since(started))
 
@@ -209,7 +209,7 @@ func (s *Syntax) updateTree() {
 	s.tree = t
 }
 
-func (s *Syntax) updateHighlights() {
+func (s *Syntax) updateHighlights(f *os.File) {
 	rng := s.ranges[0]
 
 	if len(s.hlText) != s.buffer.Count() {
@@ -227,18 +227,16 @@ func (s *Syntax) updateHighlights() {
 	matches := qc.Matches(s.queryHighlights, s.tree.RootNode(), s.hlText)
 
 	for match := matches.Next(); match != nil; match = matches.Next() {
-		for range match.Captures {
-			/*
-				fmt.Fprintf(f,
-					"highlight: Match %d, Capture %d: %s |%s| %v, %v\n",
-					match.PatternIndex,
-					capture.Index,
-					s.queryHighlights.CaptureNames()[capture.Index],
-					capture.Node.Utf8Text(text),
-					capture.Node.StartPosition(),
-					capture.Node.EndPosition(),
-				)
-			*/
+		for _, capture := range match.Captures {
+			fmt.Fprintf(f,
+				"highlight: Match %d, Capture %d: %s |%s| %v, %v\n",
+				match.PatternIndex,
+				capture.Index,
+				s.queryHighlights.CaptureNames()[capture.Index],
+				capture.Node.Utf8Text(s.hlText),
+				capture.Node.StartPosition(),
+				capture.Node.EndPosition(),
+			)
 		}
 	}
 }
