@@ -196,7 +196,7 @@ func (s *Syntax) handleTimeout() {
 func (s *Syntax) update() {
 	started := time.Now()
 
-	f, err := os.OpenFile("tmp/syntax.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+	f, err := os.OpenFile("tmp/syntax-update.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
 	if err != nil {
 		panic(err)
 	}
@@ -206,16 +206,7 @@ func (s *Syntax) update() {
 	fmt.Fprintf(f, "update: ranges=%d\n", s.ranges)
 
 	s.updateTree()
-
-	if len(s.hlText) != s.buffer.Count() {
-		s.hlText = make([]byte, s.buffer.Count())
-	}
-	start := int(s.ranges[0].StartByte)
-	end := int(s.ranges[0].EndByte)
-	chunk := std.IterToStr(s.buffer.Read(start, end))
-	copy(s.hlText[start:end], chunk)
-
-	s.updateHighlights(f)
+	s.updateHighlights()
 
 	fmt.Fprintf(f, "Elapsed %v\n", time.Since(started))
 
@@ -240,7 +231,23 @@ func (s *Syntax) updateTree() {
 	s.tree = t
 }
 
-func (s *Syntax) updateHighlights(f *os.File) {
+func (s *Syntax) updateHighlights() {
+	started := time.Now()
+
+	f, err := os.OpenFile("tmp/syntax-highlight.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	if len(s.hlText) != s.buffer.Count() {
+		s.hlText = make([]byte, s.buffer.Count())
+	}
+	start := int(s.ranges[0].StartByte)
+	end := int(s.ranges[0].EndByte)
+	chunk := std.IterToStr(s.buffer.Read(start, end))
+	copy(s.hlText[start:end], chunk)
+
 	qc := treeSitter.NewQueryCursor()
 	defer qc.Close()
 	qc.SetPointRange(s.ranges[0].StartPoint, s.ranges[0].EndPoint)
@@ -276,6 +283,8 @@ func (s *Syntax) updateHighlights(f *os.File) {
 	}
 
 	s.hlSpans = hlSpans
+
+	fmt.Fprintf(f, "Elapsed %v\n", time.Since(started))
 }
 
 func (s *Syntax) inputEdit(op op) (r treeSitter.InputEdit, ok bool) {
