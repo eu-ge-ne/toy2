@@ -18,7 +18,7 @@ type Render struct {
 	cursor *cursor.Cursor
 	syntax *syntax.Syntax
 
-	colors            Colors
+	colors            syntax.Colors
 	area              ui.Area
 	enabled           bool
 	indexEnabled      bool
@@ -41,7 +41,7 @@ func New(buffer *textbuf.TextBuf, cursor *cursor.Cursor) *Render {
 }
 
 func (r *Render) SetColors(t theme.Tokens) {
-	r.colors = newColors(t)
+	r.colors = syntax.NewColors(t)
 }
 
 func (r *Render) SetArea(a ui.Area) {
@@ -81,7 +81,7 @@ func (r *Render) Render() {
 
 	vt.Buf.Write(vt.HideCursor)
 	vt.Buf.Write(vt.SaveCursor)
-	vt.Buf.Write(r.colors.background)
+	vt.Buf.Write(r.colors.Background)
 	vt.ClearArea(vt.Buf, r.area)
 
 	if r.area.W >= r.indexWidth {
@@ -219,7 +219,7 @@ func (r *Render) renderLines() {
 			row = r.renderLine(ln, row)
 		} else {
 			vt.SetCursor(vt.Buf, row, r.area.X)
-			vt.Buf.Write(r.colors.void)
+			vt.Buf.Write(r.colors.Void)
 			vt.ClearLine(vt.Buf, r.area.W)
 		}
 
@@ -232,7 +232,7 @@ func (r *Render) renderLines() {
 
 func (r *Render) renderLine(ln int, row int) int {
 	availableW := 0
-	currentColor := charColorUndefined
+	currentColor := syntax.CharColorUndefined
 
 	for i, cell := range r.buffer.IterLine(ln, false) {
 		if cell.Col == 0 {
@@ -247,10 +247,10 @@ func (r *Render) renderLine(ln int, row int) int {
 
 			if r.indexWidth > 0 {
 				if i == 0 {
-					vt.Buf.Write(r.colors.index)
+					vt.Buf.Write(r.colors.Index)
 					fmt.Fprintf(vt.Buf, "%*d ", r.indexWidth-1, ln+1)
 				} else {
-					vt.Buf.Write(r.colors.background)
+					vt.Buf.Write(r.colors.Background)
 					vt.WriteSpaces(vt.Buf, r.indexWidth)
 				}
 			}
@@ -262,10 +262,17 @@ func (r *Render) renderLine(ln int, row int) int {
 			continue
 		}
 
-		color := newCharColor(r.cursor.IsSelected(ln, i), cell.G.IsVisible, r.whitespaceEnabled)
+		start, _ := r.buffer.Index(ln, i)
+		end := start + len(cell.G.Seg)
+		color := r.syntax.HighlightSpan(start, end)
+
+		if color == syntax.CharColorUndefined {
+			color = syntax.NewCharColor(r.cursor.IsSelected(ln, i), cell.G.IsVisible, r.whitespaceEnabled)
+		}
+
 		if color != currentColor {
 			currentColor = color
-			vt.Buf.Write(r.colors.char[color])
+			vt.Buf.Write(r.colors.Char[color])
 		}
 
 		vt.Buf.Write(cell.G.Bytes)

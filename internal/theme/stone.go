@@ -8,7 +8,7 @@ type Stone struct {
 }
 
 func (Stone) DangerBg() []byte {
-	return vt.CharBg(red_900)
+	return vt.CharBg(Red_900)
 }
 
 func (Stone) MainBg() []byte {

@@ -8,7 +8,7 @@ type Slate struct {
 }
 
 func (Slate) DangerBg() []byte {
-	return vt.CharBg(red_900)
+	return vt.CharBg(Red_900)
 }
 
 func (Slate) MainBg() []byte {

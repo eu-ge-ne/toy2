@@ -54,8 +54,8 @@ const (
 )
 
 type hlSpan struct {
-	start   treeSitter.Point
-	end     treeSitter.Point
+	start   int
+	end     int
 	capture int
 }
 
@@ -119,6 +119,18 @@ func (s *Syntax) Insert(ln0, col0, ln1, col1 int) {
 	if s != nil {
 		s.ops <- op{opKindInsert, ln0, col0, ln1, col1}
 	}
+}
+
+func (s *Syntax) HighlightSpan(start, end int) CharColor {
+	for _, span := range s.hlSpans {
+		if start >= span.start && end <= span.end {
+			if span.capture == 13 {
+				return CharColorDelimiter
+			}
+		}
+	}
+
+	return CharColorUndefined
 }
 
 func (s *Syntax) run() {
@@ -240,7 +252,9 @@ func (s *Syntax) updateHighlights(f *os.File) {
 			node := capture.Node
 
 			fmt.Fprintf(f,
-				"highlight: [%v:%v] %s (%s, %d, %d)\n",
+				"%v:%v|%v:%v %s (%s, %d, %d)\n",
+				node.StartByte(),
+				node.EndByte(),
 				node.StartPosition(),
 				node.EndPosition(),
 				node.Utf8Text(s.hlText),
@@ -250,8 +264,8 @@ func (s *Syntax) updateHighlights(f *os.File) {
 			)
 
 			span := hlSpan{
-				start:   node.StartPosition(),
-				end:     node.EndPosition(),
+				start:   int(node.StartByte()),
+				end:     int(node.EndByte()),
 				capture: int(capture.Index),
 			}
 

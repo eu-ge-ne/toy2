@@ -8,7 +8,7 @@ type Gray struct {
 }
 
 func (Gray) DangerBg() []byte {
-	return vt.CharBg(red_900)
+	return vt.CharBg(Red_900)
 }
 
 func (Gray) MainBg() []byte {

@@ -8,7 +8,7 @@ type Neutral struct {
 }
 
 func (Neutral) DangerBg() []byte {
-	return vt.CharBg(red_900)
+	return vt.CharBg(Red_900)
 }
 
 func (Neutral) MainBg() []byte {

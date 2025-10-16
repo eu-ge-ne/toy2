@@ -8,7 +8,7 @@ type Zinc struct {
 }
 
 func (Zinc) DangerBg() []byte {
-	return vt.CharBg(red_900)
+	return vt.CharBg(Red_900)
 }
 
 func (Zinc) MainBg() []byte {
