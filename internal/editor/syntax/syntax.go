@@ -34,6 +34,7 @@ type Syntax struct {
 
 	counter int
 	hlText  []byte
+	hlSpans []hlSpan
 }
 
 type op struct {
@@ -51,6 +52,12 @@ const (
 	opKindDelete
 	opKindInsert
 )
+
+type hlSpan struct {
+	start   treeSitter.Point
+	end     treeSitter.Point
+	capture string
+}
 
 func New(buffer *textbuf.TextBuf) *Syntax {
 	s := Syntax{
@@ -226,28 +233,25 @@ func (s *Syntax) updateHighlights(f *os.File) {
 
 	matches := qc.Matches(s.queryHighlights, s.tree.RootNode(), s.hlText)
 
+	var hlSpans []hlSpan
+
 	for match := matches.Next(); match != nil; match = matches.Next() {
 		for _, capture := range match.Captures {
-			/*
-				fmt.Fprintf(f,
-					"highlight: Match %d, Capture %d: %s |%s| %v, %v\n",
-					match.PatternIndex,
-					capture.Index,
-					s.queryHighlights.CaptureNames()[capture.Index],
-					capture.Node.Utf8Text(s.hlText),
-					capture.Node.StartPosition(),
-					capture.Node.EndPosition(),
-				)
-			*/
 			fmt.Fprintf(f,
-				"highlight: [%v:%v] %s (%s)\n",
+				"highlight: [%v:%v] %s (%s, %d, %d)\n",
 				capture.Node.StartPosition(),
 				capture.Node.EndPosition(),
 				capture.Node.Utf8Text(s.hlText),
 				s.queryHighlights.CaptureNames()[capture.Index],
+				match.PatternIndex,
+				capture.Index,
 			)
+			span := hlSpan{start: capture.Node.StartPosition(), end: capture.Node.EndPosition(), capture: s.queryHighlights.CaptureNames()[capture.Index]}
+			hlSpans = append(hlSpans, span)
 		}
 	}
+
+	s.hlSpans = hlSpans
 }
 
 func (s *Syntax) inputEdit(op op) (r treeSitter.InputEdit, ok bool) {
