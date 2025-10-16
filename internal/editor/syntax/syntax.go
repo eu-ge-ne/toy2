@@ -56,7 +56,7 @@ const (
 type hlSpan struct {
 	start   treeSitter.Point
 	end     treeSitter.Point
-	capture string
+	capture int
 }
 
 func New(buffer *textbuf.TextBuf) *Syntax {
@@ -237,16 +237,24 @@ func (s *Syntax) updateHighlights(f *os.File) {
 
 	for match := matches.Next(); match != nil; match = matches.Next() {
 		for _, capture := range match.Captures {
+			node := capture.Node
+
 			fmt.Fprintf(f,
 				"highlight: [%v:%v] %s (%s, %d, %d)\n",
-				capture.Node.StartPosition(),
-				capture.Node.EndPosition(),
-				capture.Node.Utf8Text(s.hlText),
+				node.StartPosition(),
+				node.EndPosition(),
+				node.Utf8Text(s.hlText),
 				s.queryHighlights.CaptureNames()[capture.Index],
 				match.PatternIndex,
 				capture.Index,
 			)
-			span := hlSpan{start: capture.Node.StartPosition(), end: capture.Node.EndPosition(), capture: s.queryHighlights.CaptureNames()[capture.Index]}
+
+			span := hlSpan{
+				start:   node.StartPosition(),
+				end:     node.EndPosition(),
+				capture: int(capture.Index),
+			}
+
 			hlSpans = append(hlSpans, span)
 		}
 	}
