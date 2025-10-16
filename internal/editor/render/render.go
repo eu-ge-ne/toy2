@@ -246,8 +246,8 @@ func (r *Render) renderLines() {
 }
 
 func (r *Render) renderLine(ln int, row int) int {
+	currentFg := syntax.CharColorUndefined
 	availableW := 0
-	currentColor := syntax.CharColorUndefined
 
 	for i, cell := range r.buffer.IterLine(ln, false) {
 		if cell.Col == 0 {
@@ -280,13 +280,11 @@ func (r *Render) renderLine(ln int, row int) int {
 		start, _ := r.buffer.Index(ln, i)
 		end := start + len(cell.G.Seg)
 		color := r.syntax.HighlightSpan(start, end)
-
 		if color == syntax.CharColorUndefined {
 			color = whitespaceCharColor( /*r.cursor.IsSelected(ln, i),*/ cell.G.IsVisible, r.whitespaceEnabled)
 		}
-
-		if color != currentColor {
-			currentColor = color
+		if color != currentFg {
+			currentFg = color
 			vt.Buf.Write(r.colorCharFg[color])
 		}
 
