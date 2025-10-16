@@ -16,42 +16,26 @@ const (
 	CharColorVisible
 	CharColorWhitespace
 	CharColorEmpty
-	CharColorVisibleSelected
-	CharColorWhitespaceSelected
-	CharColorEmptySelected
 	CharColorDelimiter
 )
 
 func NewColors(t theme.Tokens) Colors {
 	return Colors{
 		Char: map[CharColor][]byte{
-			CharColorVisible:            append(t.MainBg(), t.Light1Fg()...),
-			CharColorWhitespace:         append(t.MainBg(), t.Dark0Fg()...),
-			CharColorEmpty:              append(t.MainBg(), t.MainFg()...),
-			CharColorVisibleSelected:    append(t.Light2Bg(), t.Light1Fg()...),
-			CharColorWhitespaceSelected: append(t.Light2Bg(), t.Dark1Fg()...),
-			CharColorEmptySelected:      append(t.Light2Bg(), t.Dark1Fg()...),
-			CharColorDelimiter:          append(t.MainBg(), vt.CharFg(theme.Red_900)...),
+			CharColorVisible:    append(t.MainBg(), t.Light1Fg()...),
+			CharColorWhitespace: append(t.MainBg(), t.Dark0Fg()...),
+			CharColorEmpty:      append(t.MainBg(), t.MainFg()...),
+			CharColorDelimiter:  append(t.MainBg(), vt.CharFg(theme.Red_900)...),
 		},
 	}
 }
 
-func NewCharColor(isSelected, isVisible, whitespaceEnabled bool) CharColor {
-	if isSelected {
-		if isVisible {
-			return CharColorVisibleSelected
-		} else if whitespaceEnabled {
-			return CharColorWhitespaceSelected
-		} else {
-			return CharColorEmptySelected
-		}
+func WhitespaceCharColor(isVisible, whitespaceEnabled bool) CharColor {
+	if isVisible {
+		return CharColorVisible
+	} else if whitespaceEnabled {
+		return CharColorWhitespace
 	} else {
-		if isVisible {
-			return CharColorVisible
-		} else if whitespaceEnabled {
-			return CharColorWhitespace
-		} else {
-			return CharColorEmpty
-		}
+		return CharColorEmpty
 	}
 }

@@ -277,7 +277,7 @@ func (r *Render) renderLine(ln int, row int) int {
 		color := r.syntax.HighlightSpan(start, end)
 
 		if color == syntax.CharColorUndefined {
-			color = syntax.NewCharColor(r.cursor.IsSelected(ln, i), cell.G.IsVisible, r.whitespaceEnabled)
+			color = syntax.WhitespaceCharColor( /*r.cursor.IsSelected(ln, i),*/ cell.G.IsVisible, r.whitespaceEnabled)
 		}
 
 		if color != currentColor {
