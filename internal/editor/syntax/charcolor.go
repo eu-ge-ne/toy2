@@ -7,5 +7,6 @@ const (
 	CharFgColorVisible
 	CharFgColorWhitespace
 	CharFgColorEmpty
-	CharFgColorDelimiter
+	CharFgColorVariable
+	CharFgColorKeyword
 )
