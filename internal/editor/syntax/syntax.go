@@ -206,6 +206,15 @@ func (s *Syntax) update() {
 	fmt.Fprintf(f, "update: ranges=%d\n", s.ranges)
 
 	s.updateTree()
+
+	if len(s.hlText) != s.buffer.Count() {
+		s.hlText = make([]byte, s.buffer.Count())
+	}
+	start := int(s.ranges[0].StartByte)
+	end := int(s.ranges[0].EndByte)
+	chunk := std.IterToStr(s.buffer.Read(start, end))
+	copy(s.hlText[start:end], chunk)
+
 	s.updateHighlights(f)
 
 	fmt.Fprintf(f, "Elapsed %v\n", time.Since(started))
@@ -232,19 +241,9 @@ func (s *Syntax) updateTree() {
 }
 
 func (s *Syntax) updateHighlights(f *os.File) {
-	rng := s.ranges[0]
-
-	if len(s.hlText) != s.buffer.Count() {
-		s.hlText = make([]byte, s.buffer.Count())
-	}
-	chunk := std.IterToStr(
-		s.buffer.Read(int(rng.StartByte), int(rng.EndByte)),
-	)
-	copy(s.hlText[rng.StartByte:rng.EndByte], chunk)
-
 	qc := treeSitter.NewQueryCursor()
 	defer qc.Close()
-	qc.SetPointRange(rng.StartPoint, rng.EndPoint)
+	qc.SetPointRange(s.ranges[0].StartPoint, s.ranges[0].EndPoint)
 
 	matches := qc.Matches(s.queryHighlights, s.tree.RootNode(), s.hlText)
 
