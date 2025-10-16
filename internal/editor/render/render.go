@@ -32,9 +32,10 @@ type Render struct {
 	ScrollLn   int
 	ScrollCol  int
 
-	colorBackground []byte
-	colorVoid       []byte
-	colorIndex      []byte
+	colorBackground         []byte
+	colorSelectedBackground []byte
+	colorVoid               []byte
+	colorIndex              []byte
 }
 
 func New(buffer *textbuf.TextBuf, cursor *cursor.Cursor) *Render {
@@ -48,6 +49,7 @@ func (r *Render) SetColors(t theme.Tokens) {
 	r.colors = syntax.NewColors(t)
 
 	r.colorBackground = t.MainBg()
+	r.colorSelectedBackground = t.Light2Bg()
 	r.colorVoid = t.Dark0Bg()
 	r.colorIndex = append(t.Light0Bg(), t.Dark0Fg()...)
 }
