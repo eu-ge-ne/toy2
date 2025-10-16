@@ -35,8 +35,16 @@ type Render struct {
 	colorSelectedBg []byte
 	colorVoidBg     []byte
 	colorIndex      []byte
-	colorCharFg     map[syntax.CharColor][]byte
+	colorCharFg     map[syntax.CharFgColor][]byte
 }
+
+type CharBgColor int
+
+const (
+	CharBgColorUndefined CharBgColor = iota
+	CharBgColorNormal
+	CharBgColorSelected
+)
 
 func New(buffer *textbuf.TextBuf, cursor *cursor.Cursor) *Render {
 	return &Render{
@@ -51,11 +59,11 @@ func (r *Render) SetColors(t theme.Tokens) {
 	r.colorVoidBg = t.Dark0Bg()
 	r.colorIndex = append(t.Light0Bg(), t.Dark0Fg()...)
 
-	r.colorCharFg = map[syntax.CharColor][]byte{
-		syntax.CharColorVisible:    t.Light1Fg(),
-		syntax.CharColorWhitespace: t.Dark0Fg(),
-		syntax.CharColorEmpty:      t.MainFg(),
-		syntax.CharColorDelimiter:  vt.CharFg(theme.Red_900),
+	r.colorCharFg = map[syntax.CharFgColor][]byte{
+		syntax.CharFgColorVisible:    t.Light1Fg(),
+		syntax.CharFgColorWhitespace: t.Dark0Fg(),
+		syntax.CharFgColorEmpty:      t.MainFg(),
+		syntax.CharFgColorDelimiter:  vt.CharFg(theme.Red_900),
 	}
 }
 
@@ -246,7 +254,7 @@ func (r *Render) renderLines() {
 }
 
 func (r *Render) renderLine(ln int, row int) int {
-	currentFg := syntax.CharColorUndefined
+	currentFg := syntax.CharFgColorUndefined
 	availableW := 0
 
 	for i, cell := range r.buffer.IterLine(ln, false) {
@@ -280,8 +288,16 @@ func (r *Render) renderLine(ln int, row int) int {
 		start, _ := r.buffer.Index(ln, i)
 		end := start + len(cell.G.Seg)
 		color := r.syntax.HighlightSpan(start, end)
-		if color == syntax.CharColorUndefined {
-			color = whitespaceCharColor( /*r.cursor.IsSelected(ln, i),*/ cell.G.IsVisible, r.whitespaceEnabled)
+		if color == syntax.CharFgColorUndefined {
+			//color = whitespaceCharColor( /*r.cursor.IsSelected(ln, i),*/ cell.G.IsVisible, r.whitespaceEnabled)
+			if cell.G.IsVisible {
+				color = syntax.CharFgColorVisible
+			} else if r.whitespaceEnabled {
+				color = syntax.CharFgColorWhitespace
+			} else {
+				color = syntax.CharFgColorEmpty
+			}
+
 		}
 		if color != currentFg {
 			currentFg = color
@@ -294,14 +310,4 @@ func (r *Render) renderLine(ln int, row int) int {
 	}
 
 	return row
-}
-
-func whitespaceCharColor(isVisible, whitespaceEnabled bool) syntax.CharColor {
-	if isVisible {
-		return syntax.CharColorVisible
-	} else if whitespaceEnabled {
-		return syntax.CharColorWhitespace
-	} else {
-		return syntax.CharColorEmpty
-	}
 }

@@ -121,16 +121,16 @@ func (s *Syntax) Insert(ln0, col0, ln1, col1 int) {
 	}
 }
 
-func (s *Syntax) HighlightSpan(start, end int) CharColor {
+func (s *Syntax) HighlightSpan(start, end int) CharFgColor {
 	for _, span := range s.hlSpans {
 		if start >= span.start && end <= span.end {
 			if span.capture == 13 {
-				return CharColorDelimiter
+				return CharFgColorDelimiter
 			}
 		}
 	}
 
-	return CharColorUndefined
+	return CharFgColorUndefined
 }
 
 func (s *Syntax) run() {

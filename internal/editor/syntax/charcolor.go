@@ -1,11 +1,11 @@
 package syntax
 
-type CharColor int
+type CharFgColor int
 
 const (
-	CharColorUndefined CharColor = iota
-	CharColorVisible
-	CharColorWhitespace
-	CharColorEmpty
-	CharColorDelimiter
+	CharFgColorUndefined CharFgColor = iota
+	CharFgColorVisible
+	CharFgColorWhitespace
+	CharFgColorEmpty
+	CharFgColorDelimiter
 )
