@@ -247,7 +247,7 @@ func (r *Render) renderLines() {
 
 func (r *Render) renderLine(ln int, row int) int {
 	currentFg := syntax.CharFgColorUndefined
-	currentBgSelected := false
+	currentBg := false
 	availableW := 0
 
 	for i, cell := range r.buffer.IterLine(ln, false) {
@@ -279,10 +279,10 @@ func (r *Render) renderLine(ln int, row int) int {
 			continue
 		}
 
-		colorBgSelected := r.cursor.IsSelected(ln, i)
-		if colorBgSelected != currentBgSelected {
-			currentBgSelected = colorBgSelected
-			if currentBgSelected {
+		colorBg := r.cursor.IsSelected(ln, i)
+		if colorBg != currentBg {
+			currentBg = colorBg
+			if currentBg {
 				vt.Buf.Write(r.colorSelectedBg)
 			} else {
 				vt.Buf.Write(r.colorMainBg)
@@ -291,19 +291,19 @@ func (r *Render) renderLine(ln int, row int) int {
 
 		start, _ := r.buffer.Index(ln, i)
 		end := start + len(cell.G.Seg)
-		color := r.syntax.HighlightSpan(start, end)
-		if color == syntax.CharFgColorUndefined {
+		colorFg := r.syntax.HighlightSpan(start, end)
+		if colorFg == syntax.CharFgColorUndefined {
 			if cell.G.IsVisible {
-				color = syntax.CharFgColorVisible
+				colorFg = syntax.CharFgColorVisible
 			} else if r.whitespaceEnabled {
-				color = syntax.CharFgColorWhitespace
+				colorFg = syntax.CharFgColorWhitespace
 			} else {
-				color = syntax.CharFgColorEmpty
+				colorFg = syntax.CharFgColorEmpty
 			}
 		}
-		if color != currentFg {
-			currentFg = color
-			vt.Buf.Write(r.colorCharFg[color])
+		if colorFg != currentFg {
+			currentFg = colorFg
+			vt.Buf.Write(r.colorCharFg[colorFg])
 		}
 
 		vt.Buf.Write(cell.G.Bytes)
