@@ -18,7 +18,6 @@ type Render struct {
 	cursor *cursor.Cursor
 	syntax *syntax.Syntax
 
-	colors            syntax.Colors
 	area              ui.Area
 	enabled           bool
 	indexEnabled      bool
@@ -36,6 +35,7 @@ type Render struct {
 	colorSelectedBackground []byte
 	colorVoid               []byte
 	colorIndex              []byte
+	colors                  map[syntax.CharColor][]byte
 }
 
 func New(buffer *textbuf.TextBuf, cursor *cursor.Cursor) *Render {
@@ -46,12 +46,17 @@ func New(buffer *textbuf.TextBuf, cursor *cursor.Cursor) *Render {
 }
 
 func (r *Render) SetColors(t theme.Tokens) {
-	r.colors = syntax.NewColors(t)
-
 	r.colorBackground = t.MainBg()
 	r.colorSelectedBackground = t.Light2Bg()
 	r.colorVoid = t.Dark0Bg()
 	r.colorIndex = append(t.Light0Bg(), t.Dark0Fg()...)
+
+	r.colors = map[syntax.CharColor][]byte{
+		syntax.CharColorVisible:    append(t.MainBg(), t.Light1Fg()...),
+		syntax.CharColorWhitespace: append(t.MainBg(), t.Dark0Fg()...),
+		syntax.CharColorEmpty:      append(t.MainBg(), t.MainFg()...),
+		syntax.CharColorDelimiter:  append(t.MainBg(), vt.CharFg(theme.Red_900)...),
+	}
 }
 
 func (r *Render) SetArea(a ui.Area) {
@@ -277,12 +282,12 @@ func (r *Render) renderLine(ln int, row int) int {
 		color := r.syntax.HighlightSpan(start, end)
 
 		if color == syntax.CharColorUndefined {
-			color = syntax.WhitespaceCharColor( /*r.cursor.IsSelected(ln, i),*/ cell.G.IsVisible, r.whitespaceEnabled)
+			color = whitespaceCharColor( /*r.cursor.IsSelected(ln, i),*/ cell.G.IsVisible, r.whitespaceEnabled)
 		}
 
 		if color != currentColor {
 			currentColor = color
-			vt.Buf.Write(r.colors.Char[color])
+			vt.Buf.Write(r.colors[color])
 		}
 
 		vt.Buf.Write(cell.G.Bytes)
@@ -291,4 +296,14 @@ func (r *Render) renderLine(ln int, row int) int {
 	}
 
 	return row
+}
+
+func whitespaceCharColor(isVisible, whitespaceEnabled bool) syntax.CharColor {
+	if isVisible {
+		return syntax.CharColorVisible
+	} else if whitespaceEnabled {
+		return syntax.CharColorWhitespace
+	} else {
+		return syntax.CharColorEmpty
+	}
 }
