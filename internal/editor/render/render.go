@@ -56,7 +56,8 @@ func (r *Render) SetColors(t theme.Theme) {
 		syntax.CharFgColorVisible:    t.Light1Fg(),
 		syntax.CharFgColorWhitespace: t.Dark0Fg(),
 		syntax.CharFgColorEmpty:      t.MainFg(),
-		syntax.CharFgColorDelimiter:  vt.CharFg(color.Orange500),
+		syntax.CharFgColorVariable:  vt.CharFg(color.Sky200),
+		syntax.CharFgColorKeyword:  vt.CharFg(color.Purple400),
 	}
 }
 
