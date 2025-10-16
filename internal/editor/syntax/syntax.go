@@ -252,34 +252,32 @@ func (s *Syntax) updateHighlights() {
 	defer qc.Close()
 	qc.SetPointRange(s.ranges[0].StartPoint, s.ranges[0].EndPoint)
 
-	matches := qc.Matches(s.queryHighlights, s.tree.RootNode(), s.hlText)
-
 	var hlSpans []hlSpan
 
-	for match := matches.Next(); match != nil; match = matches.Next() {
-		for _, capture := range match.Captures {
-			node := capture.Node
+	captures := qc.Captures(s.queryHighlights, s.tree.RootNode(), s.hlText)
+	for match, captIdx := captures.Next(); match != nil; match, captIdx = captures.Next() {
+		capt := match.Captures[captIdx]
+		node := capt.Node
 
-			fmt.Fprintf(f,
-				"%v:%v|%v:%v %s (%s, %d, %d)\n",
-				node.StartByte(),
-				node.EndByte(),
-				node.StartPosition(),
-				node.EndPosition(),
-				node.Utf8Text(s.hlText),
-				s.queryHighlights.CaptureNames()[capture.Index],
-				match.PatternIndex,
-				capture.Index,
-			)
+		fmt.Fprintf(f,
+			"%v:%v|%v:%v %s (%s, %d, %d)\n",
+			node.StartByte(),
+			node.EndByte(),
+			node.StartPosition(),
+			node.EndPosition(),
+			node.Utf8Text(s.hlText),
+			s.queryHighlights.CaptureNames()[capt.Index],
+			match.PatternIndex,
+			capt.Index,
+		)
 
-			span := hlSpan{
-				start:   int(node.StartByte()),
-				end:     int(node.EndByte()),
-				capture: int(capture.Index),
-			}
-
-			hlSpans = append(hlSpans, span)
+		span := hlSpan{
+			start:   int(node.StartByte()),
+			end:     int(node.EndByte()),
+			capture: int(capt.Index),
 		}
+
+		hlSpans = append(hlSpans, span)
 	}
 
 	s.hlSpans = hlSpans
