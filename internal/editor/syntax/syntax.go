@@ -33,6 +33,7 @@ type Syntax struct {
 	queryHighlights *treeSitter.Query
 
 	counter int
+	hlText  []byte
 }
 
 type op struct {
@@ -182,31 +183,25 @@ func (s *Syntax) update() {
 	fmt.Fprintf(f, "update: counter=%d\n", s.counter)
 	fmt.Fprintf(f, "update: ranges=%d\n", s.ranges)
 
-	// parse
+	s.updateTree()
 
-	s.parser.SetIncludedRanges(s.ranges)
+	rng := s.ranges[0]
 
-	maxChunkLen := int(s.ranges[0].EndByte - s.ranges[0].StartByte)
-	t := s.parser.ParseWithOptions(func(i int, p treeSitter.Point) []byte {
-		text := s.buffer.Chunk(i)
-		if len(text) > maxChunkLen {
-			text = text[0:maxChunkLen]
-		}
-		return []byte(text)
-	}, s.tree, nil)
-
-	s.tree.Close()
-	s.tree = t
+	if len(s.hlText) != s.buffer.Count() {
+		s.hlText = make([]byte, s.buffer.Count())
+	}
+	chunk := std.IterToStr(
+		s.buffer.Read(int(rng.StartByte), int(rng.EndByte)),
+	)
+	copy(s.hlText[rng.StartByte:rng.EndByte], chunk)
 
 	// query
 
 	qc := treeSitter.NewQueryCursor()
 	defer qc.Close()
+	qc.SetPointRange(rng.StartPoint, rng.EndPoint)
 
-	qc.SetPointRange(s.ranges[0].StartPoint, s.ranges[0].EndPoint)
-
-	text := []byte(std.IterToStr(s.buffer.Read2(int(s.ranges[0].StartPoint.Row), 0, int(s.ranges[0].EndPoint.Row), 0)))
-	matches := qc.Matches(s.queryHighlights, s.tree.RootNode(), text)
+	matches := qc.Matches(s.queryHighlights, s.tree.RootNode(), s.hlText)
 
 	for match := matches.Next(); match != nil; match = matches.Next() {
 		for range match.Captures {
@@ -228,6 +223,23 @@ func (s *Syntax) update() {
 
 	s.counter += 1
 	s.isDirty = false
+}
+
+func (s *Syntax) updateTree() {
+	s.parser.SetIncludedRanges(s.ranges)
+
+	maxChunkLen := int(s.ranges[0].EndByte - s.ranges[0].StartByte)
+
+	t := s.parser.ParseWithOptions(func(i int, p treeSitter.Point) []byte {
+		text := s.buffer.Chunk(i)
+		if len(text) > maxChunkLen {
+			text = text[0:maxChunkLen]
+		}
+		return []byte(text)
+	}, s.tree, nil)
+
+	s.tree.Close()
+	s.tree = t
 }
 
 func (s *Syntax) inputEdit(op op) (r treeSitter.InputEdit, ok bool) {
