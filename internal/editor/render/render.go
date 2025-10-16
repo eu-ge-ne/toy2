@@ -31,6 +31,10 @@ type Render struct {
 	cursorX    int
 	ScrollLn   int
 	ScrollCol  int
+
+	colorBackground []byte
+	colorVoid       []byte
+	colorIndex      []byte
 }
 
 func New(buffer *textbuf.TextBuf, cursor *cursor.Cursor) *Render {
@@ -42,6 +46,10 @@ func New(buffer *textbuf.TextBuf, cursor *cursor.Cursor) *Render {
 
 func (r *Render) SetColors(t theme.Tokens) {
 	r.colors = syntax.NewColors(t)
+
+	r.colorBackground = t.MainBg()
+	r.colorVoid = t.Dark0Bg()
+	r.colorIndex = append(t.Light0Bg(), t.Dark0Fg()...)
 }
 
 func (r *Render) SetArea(a ui.Area) {
@@ -81,7 +89,7 @@ func (r *Render) Render() {
 
 	vt.Buf.Write(vt.HideCursor)
 	vt.Buf.Write(vt.SaveCursor)
-	vt.Buf.Write(r.colors.Background)
+	vt.Buf.Write(r.colorBackground)
 	vt.ClearArea(vt.Buf, r.area)
 
 	if r.area.W >= r.indexWidth {
@@ -219,7 +227,7 @@ func (r *Render) renderLines() {
 			row = r.renderLine(ln, row)
 		} else {
 			vt.SetCursor(vt.Buf, row, r.area.X)
-			vt.Buf.Write(r.colors.Void)
+			vt.Buf.Write(r.colorVoid)
 			vt.ClearLine(vt.Buf, r.area.W)
 		}
 
@@ -247,10 +255,10 @@ func (r *Render) renderLine(ln int, row int) int {
 
 			if r.indexWidth > 0 {
 				if i == 0 {
-					vt.Buf.Write(r.colors.Index)
+					vt.Buf.Write(r.colorIndex)
 					fmt.Fprintf(vt.Buf, "%*d ", r.indexWidth-1, ln+1)
 				} else {
-					vt.Buf.Write(r.colors.Background)
+					vt.Buf.Write(r.colorBackground)
 					vt.WriteSpaces(vt.Buf, r.indexWidth)
 				}
 			}

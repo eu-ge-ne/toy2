@@ -6,10 +6,7 @@ import (
 )
 
 type Colors struct {
-	Background []byte
-	Index      []byte
-	Void       []byte
-	Char       map[CharColor][]byte
+	Char map[CharColor][]byte
 }
 
 type CharColor int
@@ -27,9 +24,6 @@ const (
 
 func NewColors(t theme.Tokens) Colors {
 	return Colors{
-		Background: t.MainBg(),
-		Index:      append(t.Light0Bg(), t.Dark0Fg()...),
-		Void:       t.Dark0Bg(),
 		Char: map[CharColor][]byte{
 			CharColorVisible:            append(t.MainBg(), t.Light1Fg()...),
 			CharColorWhitespace:         append(t.MainBg(), t.Dark0Fg()...),
