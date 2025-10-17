@@ -291,9 +291,8 @@ func (r *Render) renderLine(ln int, row int) int {
 			}
 		}
 
-		start, _ := r.buffer.Index(ln, i)
-		end := start + len(cell.G.Seg)
-		colorFg := r.syntax.Highlight(start, end)
+		idx, _ := r.buffer.Index(ln, i)
+		colorFg := r.syntax.Highlight(idx)
 		if colorFg == syntax.CharFgColorUndefined {
 			if cell.G.IsVisible {
 				colorFg = syntax.CharFgColorVisible

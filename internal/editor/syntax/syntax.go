@@ -121,7 +121,7 @@ func (s *Syntax) Insert(ln0, col0, ln1, col1 int) {
 	}
 }
 
-func (s *Syntax) Highlight(start, end int) CharFgColor {
+func (s *Syntax) Highlight(idx int) CharFgColor {
 	a := 0
 	b := len(s.spans) - 1
 
@@ -129,11 +129,11 @@ func (s *Syntax) Highlight(start, end int) CharFgColor {
 		i := a + ((b - a) / 2)
 		span := s.spans[i]
 
-		if start >= span.start && end <= span.end {
+		if idx >= span.start && idx < span.end {
 			return span.color
 		}
 
-		if start < span.start {
+		if idx < span.start {
 			b = i - 1
 		} else {
 			a = i + 1
