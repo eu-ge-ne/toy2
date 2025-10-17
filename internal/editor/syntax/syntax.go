@@ -27,12 +27,13 @@ type Syntax struct {
 	ops    chan op
 
 	ranges  []treeSitter.Range
-	tree    *treeSitter.Tree
 	isDirty bool
-	text    []byte
+	tree    *treeSitter.Tree
 	query   *treeSitter.Query
-	counter int
 	spans   []colorSpan
+
+	text    []byte
+	counter int
 }
 
 type op struct {
@@ -52,9 +53,11 @@ const (
 )
 
 type colorSpan struct {
-	start int
-	end   int
-	color CharFgColor
+	start   int
+	end     int
+	text    string
+	capture string
+	color   CharFgColor
 }
 
 func New(buffer *textbuf.TextBuf) *Syntax {
@@ -161,7 +164,7 @@ func (s *Syntax) handleOp(op op) {
 
 	ed, ok := s.inputEdit(op)
 	if !ok {
-		panic(fmt.Sprintf("in Syntax.handleEdit: %v", op))
+		panic(fmt.Sprintf("in Syntax.handleOp: %v", op))
 	}
 
 	s.tree.Edit(&ed)
@@ -177,7 +180,7 @@ func (s *Syntax) handleTimeout() {
 func (s *Syntax) update() {
 	started := time.Now()
 
-	f, err := os.OpenFile("tmp/syntax.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+	f, err := os.OpenFile("tmp/syntax-update.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
 	if err != nil {
 		panic(err)
 	}
@@ -222,10 +225,11 @@ func (s *Syntax) updateHighlight(f *os.File) {
 	end := int(s.ranges[0].EndByte)
 	copy(s.text[start:end], std.IterToStr(s.buffer.Read(start, end)))
 
-	var spans []colorSpan
+	var spans = make([]colorSpan, 0, 1000)
 
 	qc := treeSitter.NewQueryCursor()
 	defer qc.Close()
+
 	qc.SetPointRange(s.ranges[0].StartPoint, s.ranges[0].EndPoint)
 
 	capts := qc.Captures(s.query, s.tree.RootNode(), s.text)
@@ -233,21 +237,26 @@ func (s *Syntax) updateHighlight(f *os.File) {
 		capt := match.Captures[captIdx]
 		node := capt.Node
 
-		span := colorSpan{
-			start: int(node.StartByte()),
-			end:   int(node.EndByte()),
+		start := int(node.StartByte())
+		end := int(node.EndByte())
+
+		i := len(spans) - 1
+		if len(spans) == 0 || spans[i].start != start || spans[i].end != end {
+			spans = append(spans, colorSpan{start: start, end: end})
+			i += 1
 		}
+
+		spans[i].text = node.Utf8Text(s.text)
+		spans[i].capture = s.query.CaptureNames()[capt.Index]
 
 		switch capt.Index {
 		case 0:
-			span.color = CharFgColorVariable
+			spans[i].color = CharFgColorVariable
 		case 18:
-			span.color = CharFgColorKeyword
+			spans[i].color = CharFgColorKeyword
 		default:
-			span.color = CharFgColorUndefined
+			spans[i].color = CharFgColorUndefined
 		}
-
-		spans = append(spans, span)
 
 		fmt.Fprintf(f,
 			"hl: %v:%v-%v:%v %s (%s, %d, %d)\n",
@@ -263,6 +272,10 @@ func (s *Syntax) updateHighlight(f *os.File) {
 	}
 
 	s.spans = spans
+
+	for _, span := range s.spans {
+		fmt.Fprintf(f, "hl: %v\n", span)
+	}
 
 	fmt.Fprintf(f, "hl: elapsed %v\n", time.Since(started))
 }
