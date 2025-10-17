@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"fmt"
 	"os"
+	"slices"
 	"time"
 
 	"github.com/eu-ge-ne/toy2/internal/std"
@@ -53,11 +54,11 @@ const (
 )
 
 type colorSpan struct {
-	start   int
-	end     int
-	text    string
-	capture string
-	color   CharFgColor
+	start    int
+	end      int
+	text     string
+	captures []int
+	color    CharFgColor
 }
 
 func New(buffer *textbuf.TextBuf) *Syntax {
@@ -121,9 +122,21 @@ func (s *Syntax) Insert(ln0, col0, ln1, col1 int) {
 }
 
 func (s *Syntax) Highlight(start, end int) CharFgColor {
-	for _, span := range s.spans {
+	a := 0
+	b := len(s.spans) - 1
+
+	for b >= a {
+		i := a + ((b - a) / 2)
+		span := s.spans[i]
+
 		if start >= span.start && end <= span.end {
 			return span.color
+		}
+
+		if start < span.start {
+			b = i - 1
+		} else {
+			a = i + 1
 		}
 	}
 
@@ -252,19 +265,18 @@ func (s *Syntax) updateHighlight(f *os.File) {
 
 		i := len(spans) - 1
 		if len(spans) == 0 || spans[i].start != start || spans[i].end != end {
-			spans = append(spans, colorSpan{start: start, end: end})
+			spans = append(spans, colorSpan{start: start, end: end, captures: make([]int, 0, 2)})
 			i += 1
 		}
 
 		spans[i].text = node.Utf8Text(s.text)
-		spans[i].capture = s.query.CaptureNames()[capt.Index]
+		spans[i].captures = append(spans[i].captures, int(capt.Index))
 
-		switch capt.Index {
-		case 0:
+		if slices.Contains(spans[i].captures, 0) {
 			spans[i].color = CharFgColorVariable
-		case 18:
+		} else if slices.Contains(spans[i].captures, 18) {
 			spans[i].color = CharFgColorKeyword
-		default:
+		} else {
 			spans[i].color = CharFgColorUndefined
 		}
 
