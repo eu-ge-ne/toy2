@@ -229,13 +229,11 @@ func (r *Render) scrollH() {
 }
 
 func (r *Render) renderLines() {
-	hl := r.syntax.Highlight()
-
 	row := r.area.Y
 
 	for ln := r.ScrollLn; ; ln += 1 {
 		if ln < r.buffer.LineCount() {
-			row = r.renderLine(ln, row, hl)
+			row = r.renderLine(ln, row)
 		} else {
 			vt.SetCursor(vt.Buf, row, r.area.X)
 			vt.Buf.Write(r.colorVoidBg)
@@ -247,11 +245,9 @@ func (r *Render) renderLines() {
 			break
 		}
 	}
-
-	hl.Close()
 }
 
-func (r *Render) renderLine(ln int, row int, _ *syntax.Highlight) int {
+func (r *Render) renderLine(ln int, row int) int {
 	currentFg := syntax.CharFgColorUndefined
 	currentBg := false
 	availableW := 0

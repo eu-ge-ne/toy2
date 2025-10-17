@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/eu-ge-ne/toy2/internal/std"
 	"github.com/eu-ge-ne/toy2/internal/textbuf"
 
 	treeSitter "github.com/tree-sitter/go-tree-sitter"
@@ -20,15 +21,18 @@ var scmJsHighlights string
 var scmTsHighlights string
 
 type Syntax struct {
-	buffer  *textbuf.TextBuf
-	parser  *treeSitter.Parser
+	buffer *textbuf.TextBuf
+	parser *treeSitter.Parser
+	close  chan struct{}
+	ops    chan op
+
 	ranges  []treeSitter.Range
 	tree    *treeSitter.Tree
-	close   chan struct{}
-	ops     chan op
 	isDirty bool
-
+	text    []byte
+	query   *treeSitter.Query
 	counter int
+	spans   []colorSpan
 }
 
 type op struct {
@@ -47,13 +51,20 @@ const (
 	opKindInsert
 )
 
+type colorSpan struct {
+	start int
+	end   int
+	color CharFgColor
+}
+
 func New(buffer *textbuf.TextBuf) *Syntax {
 	s := Syntax{
 		buffer: buffer,
 		parser: treeSitter.NewParser(),
-		ranges: []treeSitter.Range{{}},
 		close:  make(chan struct{}),
 		ops:    make(chan op, 100),
+
+		ranges: []treeSitter.Range{{}},
 	}
 
 	//Log(s.parser)
@@ -64,6 +75,12 @@ func New(buffer *textbuf.TextBuf) *Syntax {
 	if err != nil {
 		panic(err)
 	}
+
+	query, err0 := treeSitter.NewQuery(langTs, scmJsHighlights+scmTsHighlights)
+	if err0 != nil {
+		panic(err0)
+	}
+	s.query = query
 
 	s.run()
 
@@ -99,14 +116,6 @@ func (s *Syntax) Insert(ln0, col0, ln1, col1 int) {
 	if s != nil {
 		s.ops <- op{opKindInsert, ln0, col0, ln1, col1}
 	}
-}
-
-func (s *Syntax) Highlight() *Highlight {
-	if s.tree == nil {
-		return nil
-	}
-
-	return newHighlight(s.buffer, s.tree.Clone(), s.ranges[0])
 }
 
 func (s *Syntax) run() {
@@ -147,7 +156,7 @@ func (s *Syntax) handleOp(op op) {
 		s.ranges[0].StartPoint.Row = uint(ln0)
 		s.ranges[0].EndPoint.Row = uint(ln1)
 
-		s.updateTree()
+		s.update()
 		return
 	}
 
@@ -162,22 +171,32 @@ func (s *Syntax) handleOp(op op) {
 
 func (s *Syntax) handleTimeout() {
 	if s.isDirty {
-		s.updateTree()
+		s.update()
 	}
 }
 
-func (s *Syntax) updateTree() {
+func (s *Syntax) update() {
 	started := time.Now()
 
-	f, err := os.OpenFile("tmp/syntax-update.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+	f, err := os.OpenFile("tmp/syntax.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
 	if err != nil {
 		panic(err)
 	}
 	defer f.Close()
 
-	fmt.Fprintf(f, "update: counter=%d\n", s.counter)
-	fmt.Fprintf(f, "update: ranges=%d\n", s.ranges)
+	fmt.Fprintf(f, "update: counter %d\n", s.counter)
+	fmt.Fprintf(f, "update: ranges %d\n", s.ranges)
 
+	s.updateTree()
+	s.updateHighlight(f)
+
+	fmt.Fprintf(f, "update: elapsed %v\n", time.Since(started))
+
+	s.counter += 1
+	s.isDirty = false
+}
+
+func (s *Syntax) updateTree() {
 	s.parser.SetIncludedRanges(s.ranges)
 
 	maxChunkLen := int(s.ranges[0].EndByte - s.ranges[0].StartByte)
@@ -192,11 +211,62 @@ func (s *Syntax) updateTree() {
 
 	s.tree.Close()
 	s.tree = t
+}
 
-	fmt.Fprintf(f, "Elapsed %v\n", time.Since(started))
+func (s *Syntax) updateHighlight(f *os.File) {
+	started := time.Now()
 
-	s.counter += 1
-	s.isDirty = false
+	if s.buffer.Count() != len(s.text) {
+		s.text = make([]byte, s.buffer.Count())
+	}
+	start := int(s.ranges[0].StartByte)
+	end := int(s.ranges[0].EndByte)
+	chunk := std.IterToStr(s.buffer.Read(start, end))
+	copy(s.text[start:end], chunk)
+
+	var spans []colorSpan
+
+	qc := treeSitter.NewQueryCursor()
+	defer qc.Close()
+	qc.SetPointRange(s.ranges[0].StartPoint, s.ranges[0].EndPoint)
+
+	capts := qc.Captures(s.query, s.tree.RootNode(), s.text)
+	for match, captIdx := capts.Next(); match != nil; match, captIdx = capts.Next() {
+		capt := match.Captures[captIdx]
+		node := capt.Node
+
+		span := colorSpan{
+			start: int(node.StartByte()),
+			end:   int(node.EndByte()),
+		}
+
+		switch capt.Index {
+		case 0:
+			span.color = CharFgColorVariable
+		case 18:
+			span.color = CharFgColorKeyword
+		default:
+			span.color = CharFgColorUndefined
+		}
+
+		spans = append(spans, span)
+
+		fmt.Fprintf(f,
+			"hl: %v:%v-%v:%v %s (%s, %d, %d)\n",
+			node.StartByte(),
+			node.EndByte(),
+			node.StartPosition(),
+			node.EndPosition(),
+			node.Utf8Text(s.text),
+			s.query.CaptureNames()[capt.Index],
+			match.PatternIndex,
+			capt.Index,
+		)
+	}
+
+	s.spans = spans
+
+	fmt.Fprintf(f, "hl: elapsed %v\n", time.Since(started))
 }
 
 func (s *Syntax) inputEdit(op op) (r treeSitter.InputEdit, ok bool) {
