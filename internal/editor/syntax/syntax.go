@@ -10,7 +10,7 @@ import (
 	"github.com/eu-ge-ne/toy2/internal/textbuf"
 
 	treeSitter "github.com/tree-sitter/go-tree-sitter"
-	treeSitterJs "github.com/tree-sitter/tree-sitter-javascript/bindings/go"
+	_ "github.com/tree-sitter/tree-sitter-javascript/bindings/go"
 	treeSitterTs "github.com/tree-sitter/tree-sitter-typescript/bindings/go"
 )
 
@@ -69,14 +69,13 @@ func New(buffer *textbuf.TextBuf) *Syntax {
 
 	//Log(s.parser)
 
-	treeSitter.NewLanguage(treeSitterJs.Language())
-	langTs := treeSitter.NewLanguage(treeSitterTs.LanguageTypescript())
-	err := s.parser.SetLanguage(langTs)
+	lang := treeSitter.NewLanguage(treeSitterTs.LanguageTypescript())
+	err := s.parser.SetLanguage(lang)
 	if err != nil {
 		panic(err)
 	}
 
-	query, err0 := treeSitter.NewQuery(langTs, scmJsHighlights+scmTsHighlights)
+	query, err0 := treeSitter.NewQuery(lang, scmJsHighlights+scmTsHighlights)
 	if err0 != nil {
 		panic(err0)
 	}
