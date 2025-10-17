@@ -6,7 +6,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/eu-ge-ne/toy2/internal/std"
 	"github.com/eu-ge-ne/toy2/internal/textbuf"
 
 	treeSitter "github.com/tree-sitter/go-tree-sitter"
@@ -21,8 +20,7 @@ var scmJsHighlights string
 var scmTsHighlights string
 
 type Syntax struct {
-	buffer *textbuf.TextBuf
-
+	buffer  *textbuf.TextBuf
 	parser  *treeSitter.Parser
 	ranges  []treeSitter.Range
 	tree    *treeSitter.Tree
@@ -30,11 +28,7 @@ type Syntax struct {
 	ops     chan op
 	isDirty bool
 
-	queryHighlights *treeSitter.Query
-
 	counter int
-	hlText  []byte
-	hlSpans []hlSpan
 }
 
 type op struct {
@@ -53,16 +47,9 @@ const (
 	opKindInsert
 )
 
-type hlSpan struct {
-	start int
-	end   int
-	color CharFgColor
-}
-
 func New(buffer *textbuf.TextBuf) *Syntax {
 	s := Syntax{
 		buffer: buffer,
-
 		parser: treeSitter.NewParser(),
 		ranges: []treeSitter.Range{{}},
 		close:  make(chan struct{}),
@@ -77,13 +64,6 @@ func New(buffer *textbuf.TextBuf) *Syntax {
 	if err != nil {
 		panic(err)
 	}
-
-	queryHighlights, err0 := treeSitter.NewQuery(langTs, scmJsHighlights+scmTsHighlights)
-	if err0 != nil {
-		panic(err0)
-	}
-
-	s.queryHighlights = queryHighlights
 
 	s.run()
 
@@ -121,14 +101,12 @@ func (s *Syntax) Insert(ln0, col0, ln1, col1 int) {
 	}
 }
 
-func (s *Syntax) HighlightSpan(start, end int) CharFgColor {
-	for _, span := range s.hlSpans {
-		if start >= span.start && end <= span.end {
-			return span.color
-		}
+func (s *Syntax) Highlight() *Highlight {
+	if s.tree == nil {
+		return nil
 	}
 
-	return CharFgColorUndefined
+	return newHighlight(s.buffer, s.tree.Clone(), s.ranges[0])
 }
 
 func (s *Syntax) run() {
@@ -169,7 +147,7 @@ func (s *Syntax) handleOp(op op) {
 		s.ranges[0].StartPoint.Row = uint(ln0)
 		s.ranges[0].EndPoint.Row = uint(ln1)
 
-		s.update()
+		s.updateTree()
 		return
 	}
 
@@ -184,11 +162,11 @@ func (s *Syntax) handleOp(op op) {
 
 func (s *Syntax) handleTimeout() {
 	if s.isDirty {
-		s.update()
+		s.updateTree()
 	}
 }
 
-func (s *Syntax) update() {
+func (s *Syntax) updateTree() {
 	started := time.Now()
 
 	f, err := os.OpenFile("tmp/syntax-update.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
@@ -200,16 +178,6 @@ func (s *Syntax) update() {
 	fmt.Fprintf(f, "update: counter=%d\n", s.counter)
 	fmt.Fprintf(f, "update: ranges=%d\n", s.ranges)
 
-	s.updateTree()
-	s.updateHighlights()
-
-	fmt.Fprintf(f, "Elapsed %v\n", time.Since(started))
-
-	s.counter += 1
-	s.isDirty = false
-}
-
-func (s *Syntax) updateTree() {
 	s.parser.SetIncludedRanges(s.ranges)
 
 	maxChunkLen := int(s.ranges[0].EndByte - s.ranges[0].StartByte)
@@ -224,67 +192,11 @@ func (s *Syntax) updateTree() {
 
 	s.tree.Close()
 	s.tree = t
-}
-
-func (s *Syntax) updateHighlights() {
-	started := time.Now()
-
-	f, err := os.OpenFile("tmp/syntax-highlight.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-
-	if len(s.hlText) != s.buffer.Count() {
-		s.hlText = make([]byte, s.buffer.Count())
-	}
-	start := int(s.ranges[0].StartByte)
-	end := int(s.ranges[0].EndByte)
-	chunk := std.IterToStr(s.buffer.Read(start, end))
-	copy(s.hlText[start:end], chunk)
-
-	qc := treeSitter.NewQueryCursor()
-	defer qc.Close()
-	qc.SetPointRange(s.ranges[0].StartPoint, s.ranges[0].EndPoint)
-
-	var hlSpans []hlSpan
-
-	captures := qc.Captures(s.queryHighlights, s.tree.RootNode(), s.hlText)
-	for match, captIdx := captures.Next(); match != nil; match, captIdx = captures.Next() {
-		capt := match.Captures[captIdx]
-		node := capt.Node
-
-		fmt.Fprintf(f,
-			"%v:%v|%v:%v %s (%s, %d, %d)\n",
-			node.StartByte(),
-			node.EndByte(),
-			node.StartPosition(),
-			node.EndPosition(),
-			node.Utf8Text(s.hlText),
-			s.queryHighlights.CaptureNames()[capt.Index],
-			match.PatternIndex,
-			capt.Index,
-		)
-
-		span := hlSpan{
-			start: int(node.StartByte()),
-			end:   int(node.EndByte()),
-		}
-		switch capt.Index {
-		case 0:
-			span.color = CharFgColorVariable
-		case 18:
-			span.color = CharFgColorKeyword
-		default:
-			span.color = CharFgColorUndefined
-		}
-
-		hlSpans = append(hlSpans, span)
-	}
-
-	s.hlSpans = hlSpans
 
 	fmt.Fprintf(f, "Elapsed %v\n", time.Since(started))
+
+	s.counter += 1
+	s.isDirty = false
 }
 
 func (s *Syntax) inputEdit(op op) (r treeSitter.InputEdit, ok bool) {
