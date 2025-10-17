@@ -215,13 +215,12 @@ func (s *Syntax) updateTree() {
 func (s *Syntax) updateHighlight(f *os.File) {
 	started := time.Now()
 
-	if s.buffer.Count() != len(s.text) {
+	if s.buffer.Count() > len(s.text) {
 		s.text = make([]byte, s.buffer.Count())
 	}
 	start := int(s.ranges[0].StartByte)
 	end := int(s.ranges[0].EndByte)
-	chunk := std.IterToStr(s.buffer.Read(start, end))
-	copy(s.text[start:end], chunk)
+	copy(s.text[start:end], std.IterToStr(s.buffer.Read(start, end)))
 
 	var spans []colorSpan
 
