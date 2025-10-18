@@ -121,6 +121,9 @@ func (s *Syntax) run() {
 const maxChunkLen = 1024 * 16
 
 func (s *Syntax) handleHighlightReq(req highlightReq) {
+	ln0 := max(0, req.ln0)
+	ln1 := min(s.buffer.LineCount(), req.ln1)
+
 	f, err := os.OpenFile("tmp/syntax-highlight.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
 	if err != nil {
 		panic(err)
@@ -139,7 +142,6 @@ func (s *Syntax) handleHighlightReq(req highlightReq) {
 		}
 		return []byte(text)
 	}, s.tree, nil)
-
 	s.tree.Close()
 	s.tree = t
 
@@ -147,17 +149,14 @@ func (s *Syntax) handleHighlightReq(req highlightReq) {
 
 	highlightStarted := time.Now()
 
-	ln0 := max(0, req.ln0)
-	ln1 := min(s.buffer.LineCount(), req.ln1)
-	start, _ := s.buffer.LnIndex(ln0)
-	end, _ := s.buffer.LnIndex(ln1)
-	startPoint := treeSitter.NewPoint(uint(ln0), 0)
-	endPoint := treeSitter.NewPoint(uint(ln1), 0)
-
 	if s.buffer.Count() > len(s.text) {
 		s.text = make([]byte, s.buffer.Count())
 	}
-	copy(s.text[start:end], std.IterToStr(s.buffer.Read(start, end)))
+	startByte, _ := s.buffer.LnIndex(ln0)
+	endByte, _ := s.buffer.LnIndex(ln1)
+	startPoint := treeSitter.NewPoint(uint(ln0), 0)
+	endPoint := treeSitter.NewPoint(uint(ln1), 0)
+	copy(s.text[startByte:endByte], std.IterToStr(s.buffer.Read(startByte, endByte)))
 
 	qc := treeSitter.NewQueryCursor()
 	defer qc.Close()
