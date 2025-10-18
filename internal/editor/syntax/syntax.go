@@ -249,8 +249,8 @@ func (s *Syntax) handleEditReq(req editReq) {
 		ed.OldEndByte = uint(i1)
 		ed.OldEndPosition = treeSitter.NewPoint(uint(req.ln1), uint(col1))
 
-		ed.NewEndByte = uint(i0 + 1)
-		ed.NewEndPosition = treeSitter.NewPoint(uint(req.ln0), uint(col0+1))
+		ed.NewEndByte = uint(i0)
+		ed.NewEndPosition = treeSitter.NewPoint(uint(req.ln0), uint(col0))
 	case editKindInsert:
 		ed.StartByte = uint(i0)
 		ed.StartPosition = treeSitter.NewPoint(uint(req.ln0), uint(col0))
