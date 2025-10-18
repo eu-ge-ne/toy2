@@ -17,15 +17,33 @@ func (s span) match(ln, col int) int {
 		return -1
 	}
 
+	if ln > int(s.end.Row) {
+		return 1
+	}
+
+	if ln == int(s.start.Row) && ln == int(s.end.Row) {
+		if col < int(s.start.Column) {
+			return -1
+		}
+		if col < int(s.end.Column) {
+			return 0
+		}
+		return 1
+	}
+	// todo
 	if ln == int(s.start.Row) {
 		if col < int(s.start.Column) {
 			return -1
 		}
+		return 0
+	}
 
+	if ln == int(s.end.Row) {
 		if col < int(s.end.Column) {
 			return 0
 		}
+		return 1
 	}
 
-	return 1
+	return 0
 }
