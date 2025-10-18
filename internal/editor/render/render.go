@@ -15,10 +15,13 @@ import (
 )
 
 type Render struct {
-	buffer      *textbuf.TextBuf
-	cursor      *cursor.Cursor
-	syntax      *syntax.Syntax
-	highlighter *syntax.Highlighter
+	buffer *textbuf.TextBuf
+	cursor *cursor.Cursor
+	syntax *syntax.Syntax
+
+	spans chan *syntax.HighlightSpan
+	span  *syntax.HighlightSpan
+	idx   int
 
 	area              ui.Area
 	enabled           bool
@@ -98,7 +101,9 @@ func (r *Render) SetSyntax(s *syntax.Syntax) {
 func (r *Render) Render() {
 	r.scroll()
 
-	r.highlighter = <-r.syntax.Highlight(r.ScrollLn, r.ScrollLn+r.area.H)
+	r.spans = r.syntax.Highlight(r.ScrollLn, r.ScrollLn+r.area.H)
+	r.span = nil
+	r.idx, _ = r.buffer.LnIndex(r.ScrollLn)
 
 	vt.Sync.Bsu()
 
@@ -297,7 +302,18 @@ func (r *Render) renderLine(ln int, row int) int {
 			}
 		}
 
-		colorFg := r.highlighter.Next(len(cell.G.Seg))
+		var colorFg syntax.CharFgColor
+		if r.span == nil || r.idx >= r.span.End {
+			if s, ok := <-r.spans; ok {
+				r.span = s
+			}
+		}
+		if r.span != nil {
+			if r.idx >= r.span.Start && r.idx < r.span.End {
+				colorFg = r.span.Color
+			}
+		}
+
 		if colorFg == syntax.CharFgColorUndefined {
 			if cell.G.IsVisible {
 				colorFg = syntax.CharFgColorVisible
@@ -315,6 +331,7 @@ func (r *Render) renderLine(ln int, row int) int {
 		vt.Buf.Write(cell.G.Bytes)
 
 		availableW -= cell.G.Width
+		r.idx += len(cell.G.Seg)
 	}
 
 	return row

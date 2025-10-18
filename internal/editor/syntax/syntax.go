@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"fmt"
 	"os"
+	"slices"
 	"time"
 
 	"github.com/eu-ge-ne/toy2/internal/std"
@@ -85,12 +86,12 @@ func (s *Syntax) Insert(ln0, col0, ln1, col1 int) {
 	}
 }
 
-func (s *Syntax) Highlight(ln0, ln1 int) <-chan *Highlighter {
+func (s *Syntax) Highlight(ln0, ln1 int) chan *HighlightSpan {
 	if s == nil {
 		return nil
 	}
 
-	hl := make(chan *Highlighter)
+	hl := make(chan *HighlightSpan, 1024)
 
 	s.highlight <- highlightReq{ln0, ln1, hl}
 
@@ -118,25 +119,6 @@ func (s *Syntax) run() {
 }
 
 func (s *Syntax) handleEdit(op editReq) {
-	/*
-		if op.kind == editKindScroll {
-			h := op.ln1 - op.ln0
-			ln0 := max(0, op.ln0-h)
-			ln1 := min(s.buffer.LineCount(), op.ln1+h)
-
-			i0, _ := s.buffer.LnIndex(ln0)
-			i1, _ := s.buffer.LnIndex(ln1)
-
-			s.ranges[0].StartByte = uint(i0)
-			s.ranges[0].EndByte = uint(i1)
-			s.ranges[0].StartPoint.Row = uint(ln0)
-			s.ranges[0].EndPoint.Row = uint(ln1)
-
-			s.update()
-			return
-		}
-	*/
-
 	ed, ok := op.inputEdit(s.buffer)
 	if !ok {
 		panic(fmt.Sprintf("in Syntax.handleOp: %v", op))
@@ -184,8 +166,6 @@ func (s *Syntax) handleHighlight(req highlightReq) {
 		panic(err)
 	}
 	defer f.Close()
-	//fmt.Fprintf(f, "counter %d\n", s.counter)
-	//fmt.Fprintf(f, "ranges %d\n", s.ranges)
 
 	if s.tree == nil {
 		s.updateTree()
@@ -206,32 +186,66 @@ func (s *Syntax) handleHighlight(req highlightReq) {
 	}
 	copy(s.text[start:end], std.IterToStr(s.buffer.Read(start, end)))
 
-	highlighter := newHighlighter()
-
 	qc := treeSitter.NewQueryCursor()
 	defer qc.Close()
 
 	qc.SetPointRange(startPoint, endPoint)
 	capts := qc.Captures(s.query, s.tree.RootNode(), s.text)
 
+	var span *HighlightSpan
+
 	for match, captIdx := capts.Next(); match != nil; match, captIdx = capts.Next() {
 		capt := match.Captures[captIdx]
 
-		highlighter.AddCapture(capt)
+		/*
+			fmt.Fprintf(f,
+				"%v:%v %s (%s, %d, %d)\n",
+				capt.Node.StartPosition(),
+				capt.Node.EndPosition(),
+				capt.Node.Utf8Text(s.text),
+				s.query.CaptureNames()[capt.Index],
+				match.PatternIndex,
+				capt.Index,
+			)
+		*/
 
-		fmt.Fprintf(f,
-			"%v:%v %s (%s, %d, %d)\n",
-			capt.Node.StartPosition(),
-			capt.Node.EndPosition(),
-			capt.Node.Utf8Text(s.text),
-			s.query.CaptureNames()[capt.Index],
-			match.PatternIndex,
-			capt.Index,
-		)
+		start := int(capt.Node.StartByte())
+		end := int(capt.Node.EndByte())
+
+		if span == nil {
+			span = &HighlightSpan{
+				Start:    start,
+				End:      end,
+				Color:    CharFgColorUndefined,
+				captures: make([]int, 0, 2),
+			}
+		} else {
+			if span.Start != start || span.End != end {
+				req.spans <- span
+				span = &HighlightSpan{
+					Start:    start,
+					End:      end,
+					Color:    CharFgColorUndefined,
+					captures: make([]int, 0, 2),
+				}
+			}
+		}
+
+		span.captures = append(span.captures, int(capt.Index))
+
+		if slices.Contains(span.captures, 0 /*variable*/) {
+			span.Color = CharFgColorVariable
+		} else if slices.Contains(span.captures, 18 /*keyword*/) {
+			span.Color = CharFgColorKeyword
+		} else if slices.Contains(span.captures, 9 /*comment*/) {
+			span.Color = CharFgColorComment
+		} else {
+			span.Color = CharFgColorUndefined
+		}
 	}
 
-	highlighter.Start(start)
-	req.hl <- highlighter
+	req.spans <- span
+	close(req.spans)
 
 	fmt.Fprintf(f, "elapsed %v\n", time.Since(started))
 }
