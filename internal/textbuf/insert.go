@@ -4,18 +4,19 @@ import (
 	"github.com/eu-ge-ne/toy2/internal/textbuf/node"
 )
 
-func (buf *TextBuf) Insert(index int, data []byte) {
+type InsertCase int
+
+const (
+	InsertRoot InsertCase = iota
+	InsertLeft
+	InsertRight
+	InsertSplit
+)
+
+func (buf *TextBuf) Insert(index int, text string) {
 	if index > buf.Count() {
 		return
 	}
-
-	type InsertCase int
-	const (
-		InsertRoot InsertCase = iota
-		InsertLeft
-		InsertRight
-		InsertSplit
-	)
 
 	insertCase := InsertRoot
 	p := node.NIL
@@ -46,12 +47,12 @@ func (buf *TextBuf) Insert(index int, data []byte) {
 	}
 
 	if (insertCase == InsertRight) && buf.content.Growable(p) {
-		buf.content.Grow(p, data)
+		buf.content.Grow(p, text)
 		node.Bubble(p)
 		return
 	}
 
-	child := buf.content.Create(data)
+	child := buf.content.Create(text)
 
 	switch insertCase {
 	case InsertRoot:
@@ -68,7 +69,7 @@ func (buf *TextBuf) Insert(index int, data []byte) {
 	}
 }
 
-func (buf *TextBuf) Insert2(ln, col int, data []byte) {
+func (buf *TextBuf) Insert2(ln, col int, text string) {
 	index, ok := buf.LnIndex(ln)
 
 	if !ok {
@@ -86,9 +87,9 @@ func (buf *TextBuf) Insert2(ln, col int, data []byte) {
 		index += len(cell.G.Seg)
 	}
 
-	buf.Insert(index, data)
+	buf.Insert(index, text)
 }
 
-func (buf *TextBuf) Append(data []byte) {
-	buf.Insert(buf.Count(), data)
+func (buf *TextBuf) Append(text string) {
+	buf.Insert(buf.Count(), text)
 }

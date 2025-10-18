@@ -20,7 +20,7 @@ func New() *Ask {
 	return &Ask{}
 }
 
-func (ask *Ask) SetColors(t theme.Tokens) {
+func (ask *Ask) SetColors(t theme.Theme) {
 	ask.colorBackground = t.Light1Bg()
 	ask.colorText = append(t.Light1Bg(), t.Light1Fg()...)
 }

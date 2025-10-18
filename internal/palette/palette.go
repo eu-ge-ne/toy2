@@ -35,7 +35,7 @@ func New(parent ui.Control, options []*Option) *Palette {
 	}
 }
 
-func (p *Palette) SetColors(t theme.Tokens) {
+func (p *Palette) SetColors(t theme.Theme) {
 	p.colorBackground = t.Light1Bg()
 	p.colorOption = append(t.Light1Bg(), t.Light1Fg()...)
 	p.colorSelectedOption = append(t.Light2Bg(), t.Light1Fg()...)

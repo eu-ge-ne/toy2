@@ -1,6 +1,6 @@
 package theme
 
-type Tokens interface {
+type Theme interface {
 	DangerBg() []byte
 
 	MainBg() []byte

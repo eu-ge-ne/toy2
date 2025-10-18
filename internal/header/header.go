@@ -26,7 +26,7 @@ func (h *Header) Enable(enable bool) {
 	h.enabled = enable
 }
 
-func (h *Header) SetColors(t theme.Tokens) {
+func (h *Header) SetColors(t theme.Theme) {
 	h.colorBackground = t.Dark0Bg()
 	h.colorFilePath = append(t.Dark0Bg(), t.Dark0Fg()...)
 	h.colorFlag = append(t.Dark0Bg(), t.Light2Fg()...)

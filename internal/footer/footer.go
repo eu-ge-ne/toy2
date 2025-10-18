@@ -26,7 +26,7 @@ func (f *Footer) Enable(enable bool) {
 	f.enabled = enable
 }
 
-func (f *Footer) SetColors(t theme.Tokens) {
+func (f *Footer) SetColors(t theme.Theme) {
 	f.colorBackground = t.Dark0Bg()
 	f.colorText = append(t.Dark0Bg(), t.Dark0Fg()...)
 }

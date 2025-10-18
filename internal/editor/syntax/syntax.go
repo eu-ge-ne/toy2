@@ -3,16 +3,14 @@ package syntax
 import (
 	_ "embed"
 	"fmt"
-	"math"
 	"os"
 	"time"
 
-	"github.com/eu-ge-ne/toy2/internal/std"
-	"github.com/eu-ge-ne/toy2/internal/textbuf"
-
 	treeSitter "github.com/tree-sitter/go-tree-sitter"
-	treeSitterJs "github.com/tree-sitter/tree-sitter-javascript/bindings/go"
+	_ "github.com/tree-sitter/tree-sitter-javascript/bindings/go"
 	treeSitterTs "github.com/tree-sitter/tree-sitter-typescript/bindings/go"
+
+	"github.com/eu-ge-ne/toy2/internal/textbuf"
 )
 
 //go:embed js/highlights.scm
@@ -22,46 +20,41 @@ var scmJsHighlights string
 var scmTsHighlights string
 
 type Syntax struct {
-	buffer          *textbuf.TextBuf
-	parser          *treeSitter.Parser
-	queryHighlights *treeSitter.Query
-	tree            *treeSitter.Tree
-	close           chan struct{}
-	reset           chan struct{}
-	edits           chan edit
-	isDirty         bool
-	hlCounter       int
+	buffer     *textbuf.TextBuf
+	parser     *treeSitter.Parser
+	query      *treeSitter.Query
+	close      chan struct{}
+	edits      chan editReq
+	highlights chan highlightReq
+
+	tree *treeSitter.Tree
+	text []byte
 }
 
 func New(buffer *textbuf.TextBuf) *Syntax {
 	s := Syntax{
-		buffer: buffer,
-		close:  make(chan struct{}),
-		reset:  make(chan struct{}),
-		edits:  make(chan edit, 100),
+		buffer:     buffer,
+		parser:     treeSitter.NewParser(),
+		close:      make(chan struct{}),
+		edits:      make(chan editReq),
+		highlights: make(chan highlightReq),
 	}
 
-	s.parser = treeSitter.NewParser()
-	log(s.parser)
+	//Log(s.parser)
 
-	treeSitter.NewLanguage(treeSitterJs.Language())
-	langTs := treeSitter.NewLanguage(treeSitterTs.LanguageTypescript())
-
-	err := s.parser.SetLanguage(langTs)
+	lang := treeSitter.NewLanguage(treeSitterTs.LanguageTypescript())
+	err := s.parser.SetLanguage(lang)
 	if err != nil {
 		panic(err)
 	}
 
-	queryHighlights, err0 := treeSitter.NewQuery(langTs, scmJsHighlights+scmTsHighlights)
+	query, err0 := treeSitter.NewQuery(lang, scmJsHighlights+scmTsHighlights)
 	if err0 != nil {
 		panic(err0)
 	}
+	s.query = query
 
-	s.queryHighlights = queryHighlights
-
-	s.resetTree()
-
-	go s.run()
+	s.run()
 
 	return &s
 }
@@ -72,129 +65,83 @@ func (s *Syntax) Close() {
 	}
 }
 
-func (s *Syntax) Reset() {
+func (s *Syntax) Restart() {
 	if s != nil {
-		s.reset <- struct{}{}
+		s.Close()
+		s.run()
 	}
 }
 
-func (s *Syntax) Delete(startLn, startCol, endLn, endCol int) {
+func (s *Syntax) Delete(ln0, col0, ln1, col1 int) {
 	if s != nil {
-		s.edits <- edit{editKindDelete, startLn, startCol, endLn, endCol}
+		s.edits <- editReq{editKindDelete, ln0, col0, ln1, col1}
 	}
 }
 
-func (s *Syntax) Insert(startLn, startCol, endLn, endCol int) {
+func (s *Syntax) Insert(ln0, col0, ln1, col1 int) {
 	if s != nil {
-		s.edits <- edit{editKindInsert, startLn, startCol, endLn, endCol}
+		s.edits <- editReq{editKindInsert, ln0, col0, ln1, col1}
 	}
 }
 
-func log(parser *treeSitter.Parser) {
-	f, err := os.OpenFile("tmp/syntax.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
-	if err != nil {
-		panic(err)
+func (s *Syntax) Highlight(ln0, ln1 int) chan HighlightSpan {
+	if s == nil {
+		return nil
 	}
 
-	i := 0
+	hls := make(chan HighlightSpan, 1024)
 
-	parser.SetLogger(func(t treeSitter.LogType, msg string) {
-		var tp string
+	s.highlights <- highlightReq{ln0, ln1, hls}
 
-		switch t {
-		case treeSitter.LogTypeParse:
-			tp = "Parse"
-		case treeSitter.LogTypeLex:
-			tp = "Lex"
-		}
-
-		fmt.Fprintf(f, "%d: %s: %s\n", i, tp, msg)
-
-		i += 1
-	})
+	return hls
 }
 
 func (s *Syntax) run() {
-	for {
-		timeout := time.After(100 * time.Millisecond)
+	go func() {
+		for {
 
-		select {
-		case <-s.close:
-			return
+			select {
+			case <-s.close:
+				s.tree.Close()
+				s.tree = nil
+				return
 
-		case <-s.reset:
-			s.resetTree()
+			case req := <-s.edits:
+				s.handleEditReq(req)
 
-		case p := <-s.edits:
-			s.editTree(p)
-
-		case <-timeout:
-			s.parseTree()
+			case req := <-s.highlights:
+				s.handleHighlightReq(req)
+			}
 		}
-	}
+	}()
 }
 
-func (s *Syntax) resetTree() {
-	s.tree = nil
-	s.isDirty = true
-	s.parseTree()
-}
+const maxChunkLen = 1024 * 16
 
-func (s *Syntax) editTree(e edit) {
-	p, ok := e.index(s.buffer)
-	if !ok {
-		panic("in Syntax.editTree")
-	}
-
-	s.tree.Edit(&p)
-
-	s.isDirty = true
-}
-
-func (s *Syntax) parseTree() {
-	if !s.isDirty {
-		return
-	}
-
-	newTree := s.parser.ParseWithOptions(func(i int, p treeSitter.Point) []byte {
-		return s.buffer.Chunk(i)
-	}, s.tree, nil)
-
-	s.tree.Close()
-
-	s.tree = newTree
-	s.isDirty = false
-
-	s.highlight()
-}
-
-func (s *Syntax) highlight() {
+func (s *Syntax) updateTree() {
 	started := time.Now()
 
-	qc := treeSitter.NewQueryCursor()
-	defer qc.Close()
-
-	f, err := os.OpenFile("tmp/highlight.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+	f, err := os.OpenFile("tmp/syntax-update.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
 	if err != nil {
 		panic(err)
 	}
 	defer f.Close()
+	//fmt.Fprintf(f, "counter %d\n", s.counter)
+	//fmt.Fprintf(f, "ranges %d\n", s.ranges)
 
-	text := std.IterToBytes(s.buffer.Read(0, math.MaxInt))
-	matches := qc.Matches(s.queryHighlights, s.tree.RootNode(), text)
+	//s.parser.SetIncludedRanges(s.ranges)
+	//maxChunkLen := int(s.ranges[0].EndByte - s.ranges[0].StartByte)
 
-	for match := matches.Next(); match != nil; match = matches.Next() {
-		for _, capture := range match.Captures {
-			fmt.Fprintf(f,
-				"Match %d, Capture %d (%s): %s\n",
-				match.PatternIndex,
-				capture.Index,
-				s.queryHighlights.CaptureNames()[capture.Index],
-				capture.Node.Utf8Text(text),
-			)
+	t := s.parser.ParseWithOptions(func(i int, p treeSitter.Point) []byte {
+		text := s.buffer.Chunk(i)
+		if len(text) > maxChunkLen {
+			text = text[0:maxChunkLen]
 		}
-	}
+		return []byte(text)
+	}, s.tree, nil)
 
-	fmt.Fprintf(f, "%d: Elapsed %v\n", s.hlCounter, time.Since(started))
-	s.hlCounter += 1
+	s.tree.Close()
+	s.tree = t
+
+	fmt.Fprintf(f, "elapsed %v\n", time.Since(started))
 }

@@ -51,11 +51,11 @@ func (buf *TextBuf) Restore(s Snapshot) {
 	buf.tree.Root = s.node.Clone(node.NIL)
 }
 
-func (buf *TextBuf) Reset(data []byte) {
+func (buf *TextBuf) Reset(text string) {
 	buf.Delete(0, math.MaxInt)
 
-	if len(data) > 0 {
-		buf.Insert(0, data)
+	if len(text) > 0 {
+		buf.Insert(0, text)
 	}
 }
 

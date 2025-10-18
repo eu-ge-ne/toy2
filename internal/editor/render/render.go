@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"math"
 
+	"github.com/eu-ge-ne/toy2/internal/color"
 	"github.com/eu-ge-ne/toy2/internal/editor/cursor"
+	"github.com/eu-ge-ne/toy2/internal/editor/syntax"
 	"github.com/eu-ge-ne/toy2/internal/std"
 	"github.com/eu-ge-ne/toy2/internal/textbuf"
 	"github.com/eu-ge-ne/toy2/internal/theme"
@@ -15,8 +17,8 @@ import (
 type Render struct {
 	buffer *textbuf.TextBuf
 	cursor *cursor.Cursor
+	syntax *syntax.Syntax
 
-	colors            Colors
 	area              ui.Area
 	enabled           bool
 	indexEnabled      bool
@@ -27,8 +29,18 @@ type Render struct {
 	textWidth  int
 	cursorY    int
 	cursorX    int
-	scrollLn   int
-	scrollCol  int
+	ScrollLn   int
+	ScrollCol  int
+
+	hlSpans chan syntax.HighlightSpan
+	hlSpan  syntax.HighlightSpan
+	hlIdx   int
+
+	colorMainBg     []byte
+	colorSelectedBg []byte
+	colorVoidBg     []byte
+	colorIndex      []byte
+	colorCharFg     map[syntax.CharFgColor][]byte
 }
 
 func New(buffer *textbuf.TextBuf, cursor *cursor.Cursor) *Render {
@@ -38,8 +50,20 @@ func New(buffer *textbuf.TextBuf, cursor *cursor.Cursor) *Render {
 	}
 }
 
-func (r *Render) SetColors(t theme.Tokens) {
-	r.colors = newColors(t)
+func (r *Render) SetColors(t theme.Theme) {
+	r.colorMainBg = t.MainBg()
+	r.colorSelectedBg = t.Light2Bg()
+	r.colorVoidBg = t.Dark0Bg()
+	r.colorIndex = append(t.Light0Bg(), t.Dark0Fg()...)
+
+	r.colorCharFg = map[syntax.CharFgColor][]byte{
+		syntax.CharFgColorVisible:    t.Light1Fg(),
+		syntax.CharFgColorWhitespace: t.Dark0Fg(),
+		syntax.CharFgColorEmpty:      t.MainFg(),
+		syntax.CharFgColorVariable:   vt.CharFg(color.Sky200),
+		syntax.CharFgColorKeyword:    vt.CharFg(color.Purple400),
+		syntax.CharFgColorComment:    vt.CharFg(color.Green600),
+	}
 }
 
 func (r *Render) SetArea(a ui.Area) {
@@ -70,19 +94,22 @@ func (r *Render) ToggleWrapEnabled() {
 	r.wrapEnabled = !r.wrapEnabled
 }
 
+func (r *Render) SetSyntax(s *syntax.Syntax) {
+	r.syntax = s
+}
+
 func (r *Render) Render() {
+	r.scroll()
+	r.initHighlight()
+
 	vt.Sync.Bsu()
 
 	vt.Buf.Write(vt.HideCursor)
 	vt.Buf.Write(vt.SaveCursor)
-	vt.Buf.Write(r.colors.background)
+	vt.Buf.Write(r.colorMainBg)
 	vt.ClearArea(vt.Buf, r.area)
 
-	r.determineLayout()
-
 	if r.area.W >= r.indexWidth {
-		r.scrollV()
-		r.scrollH()
 		r.renderLines()
 	}
 
@@ -99,7 +126,7 @@ func (r *Render) Render() {
 	vt.Sync.Esu()
 }
 
-func (r *Render) determineLayout() {
+func (r *Render) scroll() {
 	if r.indexEnabled && r.buffer.LineCount() > 0 {
 		r.indexWidth = int(math.Log10(float64(r.buffer.LineCount()))) + 3
 	} else {
@@ -119,27 +146,30 @@ func (r *Render) determineLayout() {
 
 	r.buffer.MeasureY = r.area.Y
 	r.buffer.MeasureX = r.area.X + r.indexWidth
+
+	r.scrollV()
+	r.scrollH()
 }
 
 func (r *Render) scrollV() {
-	deltaLn := r.cursor.Ln - r.scrollLn
+	deltaLn := r.cursor.Ln - r.ScrollLn
 
 	// Above?
 	if deltaLn <= 0 {
-		r.scrollLn = r.cursor.Ln
+		r.ScrollLn = r.cursor.Ln
 		return
 	}
 
 	// Below?
 
 	if deltaLn > r.area.H {
-		r.scrollLn = r.cursor.Ln - r.area.H
+		r.ScrollLn = r.cursor.Ln - r.area.H
 	}
 
-	xs := make([]int, r.cursor.Ln+1-r.scrollLn)
+	xs := make([]int, r.cursor.Ln+1-r.ScrollLn)
 	for i := 0; i < len(xs); i += 1 {
 		xs[i] = 1
-		for j, cell := range r.buffer.IterLine(r.scrollLn+i, false) {
+		for j, cell := range r.buffer.IterLine(r.ScrollLn+i, false) {
 			if j > 0 && cell.Col == 0 {
 				xs[i] += 1
 			}
@@ -151,7 +181,7 @@ func (r *Render) scrollV() {
 
 	for height > r.area.H {
 		height -= xs[i]
-		r.scrollLn += 1
+		r.ScrollLn += 1
 		i += 1
 	}
 
@@ -176,12 +206,12 @@ func (r *Render) scrollH() {
 		col = cell.Col
 	}
 
-	deltaCol := col - r.scrollCol
+	deltaCol := col - r.ScrollCol
 
 	// Before?
 
 	if deltaCol <= 0 {
-		r.scrollCol = col
+		r.ScrollCol = col
 		return
 	}
 
@@ -199,22 +229,28 @@ func (r *Render) scrollH() {
 			break
 		}
 
-		r.scrollCol += 1
+		r.ScrollCol += 1
 		width -= w
 	}
 
 	r.cursorX += width
 }
 
+func (r *Render) initHighlight() {
+	r.hlSpans = r.syntax.Highlight(r.ScrollLn, r.ScrollLn+r.area.H)
+	r.hlSpan = syntax.HighlightSpan{Start: -1, End: -1, Color: 0}
+	r.hlIdx, _ = r.buffer.LnIndex(r.ScrollLn)
+}
+
 func (r *Render) renderLines() {
 	row := r.area.Y
 
-	for ln := r.scrollLn; ; ln += 1 {
+	for ln := r.ScrollLn; ; ln += 1 {
 		if ln < r.buffer.LineCount() {
 			row = r.renderLine(ln, row)
 		} else {
 			vt.SetCursor(vt.Buf, row, r.area.X)
-			vt.Buf.Write(r.colors.void)
+			vt.Buf.Write(r.colorVoidBg)
 			vt.ClearLine(vt.Buf, r.area.W)
 		}
 
@@ -226,8 +262,9 @@ func (r *Render) renderLines() {
 }
 
 func (r *Render) renderLine(ln int, row int) int {
+	currentFg := syntax.CharFgColorUndefined
+	currentBg := false
 	availableW := 0
-	currentColor := charColorUndefined
 
 	for i, cell := range r.buffer.IterLine(ln, false) {
 		if cell.Col == 0 {
@@ -242,10 +279,11 @@ func (r *Render) renderLine(ln int, row int) int {
 
 			if r.indexWidth > 0 {
 				if i == 0 {
-					vt.Buf.Write(r.colors.index)
+					vt.Buf.Write(r.colorIndex)
 					fmt.Fprintf(vt.Buf, "%*d ", r.indexWidth-1, ln+1)
+					vt.Buf.Write(r.colorMainBg)
 				} else {
-					vt.Buf.Write(r.colors.background)
+					vt.Buf.Write(r.colorMainBg)
 					vt.WriteSpaces(vt.Buf, r.indexWidth)
 				}
 			}
@@ -253,14 +291,35 @@ func (r *Render) renderLine(ln int, row int) int {
 			availableW = r.area.W - r.indexWidth
 		}
 
-		if (cell.Col < r.scrollCol) || (cell.G.Width > availableW) {
+		if (cell.Col < r.ScrollCol) || (cell.G.Width > availableW) {
 			continue
 		}
 
-		color := newCharColor(r.cursor.IsSelected(ln, i), cell.G.IsVisible, r.whitespaceEnabled)
-		if color != currentColor {
-			currentColor = color
-			vt.Buf.Write(r.colors.char[color])
+		colorBg := r.cursor.IsSelected(ln, i)
+		if colorBg != currentBg {
+			currentBg = colorBg
+			if currentBg {
+				vt.Buf.Write(r.colorSelectedBg)
+			} else {
+				vt.Buf.Write(r.colorMainBg)
+			}
+		}
+
+		colorFg := r.nextColor(len(cell.G.Seg))
+
+		if colorFg == syntax.CharFgColorUndefined {
+			if cell.G.IsVisible {
+				colorFg = syntax.CharFgColorVisible
+			} else if r.whitespaceEnabled {
+				colorFg = syntax.CharFgColorWhitespace
+			} else {
+				colorFg = syntax.CharFgColorEmpty
+			}
+		}
+
+		if colorFg != currentFg {
+			currentFg = colorFg
+			vt.Buf.Write(r.colorCharFg[colorFg])
 		}
 
 		vt.Buf.Write(cell.G.Bytes)
@@ -269,4 +328,22 @@ func (r *Render) renderLine(ln int, row int) int {
 	}
 
 	return row
+}
+
+func (r *Render) nextColor(l int) syntax.CharFgColor {
+	var color syntax.CharFgColor
+
+	if r.hlIdx >= r.hlSpan.End {
+		if s, ok := <-r.hlSpans; ok {
+			r.hlSpan = s
+		}
+	}
+
+	if r.hlIdx >= r.hlSpan.Start && r.hlIdx < r.hlSpan.End {
+		color = r.hlSpan.Color
+	}
+
+	r.hlIdx += l
+
+	return color
 }

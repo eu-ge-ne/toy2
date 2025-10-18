@@ -20,7 +20,7 @@ func New() *Alert {
 	return &Alert{}
 }
 
-func (al *Alert) SetColors(t theme.Tokens) {
+func (al *Alert) SetColors(t theme.Theme) {
 	al.colorBackground = t.DangerBg()
 	al.colorText = append(t.DangerBg(), t.Light1Fg()...)
 }
