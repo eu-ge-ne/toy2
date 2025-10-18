@@ -172,21 +172,9 @@ func (s *Syntax) handleTimeout() {
 }
 
 func (s *Syntax) update() {
-	started := time.Now()
-
-	f, err := os.OpenFile("tmp/syntax-update.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-
-	fmt.Fprintf(f, "update: counter %d\n", s.counter)
-	fmt.Fprintf(f, "update: ranges %d\n", s.ranges)
-
 	s.updateTree()
-	s.updateHighlight(f)
 
-	fmt.Fprintf(f, "update: elapsed %v\n", time.Since(started))
+	s.updateHighlight()
 
 	s.counter += 1
 	s.isDirty = false
@@ -195,8 +183,18 @@ func (s *Syntax) update() {
 const maxChunkLen = 1024 * 16
 
 func (s *Syntax) updateTree() {
-	//s.parser.SetIncludedRanges(s.ranges)
+	started := time.Now()
 
+	f, err := os.OpenFile("tmp/syntax-update.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	fmt.Fprintf(f, "counter %d\n", s.counter)
+	fmt.Fprintf(f, "ranges %d\n", s.ranges)
+
+	//s.parser.SetIncludedRanges(s.ranges)
 	//maxChunkLen := int(s.ranges[0].EndByte - s.ranges[0].StartByte)
 
 	t := s.parser.ParseWithOptions(func(i int, p treeSitter.Point) []byte {
@@ -209,10 +207,21 @@ func (s *Syntax) updateTree() {
 
 	s.tree.Close()
 	s.tree = t
+
+	fmt.Fprintf(f, "elapsed %v\n", time.Since(started))
 }
 
-func (s *Syntax) updateHighlight(f *os.File) {
+func (s *Syntax) updateHighlight() {
 	started := time.Now()
+
+	f, err := os.OpenFile("tmp/syntax-highlight.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	fmt.Fprintf(f, "counter %d\n", s.counter)
+	fmt.Fprintf(f, "ranges %d\n", s.ranges)
 
 	if s.buffer.Count() > len(s.text) {
 		s.text = make([]byte, s.buffer.Count())
