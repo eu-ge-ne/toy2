@@ -17,8 +17,7 @@ type editReq struct {
 type editKind int
 
 const (
-	editKindScroll editKind = iota
-	editKindDelete
+	editKindDelete editKind = iota
 	editKindInsert
 )
 

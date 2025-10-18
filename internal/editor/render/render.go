@@ -230,10 +230,7 @@ func (r *Render) scrollH() {
 }
 
 func (r *Render) renderLines() {
-	h := r.syntax.Highlighter
-
-	idx, _ := r.buffer.LnIndex(r.ScrollLn)
-	h.Start(idx)
+	h := <-r.syntax.Highlight(r.ScrollLn, r.ScrollLn+r.area.H)
 
 	row := r.area.Y
 

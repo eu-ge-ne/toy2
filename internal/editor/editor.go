@@ -306,5 +306,5 @@ func (ed *Editor) insertText(text string) {
 func (ed *Editor) scroll() {
 	ed.render.Scroll()
 
-	ed.syntax.Scroll(ed.render.ScrollLn, ed.render.ScrollLn+ed.pageSize)
+	//ed.syntax.Scroll(ed.render.ScrollLn, ed.render.ScrollLn+ed.pageSize)
 }
