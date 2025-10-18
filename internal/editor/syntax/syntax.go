@@ -22,12 +22,12 @@ var scmJsHighlights string
 var scmTsHighlights string
 
 type Syntax struct {
-	buffer    *textbuf.TextBuf
-	parser    *treeSitter.Parser
-	query     *treeSitter.Query
-	close     chan struct{}
-	edit      chan editReq
-	highlight chan highlightReq
+	buffer     *textbuf.TextBuf
+	parser     *treeSitter.Parser
+	query      *treeSitter.Query
+	close      chan struct{}
+	edit       chan editReq
+	highlights chan highlightReq
 
 	tree *treeSitter.Tree
 	text []byte
@@ -35,11 +35,11 @@ type Syntax struct {
 
 func New(buffer *textbuf.TextBuf) *Syntax {
 	s := Syntax{
-		buffer:    buffer,
-		parser:    treeSitter.NewParser(),
-		close:     make(chan struct{}),
-		edit:      make(chan editReq),
-		highlight: make(chan highlightReq),
+		buffer:     buffer,
+		parser:     treeSitter.NewParser(),
+		close:      make(chan struct{}),
+		edit:       make(chan editReq),
+		highlights: make(chan highlightReq),
 	}
 
 	//Log(s.parser)
@@ -86,16 +86,16 @@ func (s *Syntax) Insert(ln0, col0, ln1, col1 int) {
 	}
 }
 
-func (s *Syntax) Highlight(ln0, ln1 int) chan *HighlightSpan {
+func (s *Syntax) Highlight(ln0, ln1 int) chan HighlightSpan {
 	if s == nil {
 		return nil
 	}
 
-	hl := make(chan *HighlightSpan, 1024)
+	hls := make(chan HighlightSpan, 1024)
 
-	s.highlight <- highlightReq{ln0, ln1, hl}
+	s.highlights <- highlightReq{ln0, ln1, hls}
 
-	return hl
+	return hls
 }
 
 func (s *Syntax) run() {
@@ -111,7 +111,7 @@ func (s *Syntax) run() {
 			case req := <-s.edit:
 				s.handleEdit(req)
 
-			case req := <-s.highlight:
+			case req := <-s.highlights:
 				s.handleHighlight(req)
 			}
 		}
@@ -192,9 +192,22 @@ func (s *Syntax) handleHighlight(req highlightReq) {
 	qc.SetPointRange(startPoint, endPoint)
 	capts := qc.Captures(s.query, s.tree.RootNode(), s.text)
 
-	var span *HighlightSpan
+	var (
+		span         HighlightSpan
+		spanCaptures []int
+	)
 
-	for match, captIdx := capts.Next(); match != nil; match, captIdx = capts.Next() {
+	match, captIdx := capts.Next()
+	if match != nil {
+		span = HighlightSpan{
+			Start: int(match.Captures[captIdx].Node.StartByte()),
+			End:   int(match.Captures[captIdx].Node.EndByte()),
+			Color: CharFgColorUndefined,
+		}
+		spanCaptures = make([]int, 0, 5)
+	}
+
+	for ; match != nil; match, captIdx = capts.Next() {
 		capt := match.Captures[captIdx]
 
 		/*
@@ -212,32 +225,23 @@ func (s *Syntax) handleHighlight(req highlightReq) {
 		start := int(capt.Node.StartByte())
 		end := int(capt.Node.EndByte())
 
-		if span == nil {
-			span = &HighlightSpan{
-				Start:    start,
-				End:      end,
-				Color:    CharFgColorUndefined,
-				captures: make([]int, 0, 2),
+		if span.Start != start || span.End != end {
+			req.spans <- span
+			span = HighlightSpan{
+				Start: start,
+				End:   end,
+				Color: CharFgColorUndefined,
 			}
-		} else {
-			if span.Start != start || span.End != end {
-				req.spans <- span
-				span = &HighlightSpan{
-					Start:    start,
-					End:      end,
-					Color:    CharFgColorUndefined,
-					captures: make([]int, 0, 2),
-				}
-			}
+			spanCaptures = make([]int, 0, 5)
 		}
 
-		span.captures = append(span.captures, int(capt.Index))
+		spanCaptures = append(spanCaptures, int(capt.Index))
 
-		if slices.Contains(span.captures, 0 /*variable*/) {
+		if slices.Contains(spanCaptures, 0 /*variable*/) {
 			span.Color = CharFgColorVariable
-		} else if slices.Contains(span.captures, 18 /*keyword*/) {
+		} else if slices.Contains(spanCaptures, 18 /*keyword*/) {
 			span.Color = CharFgColorKeyword
-		} else if slices.Contains(span.captures, 9 /*comment*/) {
+		} else if slices.Contains(spanCaptures, 9 /*comment*/) {
 			span.Color = CharFgColorComment
 		} else {
 			span.Color = CharFgColorUndefined
