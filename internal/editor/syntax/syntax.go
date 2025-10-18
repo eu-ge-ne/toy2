@@ -118,7 +118,7 @@ func (s *Syntax) BeginHighlight() {
 	s.highlightIdx = 0
 }
 
-func (s *Syntax) Highlight(ln, col int) CharFgColor {
+func (s *Syntax) Highlight(idx int) CharFgColor {
 	spans := s.spans
 
 	a := s.highlightIdx
@@ -128,7 +128,7 @@ func (s *Syntax) Highlight(ln, col int) CharFgColor {
 		i := (a + b) / 2
 
 		span := spans[i]
-		m := span.match(ln, col)
+		m := span.match(idx)
 
 		if m == 0 {
 			s.highlightIdx = i
@@ -262,8 +262,8 @@ func (s *Syntax) updateHighlight(f *os.File) {
 		capt := match.Captures[captIdx]
 		node := capt.Node
 
-		start := node.StartPosition()
-		end := node.EndPosition()
+		start := int(node.StartByte())
+		end := int(node.EndByte())
 
 		i := len(spans) - 1
 		if len(spans) == 0 || spans[i].start != start || spans[i].end != end {
@@ -271,19 +271,19 @@ func (s *Syntax) updateHighlight(f *os.File) {
 			i += 1
 		}
 
-		spans[i].text = node.Utf8Text(s.text)
 		spans[i].captures = append(spans[i].captures, int(capt.Index))
 
-		if slices.Contains(spans[i].captures, 0/*variable*/) {
+		if slices.Contains(spans[i].captures, 0 /*variable*/) {
 			spans[i].color = CharFgColorVariable
 		} else if slices.Contains(spans[i].captures, 18) {
 			spans[i].color = CharFgColorKeyword
-		} else if slices.Contains(spans[i].captures, 9/*comment*/) {
+		} else if slices.Contains(spans[i].captures, 9 /*comment*/) {
 			spans[i].color = CharFgColorComment
 		} else {
 			spans[i].color = CharFgColorUndefined
 		}
 
+		/*
 		fmt.Fprintf(f,
 			"hl: %v:%v %s (%s, %d, %d)\n",
 			node.StartPosition(),
@@ -293,13 +293,10 @@ func (s *Syntax) updateHighlight(f *os.File) {
 			match.PatternIndex,
 			capt.Index,
 		)
+		*/
 	}
 
 	s.spans = spans
-
-	for _, span := range s.spans {
-		fmt.Fprintf(f, "hl: %v\n", span)
-	}
 
 	fmt.Fprintf(f, "hl: elapsed %v\n", time.Since(started))
 }

@@ -254,7 +254,7 @@ func (r *Render) renderLine(ln int, row int) int {
 	currentFg := syntax.CharFgColorUndefined
 	currentBg := false
 	availableW := 0
-	j := 0
+	idx, _ := r.buffer.LnIndex(ln)
 
 	for i, cell := range r.buffer.IterLine(ln, false) {
 		if cell.Col == 0 {
@@ -295,7 +295,7 @@ func (r *Render) renderLine(ln int, row int) int {
 			}
 		}
 
-		colorFg := r.syntax.Highlight(ln, j)
+		colorFg := r.syntax.Highlight(idx)
 		if colorFg == syntax.CharFgColorUndefined {
 			if cell.G.IsVisible {
 				colorFg = syntax.CharFgColorVisible
@@ -314,7 +314,7 @@ func (r *Render) renderLine(ln int, row int) int {
 
 		availableW -= cell.G.Width
 
-		j += len(cell.G.Seg)
+		idx += len(cell.G.Seg)
 	}
 
 	return row
