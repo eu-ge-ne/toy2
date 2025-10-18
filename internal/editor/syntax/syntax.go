@@ -31,7 +31,7 @@ type Syntax struct {
 	isDirty bool
 	tree    *treeSitter.Tree
 	query   *treeSitter.Query
-	spans   []colorSpan
+	spans   []span
 
 	text    []byte
 	counter int
@@ -52,14 +52,6 @@ const (
 	opKindDelete
 	opKindInsert
 )
-
-type colorSpan struct {
-	start    int
-	end      int
-	text     string
-	captures []int
-	color    CharFgColor
-}
 
 func New(buffer *textbuf.TextBuf) *Syntax {
 	s := Syntax{
@@ -121,22 +113,24 @@ func (s *Syntax) Insert(ln0, col0, ln1, col1 int) {
 	}
 }
 
-func (s *Syntax) Highlight(idx int) CharFgColor {
+func (s *Syntax) Highlight(ln, col int) CharFgColor {
 	a := 0
 	b := len(s.spans) - 1
 
 	for b >= a {
-		i := a + ((b - a) / 2)
+		i := (a + b) / 2
 		span := s.spans[i]
 
-		if idx >= span.start && idx < span.end {
+		m := span.match(ln, col)
+
+		if m == 0 {
 			return span.color
 		}
 
-		if idx < span.start {
+		if m < 0 {
 			b = i - 1
 		} else {
-			a = i + 1
+			a = a + 1
 		}
 	}
 
@@ -248,7 +242,7 @@ func (s *Syntax) updateHighlight(f *os.File) {
 	end := int(s.ranges[0].EndByte)
 	copy(s.text[start:end], std.IterToStr(s.buffer.Read(start, end)))
 
-	var spans = make([]colorSpan, 0, 1000)
+	var spans = make([]span, 0, 1000)
 
 	qc := treeSitter.NewQueryCursor()
 	defer qc.Close()
@@ -260,12 +254,12 @@ func (s *Syntax) updateHighlight(f *os.File) {
 		capt := match.Captures[captIdx]
 		node := capt.Node
 
-		start := int(node.StartByte())
-		end := int(node.EndByte())
+		start := node.StartPosition()
+		end := node.EndPosition()
 
 		i := len(spans) - 1
 		if len(spans) == 0 || spans[i].start != start || spans[i].end != end {
-			spans = append(spans, colorSpan{start: start, end: end, captures: make([]int, 0, 2)})
+			spans = append(spans, span{start: start, end: end, captures: make([]int, 0, 2)})
 			i += 1
 		}
 
@@ -281,9 +275,7 @@ func (s *Syntax) updateHighlight(f *os.File) {
 		}
 
 		fmt.Fprintf(f,
-			"hl: %v:%v-%v:%v %s (%s, %d, %d)\n",
-			node.StartByte(),
-			node.EndByte(),
+			"hl: %v:%v %s (%s, %d, %d)\n",
 			node.StartPosition(),
 			node.EndPosition(),
 			node.Utf8Text(s.text),
