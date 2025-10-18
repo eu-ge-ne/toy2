@@ -229,6 +229,8 @@ func (r *Render) scrollH() {
 }
 
 func (r *Render) renderLines() {
+	r.syntax.BeginHighlight()
+
 	row := r.area.Y
 
 	for ln := r.ScrollLn; ; ln += 1 {

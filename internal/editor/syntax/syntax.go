@@ -27,11 +27,12 @@ type Syntax struct {
 	close  chan struct{}
 	ops    chan op
 
-	ranges  []treeSitter.Range
-	isDirty bool
-	tree    *treeSitter.Tree
-	query   *treeSitter.Query
-	spans   []span
+	ranges       []treeSitter.Range
+	isDirty      bool
+	tree         *treeSitter.Tree
+	query        *treeSitter.Query
+	highlightIdx int
+	spans        []span
 
 	text    []byte
 	counter int
@@ -113,17 +114,24 @@ func (s *Syntax) Insert(ln0, col0, ln1, col1 int) {
 	}
 }
 
+func (s *Syntax) BeginHighlight() {
+	s.highlightIdx = 0
+}
+
 func (s *Syntax) Highlight(ln, col int) CharFgColor {
-	a := 0
-	b := len(s.spans) - 1
+	spans := s.spans
+
+	a := s.highlightIdx
+	b := len(spans) - 1
 
 	for b >= a {
 		i := (a + b) / 2
-		span := s.spans[i]
 
+		span := spans[i]
 		m := span.match(ln, col)
 
 		if m == 0 {
+			s.highlightIdx = i
 			return span.color
 		}
 
