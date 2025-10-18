@@ -1,0 +1,64 @@
+package syntax
+
+import (
+	treeSitter "github.com/tree-sitter/go-tree-sitter"
+)
+
+type editReq struct {
+	kind editKind
+	ln0  int
+	col0 int
+	ln1  int
+	col1 int
+}
+
+type editKind int
+
+const (
+	editKindScroll editKind = iota
+	editKindDelete
+	editKindInsert
+)
+
+func (op editReq) inputEdit(s *Syntax) (r treeSitter.InputEdit, ok bool) {
+	i0, ok := s.buffer.Index(op.ln0, op.col0)
+	if !ok {
+		return
+	}
+
+	i1, ok := s.buffer.Index(op.ln1, op.col1)
+	if !ok {
+		return
+	}
+
+	col0i, ok := s.buffer.ColIndex(op.ln0, op.col0)
+	if !ok {
+		return
+	}
+
+	col1i, ok := s.buffer.ColIndex(op.ln1, op.col1)
+	if !ok {
+		return
+	}
+
+	switch op.kind {
+	case editKindDelete:
+		r.StartByte = uint(i0)
+		r.OldEndByte = uint(i1)
+		r.NewEndByte = uint(i0 + 1)
+		r.StartPosition = treeSitter.NewPoint(uint(op.ln0), uint(col0i))
+		r.OldEndPosition = treeSitter.NewPoint(uint(op.ln1), uint(col1i))
+		r.NewEndPosition = treeSitter.NewPoint(uint(op.ln0), uint(col0i+1))
+	case editKindInsert:
+		r.StartByte = uint(i0)
+		r.OldEndByte = uint(i0 + 1)
+		r.NewEndByte = uint(i1)
+		r.StartPosition = treeSitter.NewPoint(uint(op.ln0), uint(col0i))
+		r.OldEndPosition = treeSitter.NewPoint(uint(op.ln0), uint(col0i+1))
+		r.NewEndPosition = treeSitter.NewPoint(uint(op.ln1), uint(col1i))
+	}
+
+	ok = true
+
+	return
+}

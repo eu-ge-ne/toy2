@@ -26,7 +26,7 @@ type Syntax struct {
 	buffer *textbuf.TextBuf
 	parser *treeSitter.Parser
 	close  chan struct{}
-	edit   chan edit
+	edit   chan editReq
 
 	ranges  []treeSitter.Range
 	isDirty bool
@@ -37,28 +37,12 @@ type Syntax struct {
 	counter int
 }
 
-type edit struct {
-	kind editKind
-	ln0  int
-	col0 int
-	ln1  int
-	col1 int
-}
-
-type editKind int
-
-const (
-	editKindScroll editKind = iota
-	editKindDelete
-	editKindInsert
-)
-
 func New(buffer *textbuf.TextBuf) *Syntax {
 	s := Syntax{
 		buffer: buffer,
 		parser: treeSitter.NewParser(),
 		close:  make(chan struct{}),
-		edit:   make(chan edit, 100),
+		edit:   make(chan editReq, 100),
 		ranges: []treeSitter.Range{{}},
 	}
 
@@ -96,19 +80,19 @@ func (s *Syntax) Restart() {
 
 func (s *Syntax) Scroll(ln0, ln1 int) {
 	if s != nil {
-		s.edit <- edit{editKindScroll, ln0, 0, ln1, 0}
+		s.edit <- editReq{editKindScroll, ln0, 0, ln1, 0}
 	}
 }
 
 func (s *Syntax) Delete(ln0, col0, ln1, col1 int) {
 	if s != nil {
-		s.edit <- edit{editKindDelete, ln0, col0, ln1, col1}
+		s.edit <- editReq{editKindDelete, ln0, col0, ln1, col1}
 	}
 }
 
 func (s *Syntax) Insert(ln0, col0, ln1, col1 int) {
 	if s != nil {
-		s.edit <- edit{editKindInsert, ln0, col0, ln1, col1}
+		s.edit <- editReq{editKindInsert, ln0, col0, ln1, col1}
 	}
 }
 
@@ -135,7 +119,7 @@ func (s *Syntax) run() {
 	}()
 }
 
-func (s *Syntax) handleEdit(op edit) {
+func (s *Syntax) handleEdit(op editReq) {
 	if op.kind == editKindScroll {
 		h := op.ln1 - op.ln0
 		ln0 := max(0, op.ln0-h)
@@ -153,7 +137,7 @@ func (s *Syntax) handleEdit(op edit) {
 		return
 	}
 
-	ed, ok := s.inputEdit(op)
+	ed, ok := op.inputEdit(s)
 	if !ok {
 		panic(fmt.Sprintf("in Syntax.handleOp: %v", op))
 	}
@@ -246,47 +230,4 @@ func (s *Syntax) updateHighlight() {
 	s.Highlighter = highlighter
 
 	fmt.Fprintf(f, "hl: elapsed %v\n", time.Since(started))
-}
-
-func (s *Syntax) inputEdit(op edit) (r treeSitter.InputEdit, ok bool) {
-	i0, ok := s.buffer.Index(op.ln0, op.col0)
-	if !ok {
-		return
-	}
-
-	i1, ok := s.buffer.Index(op.ln1, op.col1)
-	if !ok {
-		return
-	}
-
-	col0i, ok := s.buffer.ColIndex(op.ln0, op.col0)
-	if !ok {
-		return
-	}
-
-	col1i, ok := s.buffer.ColIndex(op.ln1, op.col1)
-	if !ok {
-		return
-	}
-
-	switch op.kind {
-	case editKindDelete:
-		r.StartByte = uint(i0)
-		r.OldEndByte = uint(i1)
-		r.NewEndByte = uint(i0 + 1)
-		r.StartPosition = treeSitter.NewPoint(uint(op.ln0), uint(col0i))
-		r.OldEndPosition = treeSitter.NewPoint(uint(op.ln1), uint(col1i))
-		r.NewEndPosition = treeSitter.NewPoint(uint(op.ln0), uint(col0i+1))
-	case editKindInsert:
-		r.StartByte = uint(i0)
-		r.OldEndByte = uint(i0 + 1)
-		r.NewEndByte = uint(i1)
-		r.StartPosition = treeSitter.NewPoint(uint(op.ln0), uint(col0i))
-		r.OldEndPosition = treeSitter.NewPoint(uint(op.ln0), uint(col0i+1))
-		r.NewEndPosition = treeSitter.NewPoint(uint(op.ln1), uint(col1i))
-	}
-
-	ok = true
-
-	return
 }
