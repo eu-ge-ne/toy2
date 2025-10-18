@@ -230,7 +230,8 @@ func (r *Render) scrollH() {
 }
 
 func (r *Render) renderLines() {
-	r.syntax.BeginHighlight()
+	idx, _ := r.buffer.LnIndex(r.ScrollLn)
+	r.syntax.BeginHighlight(idx)
 
 	row := r.area.Y
 
@@ -254,7 +255,6 @@ func (r *Render) renderLine(ln int, row int) int {
 	currentFg := syntax.CharFgColorUndefined
 	currentBg := false
 	availableW := 0
-	idx, _ := r.buffer.LnIndex(ln)
 
 	for i, cell := range r.buffer.IterLine(ln, false) {
 		if cell.Col == 0 {
@@ -295,7 +295,7 @@ func (r *Render) renderLine(ln int, row int) int {
 			}
 		}
 
-		colorFg := r.syntax.Highlight(idx)
+		colorFg := r.syntax.Highlight(len(cell.G.Seg))
 		if colorFg == syntax.CharFgColorUndefined {
 			if cell.G.IsVisible {
 				colorFg = syntax.CharFgColorVisible
@@ -313,8 +313,6 @@ func (r *Render) renderLine(ln int, row int) int {
 		vt.Buf.Write(cell.G.Bytes)
 
 		availableW -= cell.G.Width
-
-		idx += len(cell.G.Seg)
 	}
 
 	return row

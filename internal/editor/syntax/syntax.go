@@ -31,6 +31,7 @@ type Syntax struct {
 	isDirty      bool
 	tree         *treeSitter.Tree
 	query        *treeSitter.Query
+	highlightA   int
 	highlightIdx int
 	spans        []span
 
@@ -114,33 +115,37 @@ func (s *Syntax) Insert(ln0, col0, ln1, col1 int) {
 	}
 }
 
-func (s *Syntax) BeginHighlight() {
-	s.highlightIdx = 0
+func (s *Syntax) BeginHighlight(idx int) {
+	s.highlightA = 0
+	s.highlightIdx = idx
 }
 
-func (s *Syntax) Highlight(idx int) CharFgColor {
+func (s *Syntax) Highlight(l int) CharFgColor {
 	spans := s.spans
 
-	a := s.highlightIdx
+	a := s.highlightA
 	b := len(spans) - 1
 
 	for b >= a {
 		i := (a + b) / 2
 
 		span := spans[i]
-		m := span.match(idx)
 
-		if m == 0 {
-			s.highlightIdx = i
+		if s.highlightIdx < span.start {
+			b = i - 1
+			continue
+		}
+
+		if s.highlightIdx < span.end {
+			s.highlightA = i
+			s.highlightIdx += l
 			return span.color
 		}
 
-		if m < 0 {
-			b = i - 1
-		} else {
-			a = a + 1
-		}
+		a = a + 1
 	}
+
+	s.highlightIdx += l
 
 	return CharFgColorUndefined
 }
@@ -284,15 +289,15 @@ func (s *Syntax) updateHighlight(f *os.File) {
 		}
 
 		/*
-		fmt.Fprintf(f,
-			"hl: %v:%v %s (%s, %d, %d)\n",
-			node.StartPosition(),
-			node.EndPosition(),
-			node.Utf8Text(s.text),
-			s.query.CaptureNames()[capt.Index],
-			match.PatternIndex,
-			capt.Index,
-		)
+			fmt.Fprintf(f,
+				"hl: %v:%v %s (%s, %d, %d)\n",
+				node.StartPosition(),
+				node.EndPosition(),
+				node.Utf8Text(s.text),
+				s.query.CaptureNames()[capt.Index],
+				match.PatternIndex,
+				capt.Index,
+			)
 		*/
 	}
 
