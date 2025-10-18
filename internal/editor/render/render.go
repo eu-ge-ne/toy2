@@ -19,10 +19,6 @@ type Render struct {
 	cursor *cursor.Cursor
 	syntax *syntax.Syntax
 
-	spans chan syntax.HighlightSpan
-	span  syntax.HighlightSpan
-	idx   int
-
 	area              ui.Area
 	enabled           bool
 	indexEnabled      bool
@@ -35,6 +31,10 @@ type Render struct {
 	cursorX    int
 	ScrollLn   int
 	ScrollCol  int
+
+	hlSpans chan syntax.HighlightSpan
+	hlSpan  syntax.HighlightSpan
+	hlIdx   int
 
 	colorMainBg     []byte
 	colorSelectedBg []byte
@@ -100,10 +100,7 @@ func (r *Render) SetSyntax(s *syntax.Syntax) {
 
 func (r *Render) Render() {
 	r.scroll()
-
-	r.spans = r.syntax.Highlight(r.ScrollLn, r.ScrollLn+r.area.H)
-	r.span = syntax.HighlightSpan{Start: -1, End: -1, Color: 0}
-	r.idx, _ = r.buffer.LnIndex(r.ScrollLn)
+	r.initHighlight()
 
 	vt.Sync.Bsu()
 
@@ -239,6 +236,12 @@ func (r *Render) scrollH() {
 	r.cursorX += width
 }
 
+func (r *Render) initHighlight() {
+	r.hlSpans = r.syntax.Highlight(r.ScrollLn, r.ScrollLn+r.area.H)
+	r.hlSpan = syntax.HighlightSpan{Start: -1, End: -1, Color: 0}
+	r.hlIdx, _ = r.buffer.LnIndex(r.ScrollLn)
+}
+
 func (r *Render) renderLines() {
 	row := r.area.Y
 
@@ -302,15 +305,7 @@ func (r *Render) renderLine(ln int, row int) int {
 			}
 		}
 
-		var colorFg syntax.CharFgColor
-		if r.idx >= r.span.End {
-			if s, ok := <-r.spans; ok {
-				r.span = s
-			}
-		}
-		if r.idx >= r.span.Start && r.idx < r.span.End {
-			colorFg = r.span.Color
-		}
+		colorFg := r.nextColor(len(cell.G.Seg))
 
 		if colorFg == syntax.CharFgColorUndefined {
 			if cell.G.IsVisible {
@@ -321,6 +316,7 @@ func (r *Render) renderLine(ln int, row int) int {
 				colorFg = syntax.CharFgColorEmpty
 			}
 		}
+
 		if colorFg != currentFg {
 			currentFg = colorFg
 			vt.Buf.Write(r.colorCharFg[colorFg])
@@ -329,8 +325,25 @@ func (r *Render) renderLine(ln int, row int) int {
 		vt.Buf.Write(cell.G.Bytes)
 
 		availableW -= cell.G.Width
-		r.idx += len(cell.G.Seg)
 	}
 
 	return row
+}
+
+func (r *Render) nextColor(l int) syntax.CharFgColor {
+	var color syntax.CharFgColor
+
+	if r.hlIdx >= r.hlSpan.End {
+		if s, ok := <-r.hlSpans; ok {
+			r.hlSpan = s
+		}
+	}
+
+	if r.hlIdx >= r.hlSpan.Start && r.hlIdx < r.hlSpan.End {
+		color = r.hlSpan.Color
+	}
+
+	r.hlIdx += l
+
+	return color
 }
