@@ -15,9 +15,10 @@ import (
 )
 
 type Render struct {
-	buffer *textbuf.TextBuf
-	cursor *cursor.Cursor
-	syntax *syntax.Syntax
+	buffer      *textbuf.TextBuf
+	cursor      *cursor.Cursor
+	syntax      *syntax.Syntax
+	highlighter *syntax.Highlighter
 
 	area              ui.Area
 	enabled           bool
@@ -95,6 +96,10 @@ func (r *Render) SetSyntax(s *syntax.Syntax) {
 }
 
 func (r *Render) Render() {
+	r.scroll()
+
+	r.highlighter = <-r.syntax.Highlight(r.ScrollLn, r.ScrollLn+r.area.H)
+
 	vt.Sync.Bsu()
 
 	vt.Buf.Write(vt.HideCursor)
@@ -119,7 +124,7 @@ func (r *Render) Render() {
 	vt.Sync.Esu()
 }
 
-func (r *Render) Scroll() {
+func (r *Render) scroll() {
 	if r.indexEnabled && r.buffer.LineCount() > 0 {
 		r.indexWidth = int(math.Log10(float64(r.buffer.LineCount()))) + 3
 	} else {
@@ -230,13 +235,11 @@ func (r *Render) scrollH() {
 }
 
 func (r *Render) renderLines() {
-	h := <-r.syntax.Highlight(r.ScrollLn, r.ScrollLn+r.area.H)
-
 	row := r.area.Y
 
 	for ln := r.ScrollLn; ; ln += 1 {
 		if ln < r.buffer.LineCount() {
-			row = r.renderLine(h, ln, row)
+			row = r.renderLine(ln, row)
 		} else {
 			vt.SetCursor(vt.Buf, row, r.area.X)
 			vt.Buf.Write(r.colorVoidBg)
@@ -250,7 +253,7 @@ func (r *Render) renderLines() {
 	}
 }
 
-func (r *Render) renderLine(h *syntax.Highlighter, ln int, row int) int {
+func (r *Render) renderLine(ln int, row int) int {
 	currentFg := syntax.CharFgColorUndefined
 	currentBg := false
 	availableW := 0
@@ -294,7 +297,7 @@ func (r *Render) renderLine(h *syntax.Highlighter, ln int, row int) int {
 			}
 		}
 
-		colorFg := h.Next(len(cell.G.Seg))
+		colorFg := r.highlighter.Next(len(cell.G.Seg))
 		if colorFg == syntax.CharFgColorUndefined {
 			if cell.G.IsVisible {
 				colorFg = syntax.CharFgColorVisible

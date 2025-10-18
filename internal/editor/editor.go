@@ -95,7 +95,6 @@ func (ed *Editor) SetColors(t theme.Theme) {
 func (ed *Editor) Layout(a ui.Area) {
 	ed.pageSize = a.H
 	ed.render.SetArea(a)
-	ed.scroll()
 }
 
 func (ed *Editor) Render() {
@@ -150,8 +149,6 @@ func (ed *Editor) HandleKey(key key.Key) bool {
 		if h.Match(key) {
 			r := h.Run(key)
 
-			ed.scroll()
-
 			if ed.OnKeyHandled != nil {
 				ed.OnKeyHandled(time.Since(t0))
 			}
@@ -170,7 +167,6 @@ func (ed *Editor) HasChanges() bool {
 func (ed *Editor) SetText(text string) {
 	ed.buffer.Reset(text)
 	ed.syntax.Restart()
-	ed.scroll()
 }
 
 func (ed *Editor) GetText() string {
@@ -206,7 +202,6 @@ func (ed *Editor) Load(filePath string) error {
 	}
 
 	ed.syntax.Restart()
-	ed.scroll()
 
 	return nil
 }
@@ -301,10 +296,4 @@ func (ed *Editor) insertText(text string) {
 	ed.syntax.Insert(startLn, startCol, endLn, endCol)
 
 	ed.history.Push()
-}
-
-func (ed *Editor) scroll() {
-	ed.render.Scroll()
-
-	//ed.syntax.Scroll(ed.render.ScrollLn, ed.render.ScrollLn+ed.pageSize)
 }
