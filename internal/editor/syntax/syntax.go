@@ -274,10 +274,12 @@ func (s *Syntax) updateHighlight(f *os.File) {
 		spans[i].text = node.Utf8Text(s.text)
 		spans[i].captures = append(spans[i].captures, int(capt.Index))
 
-		if slices.Contains(spans[i].captures, 0) {
+		if slices.Contains(spans[i].captures, 0/*variable*/) {
 			spans[i].color = CharFgColorVariable
 		} else if slices.Contains(spans[i].captures, 18) {
 			spans[i].color = CharFgColorKeyword
+		} else if slices.Contains(spans[i].captures, 9/*comment*/) {
+			spans[i].color = CharFgColorComment
 		} else {
 			spans[i].color = CharFgColorUndefined
 		}
