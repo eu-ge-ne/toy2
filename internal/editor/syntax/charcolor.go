@@ -9,4 +9,5 @@ const (
 	CharFgColorEmpty
 	CharFgColorVariable
 	CharFgColorKeyword
+	CharFgColorComment
 )
