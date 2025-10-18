@@ -7,21 +7,22 @@ import (
 )
 
 type Highlighter struct {
-	spans   []span
+	spans   []HighlightSpan
 	spanIdx int
 	idx     int
 }
 
-type span struct {
-	start    int
-	end      int
+type HighlightSpan struct {
+	Start int
+	End   int
+	Color CharFgColor
+
 	captures []int
-	color    CharFgColor
 }
 
 func newHighlighter() *Highlighter {
 	return &Highlighter{
-		spans: make([]span, 0, 1024),
+		spans: make([]HighlightSpan, 0, 1024),
 	}
 }
 
@@ -29,32 +30,32 @@ func (h *Highlighter) AddCapture(capt treeSitter.QueryCapture) {
 	start := int(capt.Node.StartByte())
 	end := int(capt.Node.EndByte())
 
-	var s *span
+	var span *HighlightSpan
 
 	if len(h.spans) > 0 {
-		s = &h.spans[len(h.spans)-1]
+		span = &h.spans[len(h.spans)-1]
 	}
 
-	if s == nil || s.start != start || s.end != end {
-		h.spans = append(h.spans, span{
-			start:    start,
-			end:      end,
+	if span == nil || span.Start != start || span.End != end {
+		h.spans = append(h.spans, HighlightSpan{
+			Start:    start,
+			End:      end,
+			Color:    CharFgColorUndefined,
 			captures: make([]int, 0, 2),
-			color:    CharFgColorUndefined,
 		})
-		s = &h.spans[len(h.spans)-1]
+		span = &h.spans[len(h.spans)-1]
 	}
 
-	s.captures = append(s.captures, int(capt.Index))
+	span.captures = append(span.captures, int(capt.Index))
 
-	if slices.Contains(s.captures, 0 /*variable*/) {
-		s.color = CharFgColorVariable
-	} else if slices.Contains(s.captures, 18 /*keyword*/) {
-		s.color = CharFgColorKeyword
-	} else if slices.Contains(s.captures, 9 /*comment*/) {
-		s.color = CharFgColorComment
+	if slices.Contains(span.captures, 0 /*variable*/) {
+		span.Color = CharFgColorVariable
+	} else if slices.Contains(span.captures, 18 /*keyword*/) {
+		span.Color = CharFgColorKeyword
+	} else if slices.Contains(span.captures, 9 /*comment*/) {
+		span.Color = CharFgColorComment
 	} else {
-		s.color = CharFgColorUndefined
+		span.Color = CharFgColorUndefined
 	}
 }
 
@@ -71,15 +72,15 @@ func (h *Highlighter) Next(l int) CharFgColor {
 		for i := h.spanIdx; i < len(h.spans); i += 1 {
 			span := h.spans[i]
 
-			if h.idx < span.start {
+			if h.idx < span.Start {
 				continue
 			}
 
-			if h.idx < span.end {
+			if h.idx < span.End {
 				h.spanIdx = i
 				h.idx += l
 
-				return span.color
+				return span.Color
 			}
 		}
 	}
