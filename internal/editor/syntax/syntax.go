@@ -37,7 +37,7 @@ func New(buffer *textbuf.TextBuf) *Syntax {
 		buffer:    buffer,
 		parser:    treeSitter.NewParser(),
 		close:     make(chan struct{}),
-		edit:      make(chan editReq, 100),
+		edit:      make(chan editReq),
 		highlight: make(chan highlightReq),
 	}
 
