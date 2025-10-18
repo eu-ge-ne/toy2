@@ -121,41 +121,28 @@ func (s *Syntax) run() {
 const maxChunkLen = 1024 * 16
 
 func (s *Syntax) handleHighlightReq(req highlightReq) {
-	ln0 := max(0, req.ln0)
-	ln1 := min(s.buffer.LineCount(), req.ln1)
-
 	f, err := os.OpenFile("tmp/syntax-highlight.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
 	if err != nil {
 		panic(err)
 	}
 	defer f.Close()
 
-	updateStarted := time.Now()
+	started := time.Now()
 
-	//s.parser.SetIncludedRanges(s.ranges)
-	//maxChunkLen := int(s.ranges[0].EndByte - s.ranges[0].StartByte)
-
-	t := s.parser.ParseWithOptions(func(i int, p treeSitter.Point) []byte {
-		text := s.buffer.Chunk(i)
-		if len(text) > maxChunkLen {
-			text = text[0:maxChunkLen]
-		}
-		return []byte(text)
-	}, s.tree, nil)
-	s.tree.Close()
-	s.tree = t
-
-	fmt.Fprintf(f, "update: elapsed %v\n", time.Since(updateStarted))
-
-	highlightStarted := time.Now()
-
-	if s.buffer.Count() > len(s.text) {
-		s.text = make([]byte, s.buffer.Count())
+	if s.tree == nil {
+		s.updateTree()
 	}
+
+	ln0 := max(0, req.ln0)
+	ln1 := min(s.buffer.LineCount(), req.ln1)
 	startByte, _ := s.buffer.LnIndex(ln0)
 	endByte, _ := s.buffer.LnIndex(ln1)
 	startPoint := treeSitter.NewPoint(uint(ln0), 0)
 	endPoint := treeSitter.NewPoint(uint(ln1), 0)
+
+	if s.buffer.Count() > len(s.text) {
+		s.text = make([]byte, s.buffer.Count())
+	}
 	copy(s.text[startByte:endByte], std.IterToStr(s.buffer.Read(startByte, endByte)))
 
 	qc := treeSitter.NewQueryCursor()
@@ -183,7 +170,7 @@ func (s *Syntax) handleHighlightReq(req highlightReq) {
 		capt := match.Captures[captIdx]
 
 		fmt.Fprintf(f,
-			"highlight: %v:%v %s (%s, %d, %d)\n",
+			"%v:%v %s (%s, %d, %d)\n",
 			capt.Node.StartPosition(),
 			capt.Node.EndPosition(),
 			capt.Node.Utf8Text(s.text),
@@ -221,7 +208,7 @@ func (s *Syntax) handleHighlightReq(req highlightReq) {
 	req.spans <- span
 	close(req.spans)
 
-	fmt.Fprintf(f, "highlight: elapsed %v\n", time.Since(highlightStarted))
+	fmt.Fprintf(f, "elapsed %v\n", time.Since(started))
 }
 
 func (s *Syntax) handleEditReq(req editReq) {
@@ -269,4 +256,37 @@ func (s *Syntax) handleEditReq(req editReq) {
 	}
 
 	s.tree.Edit(&ed)
+
+	s.updateTree()
+}
+
+func (s *Syntax) updateTree() {
+	started := time.Now()
+
+	f, err := os.OpenFile("tmp/syntax-tree.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	/*
+		s.parser.SetIncludedRanges([]treeSitter.Range{{
+			StartByte:  uint(startByte),
+			EndByte:    uint(endByte),
+			StartPoint: startPoint,
+			EndPoint:   endPoint,
+		}})
+	*/
+
+	t := s.parser.ParseWithOptions(func(i int, p treeSitter.Point) []byte {
+		text := s.buffer.Chunk(i)
+		if len(text) > maxChunkLen {
+			text = text[0:maxChunkLen]
+		}
+		return []byte(text)
+	}, s.tree, nil)
+	s.tree.Close()
+	s.tree = t
+
+	fmt.Fprintf(f, "elapsed %v\n", time.Since(started))
 }
