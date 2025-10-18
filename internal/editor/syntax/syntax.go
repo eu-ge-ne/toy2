@@ -220,10 +220,12 @@ func (s *Syntax) update() {
 	s.isDirty = false
 }
 
+const maxChunkLen = 1024 * 16
+
 func (s *Syntax) updateTree() {
 	//s.parser.SetIncludedRanges(s.ranges)
 
-	maxChunkLen := int(s.ranges[0].EndByte - s.ranges[0].StartByte)
+	//maxChunkLen := int(s.ranges[0].EndByte - s.ranges[0].StartByte)
 
 	t := s.parser.ParseWithOptions(func(i int, p treeSitter.Point) []byte {
 		text := s.buffer.Chunk(i)
