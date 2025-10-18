@@ -26,7 +26,7 @@ type Syntax struct {
 	buffer *textbuf.TextBuf
 	parser *treeSitter.Parser
 	close  chan struct{}
-	ops    chan op
+	edit   chan edit
 
 	ranges  []treeSitter.Range
 	isDirty bool
@@ -37,20 +37,20 @@ type Syntax struct {
 	counter int
 }
 
-type op struct {
-	kind opKind
+type edit struct {
+	kind editKind
 	ln0  int
 	col0 int
 	ln1  int
 	col1 int
 }
 
-type opKind int
+type editKind int
 
 const (
-	opKindScroll opKind = iota
-	opKindDelete
-	opKindInsert
+	editKindScroll editKind = iota
+	editKindDelete
+	editKindInsert
 )
 
 func New(buffer *textbuf.TextBuf) *Syntax {
@@ -58,8 +58,7 @@ func New(buffer *textbuf.TextBuf) *Syntax {
 		buffer: buffer,
 		parser: treeSitter.NewParser(),
 		close:  make(chan struct{}),
-		ops:    make(chan op, 100),
-
+		edit:   make(chan edit, 100),
 		ranges: []treeSitter.Range{{}},
 	}
 
@@ -97,19 +96,19 @@ func (s *Syntax) Restart() {
 
 func (s *Syntax) Scroll(ln0, ln1 int) {
 	if s != nil {
-		s.ops <- op{opKindScroll, ln0, 0, ln1, 0}
+		s.edit <- edit{editKindScroll, ln0, 0, ln1, 0}
 	}
 }
 
 func (s *Syntax) Delete(ln0, col0, ln1, col1 int) {
 	if s != nil {
-		s.ops <- op{opKindDelete, ln0, col0, ln1, col1}
+		s.edit <- edit{editKindDelete, ln0, col0, ln1, col1}
 	}
 }
 
 func (s *Syntax) Insert(ln0, col0, ln1, col1 int) {
 	if s != nil {
-		s.ops <- op{opKindInsert, ln0, col0, ln1, col1}
+		s.edit <- edit{editKindInsert, ln0, col0, ln1, col1}
 	}
 }
 
@@ -124,8 +123,8 @@ func (s *Syntax) run() {
 				s.tree = nil
 				return
 
-			case op := <-s.ops:
-				s.handleOp(op)
+			case edit := <-s.edit:
+				s.handleEdit(edit)
 
 			case <-timeout:
 				if s.isDirty {
@@ -136,8 +135,8 @@ func (s *Syntax) run() {
 	}()
 }
 
-func (s *Syntax) handleOp(op op) {
-	if op.kind == opKindScroll {
+func (s *Syntax) handleEdit(op edit) {
+	if op.kind == editKindScroll {
 		h := op.ln1 - op.ln0
 		ln0 := max(0, op.ln0-h)
 		ln1 := min(s.buffer.LineCount(), op.ln1+h)
@@ -249,7 +248,7 @@ func (s *Syntax) updateHighlight() {
 	fmt.Fprintf(f, "hl: elapsed %v\n", time.Since(started))
 }
 
-func (s *Syntax) inputEdit(op op) (r treeSitter.InputEdit, ok bool) {
+func (s *Syntax) inputEdit(op edit) (r treeSitter.InputEdit, ok bool) {
 	i0, ok := s.buffer.Index(op.ln0, op.col0)
 	if !ok {
 		return
@@ -271,14 +270,14 @@ func (s *Syntax) inputEdit(op op) (r treeSitter.InputEdit, ok bool) {
 	}
 
 	switch op.kind {
-	case opKindDelete:
+	case editKindDelete:
 		r.StartByte = uint(i0)
 		r.OldEndByte = uint(i1)
 		r.NewEndByte = uint(i0 + 1)
 		r.StartPosition = treeSitter.NewPoint(uint(op.ln0), uint(col0i))
 		r.OldEndPosition = treeSitter.NewPoint(uint(op.ln1), uint(col1i))
 		r.NewEndPosition = treeSitter.NewPoint(uint(op.ln0), uint(col0i+1))
-	case opKindInsert:
+	case editKindInsert:
 		r.StartByte = uint(i0)
 		r.OldEndByte = uint(i0 + 1)
 		r.NewEndByte = uint(i1)
