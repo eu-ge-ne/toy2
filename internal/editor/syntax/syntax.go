@@ -117,8 +117,6 @@ func (s *Syntax) run() {
 	}()
 }
 
-const maxChunkLen = 1024 * 16
-
 func (s *Syntax) handleHighlightReq(req highlightReq) {
 	f, err := os.OpenFile("tmp/syntax-highlight.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
 	if err != nil {
@@ -211,28 +209,34 @@ func (s *Syntax) handleHighlightReq(req highlightReq) {
 }
 
 func (s *Syntax) handleEditReq(req editReq) {
+	f, err := os.OpenFile("tmp/syntax-edit.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
 	if s.tree == nil {
 		return
 	}
 
 	i0, ok := s.buffer.Index(req.ln0, req.col0)
 	if !ok {
-		panic(fmt.Sprintf("in Syntax.handleOp: %v", req))
+		panic(fmt.Sprintf("in Syntax.handleEditReq: %v", req))
 	}
 
 	i1, ok := s.buffer.Index(req.ln1, req.col1)
 	if !ok {
-		panic(fmt.Sprintf("in Syntax.handleOp: %v", req))
+		panic(fmt.Sprintf("in Syntax.handleEditReq: %v", req))
 	}
 
-	col0i, ok := s.buffer.ColIndex(req.ln0, req.col0)
+	col0, ok := s.buffer.ColIndex(req.ln0, req.col0)
 	if !ok {
-		panic(fmt.Sprintf("in Syntax.handleOp: %v", req))
+		panic(fmt.Sprintf("in Syntax.handleEditReq: %v", req))
 	}
 
-	col1i, ok := s.buffer.ColIndex(req.ln1, req.col1)
+	col1, ok := s.buffer.ColIndex(req.ln1, req.col1)
 	if !ok {
-		panic(fmt.Sprintf("in Syntax.handleOp: %v", req))
+		panic(fmt.Sprintf("in Syntax.handleEditReq: %v", req))
 	}
 
 	var ed treeSitter.InputEdit
@@ -240,24 +244,33 @@ func (s *Syntax) handleEditReq(req editReq) {
 	switch req.kind {
 	case editKindDelete:
 		ed.StartByte = uint(i0)
+		ed.StartPosition = treeSitter.NewPoint(uint(req.ln0), uint(col0))
+
 		ed.OldEndByte = uint(i1)
+		ed.OldEndPosition = treeSitter.NewPoint(uint(req.ln1), uint(col1))
+
 		ed.NewEndByte = uint(i0 + 1)
-		ed.StartPosition = treeSitter.NewPoint(uint(req.ln0), uint(col0i))
-		ed.OldEndPosition = treeSitter.NewPoint(uint(req.ln1), uint(col1i))
-		ed.NewEndPosition = treeSitter.NewPoint(uint(req.ln0), uint(col0i+1))
+		ed.NewEndPosition = treeSitter.NewPoint(uint(req.ln0), uint(col0+1))
 	case editKindInsert:
 		ed.StartByte = uint(i0)
+		ed.StartPosition = treeSitter.NewPoint(uint(req.ln0), uint(col0))
+
 		ed.OldEndByte = uint(i0 + 1)
+		ed.OldEndPosition = treeSitter.NewPoint(uint(req.ln0), uint(col0+1))
+
 		ed.NewEndByte = uint(i1)
-		ed.StartPosition = treeSitter.NewPoint(uint(req.ln0), uint(col0i))
-		ed.OldEndPosition = treeSitter.NewPoint(uint(req.ln0), uint(col0i+1))
-		ed.NewEndPosition = treeSitter.NewPoint(uint(req.ln1), uint(col1i))
+		ed.NewEndPosition = treeSitter.NewPoint(uint(req.ln1), uint(col1))
 	}
+
+	fmt.Fprintf(f, "%+v\n", req)
+	fmt.Fprintf(f, "%+v\n", ed)
 
 	s.tree.Edit(&ed)
 
 	s.updateTree()
 }
+
+const maxChunkLen = 1024 * 64
 
 func (s *Syntax) updateTree() {
 	started := time.Now()
