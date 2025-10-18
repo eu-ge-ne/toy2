@@ -120,22 +120,20 @@ func (s *Syntax) run() {
 
 			select {
 			case <-s.close:
-				s.handleClose()
+				s.tree.Close()
+				s.tree = nil
 				return
 
 			case op := <-s.ops:
 				s.handleOp(op)
 
 			case <-timeout:
-				s.handleTimeout()
+				if s.isDirty {
+					s.update()
+				}
 			}
 		}
 	}()
-}
-
-func (s *Syntax) handleClose() {
-	s.tree.Close()
-	s.tree = nil
 }
 
 func (s *Syntax) handleOp(op op) {
@@ -165,12 +163,6 @@ func (s *Syntax) handleOp(op op) {
 	s.isDirty = true
 }
 
-func (s *Syntax) handleTimeout() {
-	if s.isDirty {
-		s.update()
-	}
-}
-
 func (s *Syntax) update() {
 	s.updateTree()
 
@@ -190,7 +182,6 @@ func (s *Syntax) updateTree() {
 		panic(err)
 	}
 	defer f.Close()
-
 	fmt.Fprintf(f, "counter %d\n", s.counter)
 	fmt.Fprintf(f, "ranges %d\n", s.ranges)
 
@@ -219,7 +210,6 @@ func (s *Syntax) updateHighlight() {
 		panic(err)
 	}
 	defer f.Close()
-
 	fmt.Fprintf(f, "counter %d\n", s.counter)
 	fmt.Fprintf(f, "ranges %d\n", s.ranges)
 
