@@ -23,14 +23,12 @@ var scmTsHighlights string
 type Syntax struct {
 	buffer    *textbuf.TextBuf
 	parser    *treeSitter.Parser
+	query     *treeSitter.Query
 	close     chan struct{}
 	edit      chan editReq
 	highlight chan highlightReq
 
-	isDirty bool
-	tree    *treeSitter.Tree
-	query   *treeSitter.Query
-
+	tree *treeSitter.Tree
 	text []byte
 }
 
@@ -102,7 +100,6 @@ func (s *Syntax) Highlight(ln0, ln1 int) <-chan *Highlighter {
 func (s *Syntax) run() {
 	go func() {
 		for {
-			timeout := time.After(10 * time.Millisecond)
 
 			select {
 			case <-s.close:
@@ -112,11 +109,6 @@ func (s *Syntax) run() {
 
 			case req := <-s.edit:
 				s.handleEdit(req)
-
-			case <-timeout:
-				if s.isDirty {
-					s.updateTree()
-				}
 
 			case req := <-s.highlight:
 				s.handleHighlight(req)
@@ -151,7 +143,7 @@ func (s *Syntax) handleEdit(op editReq) {
 	}
 
 	s.tree.Edit(&ed)
-	s.isDirty = true
+	s.updateTree()
 }
 
 const maxChunkLen = 1024 * 16
@@ -182,9 +174,6 @@ func (s *Syntax) updateTree() {
 	s.tree = t
 
 	fmt.Fprintf(f, "elapsed %v\n", time.Since(started))
-
-	//s.counter += 1
-	s.isDirty = false
 }
 
 func (s *Syntax) handleHighlight(req highlightReq) {
@@ -208,8 +197,8 @@ func (s *Syntax) handleHighlight(req highlightReq) {
 
 	start, _ := s.buffer.LnIndex(ln0)
 	end, _ := s.buffer.LnIndex(ln1)
-	startPoint := treeSitter.NewPoint(uint(ln0),0)
-	endPoint := treeSitter.NewPoint(uint(ln1),0)
+	startPoint := treeSitter.NewPoint(uint(ln0), 0)
+	endPoint := treeSitter.NewPoint(uint(ln1), 0)
 	//
 
 	if s.buffer.Count() > len(s.text) {
