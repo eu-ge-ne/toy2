@@ -137,7 +137,7 @@ func (s *Syntax) handleEdit(op editReq) {
 		return
 	}
 
-	ed, ok := op.inputEdit(s)
+	ed, ok := op.inputEdit(s.buffer)
 	if !ok {
 		panic(fmt.Sprintf("in Syntax.handleOp: %v", op))
 	}

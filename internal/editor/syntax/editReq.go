@@ -2,6 +2,8 @@ package syntax
 
 import (
 	treeSitter "github.com/tree-sitter/go-tree-sitter"
+
+	"github.com/eu-ge-ne/toy2/internal/textbuf"
 )
 
 type editReq struct {
@@ -20,23 +22,23 @@ const (
 	editKindInsert
 )
 
-func (op editReq) inputEdit(s *Syntax) (r treeSitter.InputEdit, ok bool) {
-	i0, ok := s.buffer.Index(op.ln0, op.col0)
+func (op editReq) inputEdit(buffer *textbuf.TextBuf) (r treeSitter.InputEdit, ok bool) {
+	i0, ok := buffer.Index(op.ln0, op.col0)
 	if !ok {
 		return
 	}
 
-	i1, ok := s.buffer.Index(op.ln1, op.col1)
+	i1, ok := buffer.Index(op.ln1, op.col1)
 	if !ok {
 		return
 	}
 
-	col0i, ok := s.buffer.ColIndex(op.ln0, op.col0)
+	col0i, ok := buffer.ColIndex(op.ln0, op.col0)
 	if !ok {
 		return
 	}
 
-	col1i, ok := s.buffer.ColIndex(op.ln1, op.col1)
+	col1i, ok := buffer.ColIndex(op.ln1, op.col1)
 	if !ok {
 		return
 	}
