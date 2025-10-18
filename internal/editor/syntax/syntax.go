@@ -4,15 +4,13 @@ import (
 	_ "embed"
 	"fmt"
 	"os"
-	"slices"
 	"time"
-
-	"github.com/eu-ge-ne/toy2/internal/std"
-	"github.com/eu-ge-ne/toy2/internal/textbuf"
 
 	treeSitter "github.com/tree-sitter/go-tree-sitter"
 	_ "github.com/tree-sitter/tree-sitter-javascript/bindings/go"
 	treeSitterTs "github.com/tree-sitter/tree-sitter-typescript/bindings/go"
+
+	"github.com/eu-ge-ne/toy2/internal/textbuf"
 )
 
 //go:embed js/highlights.scm
@@ -26,7 +24,7 @@ type Syntax struct {
 	parser     *treeSitter.Parser
 	query      *treeSitter.Query
 	close      chan struct{}
-	edit       chan editReq
+	edits      chan editReq
 	highlights chan highlightReq
 
 	tree *treeSitter.Tree
@@ -38,7 +36,7 @@ func New(buffer *textbuf.TextBuf) *Syntax {
 		buffer:     buffer,
 		parser:     treeSitter.NewParser(),
 		close:      make(chan struct{}),
-		edit:       make(chan editReq),
+		edits:      make(chan editReq),
 		highlights: make(chan highlightReq),
 	}
 
@@ -76,13 +74,13 @@ func (s *Syntax) Restart() {
 
 func (s *Syntax) Delete(ln0, col0, ln1, col1 int) {
 	if s != nil {
-		s.edit <- editReq{editKindDelete, ln0, col0, ln1, col1}
+		s.edits <- editReq{editKindDelete, ln0, col0, ln1, col1}
 	}
 }
 
 func (s *Syntax) Insert(ln0, col0, ln1, col1 int) {
 	if s != nil {
-		s.edit <- editReq{editKindInsert, ln0, col0, ln1, col1}
+		s.edits <- editReq{editKindInsert, ln0, col0, ln1, col1}
 	}
 }
 
@@ -108,24 +106,14 @@ func (s *Syntax) run() {
 				s.tree = nil
 				return
 
-			case req := <-s.edit:
-				s.handleEdit(req)
+			case req := <-s.edits:
+				s.handleEditReq(req)
 
 			case req := <-s.highlights:
-				s.handleHighlight(req)
+				s.handleHighlightReq(req)
 			}
 		}
 	}()
-}
-
-func (s *Syntax) handleEdit(op editReq) {
-	ed, ok := op.inputEdit(s.buffer)
-	if !ok {
-		panic(fmt.Sprintf("in Syntax.handleOp: %v", op))
-	}
-
-	s.tree.Edit(&ed)
-	s.updateTree()
 }
 
 const maxChunkLen = 1024 * 16
@@ -154,102 +142,6 @@ func (s *Syntax) updateTree() {
 
 	s.tree.Close()
 	s.tree = t
-
-	fmt.Fprintf(f, "elapsed %v\n", time.Since(started))
-}
-
-func (s *Syntax) handleHighlight(req highlightReq) {
-	started := time.Now()
-
-	f, err := os.OpenFile("tmp/syntax-highlight.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-
-	if s.tree == nil {
-		s.updateTree()
-	}
-
-	//
-	ln0 := max(0, req.ln0)
-	ln1 := min(s.buffer.LineCount(), req.ln1)
-
-	start, _ := s.buffer.LnIndex(ln0)
-	end, _ := s.buffer.LnIndex(ln1)
-	startPoint := treeSitter.NewPoint(uint(ln0), 0)
-	endPoint := treeSitter.NewPoint(uint(ln1), 0)
-	//
-
-	if s.buffer.Count() > len(s.text) {
-		s.text = make([]byte, s.buffer.Count())
-	}
-	copy(s.text[start:end], std.IterToStr(s.buffer.Read(start, end)))
-
-	qc := treeSitter.NewQueryCursor()
-	defer qc.Close()
-
-	qc.SetPointRange(startPoint, endPoint)
-	capts := qc.Captures(s.query, s.tree.RootNode(), s.text)
-
-	var (
-		span         HighlightSpan
-		spanCaptures []int
-	)
-
-	match, captIdx := capts.Next()
-	if match != nil {
-		span = HighlightSpan{
-			Start: int(match.Captures[captIdx].Node.StartByte()),
-			End:   int(match.Captures[captIdx].Node.EndByte()),
-			Color: CharFgColorUndefined,
-		}
-		spanCaptures = make([]int, 0, 5)
-	}
-
-	for ; match != nil; match, captIdx = capts.Next() {
-		capt := match.Captures[captIdx]
-
-		/*
-			fmt.Fprintf(f,
-				"%v:%v %s (%s, %d, %d)\n",
-				capt.Node.StartPosition(),
-				capt.Node.EndPosition(),
-				capt.Node.Utf8Text(s.text),
-				s.query.CaptureNames()[capt.Index],
-				match.PatternIndex,
-				capt.Index,
-			)
-		*/
-
-		start := int(capt.Node.StartByte())
-		end := int(capt.Node.EndByte())
-
-		if span.Start != start || span.End != end {
-			req.spans <- span
-			span = HighlightSpan{
-				Start: start,
-				End:   end,
-				Color: CharFgColorUndefined,
-			}
-			spanCaptures = make([]int, 0, 5)
-		}
-
-		spanCaptures = append(spanCaptures, int(capt.Index))
-
-		if slices.Contains(spanCaptures, 0 /*variable*/) {
-			span.Color = CharFgColorVariable
-		} else if slices.Contains(spanCaptures, 18 /*keyword*/) {
-			span.Color = CharFgColorKeyword
-		} else if slices.Contains(spanCaptures, 9 /*comment*/) {
-			span.Color = CharFgColorComment
-		} else {
-			span.Color = CharFgColorUndefined
-		}
-	}
-
-	req.spans <- span
-	close(req.spans)
 
 	fmt.Fprintf(f, "elapsed %v\n", time.Since(started))
 }

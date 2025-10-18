@@ -1,6 +1,8 @@
 package syntax
 
 import (
+	"fmt"
+
 	treeSitter "github.com/tree-sitter/go-tree-sitter"
 
 	"github.com/eu-ge-ne/toy2/internal/textbuf"
@@ -62,4 +64,14 @@ func (op editReq) inputEdit(buffer *textbuf.TextBuf) (r treeSitter.InputEdit, ok
 	ok = true
 
 	return
+}
+
+func (s *Syntax) handleEditReq(op editReq) {
+	ed, ok := op.inputEdit(s.buffer)
+	if !ok {
+		panic(fmt.Sprintf("in Syntax.handleOp: %v", op))
+	}
+
+	s.tree.Edit(&ed)
+	s.updateTree()
 }
