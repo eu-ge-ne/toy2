@@ -169,8 +169,9 @@ func (s *Syntax) handleClose() {
 
 func (s *Syntax) handleOp(op op) {
 	if op.kind == opKindScroll {
-		ln0 := min(s.buffer.LineCount(), op.ln0)
-		ln1 := min(s.buffer.LineCount(), op.ln1)
+		h := op.ln1 - op.ln0
+		ln0 := max(0, op.ln0-h)
+		ln1 := min(s.buffer.LineCount(), op.ln1+h)
 
 		i0, _ := s.buffer.LnIndex(ln0)
 		i1, _ := s.buffer.LnIndex(ln1)
