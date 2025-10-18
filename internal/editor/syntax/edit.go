@@ -4,8 +4,6 @@ import (
 	"fmt"
 
 	treeSitter "github.com/tree-sitter/go-tree-sitter"
-
-	"github.com/eu-ge-ne/toy2/internal/textbuf"
 )
 
 type editReq struct {
@@ -23,55 +21,47 @@ const (
 	editKindInsert
 )
 
-func (op editReq) inputEdit(buffer *textbuf.TextBuf) (r treeSitter.InputEdit, ok bool) {
-	i0, ok := buffer.Index(op.ln0, op.col0)
+func (s *Syntax) handleEditReq(req editReq) {
+	i0, ok := s.buffer.Index(req.ln0, req.col0)
 	if !ok {
-		return
+		panic(fmt.Sprintf("in Syntax.handleOp: %v", req))
 	}
 
-	i1, ok := buffer.Index(op.ln1, op.col1)
+	i1, ok := s.buffer.Index(req.ln1, req.col1)
 	if !ok {
-		return
+		panic(fmt.Sprintf("in Syntax.handleOp: %v", req))
 	}
 
-	col0i, ok := buffer.ColIndex(op.ln0, op.col0)
+	col0i, ok := s.buffer.ColIndex(req.ln0, req.col0)
 	if !ok {
-		return
+		panic(fmt.Sprintf("in Syntax.handleOp: %v", req))
 	}
 
-	col1i, ok := buffer.ColIndex(op.ln1, op.col1)
+	col1i, ok := s.buffer.ColIndex(req.ln1, req.col1)
 	if !ok {
-		return
+		panic(fmt.Sprintf("in Syntax.handleOp: %v", req))
 	}
 
-	switch op.kind {
+	var ed treeSitter.InputEdit
+
+	switch req.kind {
 	case editKindDelete:
-		r.StartByte = uint(i0)
-		r.OldEndByte = uint(i1)
-		r.NewEndByte = uint(i0 + 1)
-		r.StartPosition = treeSitter.NewPoint(uint(op.ln0), uint(col0i))
-		r.OldEndPosition = treeSitter.NewPoint(uint(op.ln1), uint(col1i))
-		r.NewEndPosition = treeSitter.NewPoint(uint(op.ln0), uint(col0i+1))
+		ed.StartByte = uint(i0)
+		ed.OldEndByte = uint(i1)
+		ed.NewEndByte = uint(i0 + 1)
+		ed.StartPosition = treeSitter.NewPoint(uint(req.ln0), uint(col0i))
+		ed.OldEndPosition = treeSitter.NewPoint(uint(req.ln1), uint(col1i))
+		ed.NewEndPosition = treeSitter.NewPoint(uint(req.ln0), uint(col0i+1))
 	case editKindInsert:
-		r.StartByte = uint(i0)
-		r.OldEndByte = uint(i0 + 1)
-		r.NewEndByte = uint(i1)
-		r.StartPosition = treeSitter.NewPoint(uint(op.ln0), uint(col0i))
-		r.OldEndPosition = treeSitter.NewPoint(uint(op.ln0), uint(col0i+1))
-		r.NewEndPosition = treeSitter.NewPoint(uint(op.ln1), uint(col1i))
-	}
-
-	ok = true
-
-	return
-}
-
-func (s *Syntax) handleEditReq(op editReq) {
-	ed, ok := op.inputEdit(s.buffer)
-	if !ok {
-		panic(fmt.Sprintf("in Syntax.handleOp: %v", op))
+		ed.StartByte = uint(i0)
+		ed.OldEndByte = uint(i0 + 1)
+		ed.NewEndByte = uint(i1)
+		ed.StartPosition = treeSitter.NewPoint(uint(req.ln0), uint(col0i))
+		ed.OldEndPosition = treeSitter.NewPoint(uint(req.ln0), uint(col0i+1))
+		ed.NewEndPosition = treeSitter.NewPoint(uint(req.ln1), uint(col1i))
 	}
 
 	s.tree.Edit(&ed)
+
 	s.updateTree()
 }
