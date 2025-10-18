@@ -101,7 +101,6 @@ func (s *Syntax) Highlight(ln0, ln1 int) chan HighlightSpan {
 func (s *Syntax) run() {
 	go func() {
 		for {
-
 			select {
 			case <-s.close:
 				s.tree.Close()
