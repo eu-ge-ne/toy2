@@ -6,7 +6,7 @@ import (
 	treeSitter "github.com/tree-sitter/go-tree-sitter"
 )
 
-type Highlight struct {
+type Highlighter struct {
 	spans   []span
 	spanIdx int
 	idx     int
@@ -19,13 +19,13 @@ type span struct {
 	color    CharFgColor
 }
 
-func newHighlight() *Highlight {
-	return &Highlight{
+func newHighlighter() *Highlighter {
+	return &Highlighter{
 		spans: make([]span, 0, 1024),
 	}
 }
 
-func (h *Highlight) AddCapture(capt treeSitter.QueryCapture) {
+func (h *Highlighter) AddCapture(capt treeSitter.QueryCapture) {
 	start := int(capt.Node.StartByte())
 	end := int(capt.Node.EndByte())
 
@@ -49,7 +49,7 @@ func (h *Highlight) AddCapture(capt treeSitter.QueryCapture) {
 
 	if slices.Contains(s.captures, 0 /*variable*/) {
 		s.color = CharFgColorVariable
-	} else if slices.Contains(s.captures, 18) {
+	} else if slices.Contains(s.captures, 18 /*keyword*/) {
 		s.color = CharFgColorKeyword
 	} else if slices.Contains(s.captures, 9 /*comment*/) {
 		s.color = CharFgColorComment
@@ -58,7 +58,7 @@ func (h *Highlight) AddCapture(capt treeSitter.QueryCapture) {
 	}
 }
 
-func (h *Highlight) Start(idx int) {
+func (h *Highlighter) Start(idx int) {
 	if h == nil {
 		return
 	}
@@ -66,7 +66,7 @@ func (h *Highlight) Start(idx int) {
 	h.idx = idx
 }
 
-func (h *Highlight) Next(l int) CharFgColor {
+func (h *Highlighter) Next(l int) CharFgColor {
 	if h != nil {
 		for i := h.spanIdx; i < len(h.spans); i += 1 {
 			span := h.spans[i]

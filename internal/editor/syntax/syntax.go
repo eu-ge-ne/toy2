@@ -21,7 +21,7 @@ var scmJsHighlights string
 var scmTsHighlights string
 
 type Syntax struct {
-	Highlight *Highlight
+	Highlighter *Highlighter
 
 	buffer *textbuf.TextBuf
 	parser *treeSitter.Parser
@@ -221,31 +221,31 @@ func (s *Syntax) updateHighlight(f *os.File) {
 	end := int(s.ranges[0].EndByte)
 	copy(s.text[start:end], std.IterToStr(s.buffer.Read(start, end)))
 
-	highlight := newHighlight()
+	highlighter := newHighlighter()
 
 	qc := treeSitter.NewQueryCursor()
 	defer qc.Close()
 
 	qc.SetPointRange(s.ranges[0].StartPoint, s.ranges[0].EndPoint)
-
 	capts := qc.Captures(s.query, s.tree.RootNode(), s.text)
-	for match, captIdx := capts.Next(); match != nil; match, captIdx = capts.Next() {
-		highlight.AddCapture(match.Captures[captIdx])
 
-		/*
-			fmt.Fprintf(f,
-				"hl: %v:%v %s (%s, %d, %d)\n",
-				node.StartPosition(),
-				node.EndPosition(),
-				node.Utf8Text(s.text),
-				s.query.CaptureNames()[capt.Index],
-				match.PatternIndex,
-				capt.Index,
-			)
-		*/
+	for match, captIdx := capts.Next(); match != nil; match, captIdx = capts.Next() {
+		capt := match.Captures[captIdx]
+
+		highlighter.AddCapture(capt)
+
+		fmt.Fprintf(f,
+			"hl: %v:%v %s (%s, %d, %d)\n",
+			capt.Node.StartPosition(),
+			capt.Node.EndPosition(),
+			capt.Node.Utf8Text(s.text),
+			s.query.CaptureNames()[capt.Index],
+			match.PatternIndex,
+			capt.Index,
+		)
 	}
 
-	s.Highlight = highlight
+	s.Highlighter = highlighter
 
 	fmt.Fprintf(f, "hl: elapsed %v\n", time.Since(started))
 }

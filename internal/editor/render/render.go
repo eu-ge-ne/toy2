@@ -230,7 +230,7 @@ func (r *Render) scrollH() {
 }
 
 func (r *Render) renderLines() {
-	h := r.syntax.Highlight
+	h := r.syntax.Highlighter
 
 	idx, _ := r.buffer.LnIndex(r.ScrollLn)
 	h.Start(idx)
@@ -253,7 +253,7 @@ func (r *Render) renderLines() {
 	}
 }
 
-func (r *Render) renderLine(h *syntax.Highlight, ln int, row int) int {
+func (r *Render) renderLine(h *syntax.Highlighter, ln int, row int) int {
 	currentFg := syntax.CharFgColorUndefined
 	currentBg := false
 	availableW := 0
