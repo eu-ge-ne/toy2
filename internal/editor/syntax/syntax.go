@@ -221,7 +221,7 @@ func (s *Syntax) update() {
 }
 
 func (s *Syntax) updateTree() {
-	s.parser.SetIncludedRanges(s.ranges)
+	//s.parser.SetIncludedRanges(s.ranges)
 
 	maxChunkLen := int(s.ranges[0].EndByte - s.ranges[0].StartByte)
 
