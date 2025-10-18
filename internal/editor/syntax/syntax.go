@@ -4,7 +4,6 @@ import (
 	_ "embed"
 	"fmt"
 	"os"
-	"slices"
 	"time"
 
 	"github.com/eu-ge-ne/toy2/internal/std"
@@ -22,18 +21,17 @@ var scmJsHighlights string
 var scmTsHighlights string
 
 type Syntax struct {
+	Highlight *Highlight
+
 	buffer *textbuf.TextBuf
 	parser *treeSitter.Parser
 	close  chan struct{}
 	ops    chan op
 
-	ranges    []treeSitter.Range
-	isDirty   bool
-	tree      *treeSitter.Tree
-	query     *treeSitter.Query
-	spans     []span
-	hlSpanIdx int
-	hlIdx     int
+	ranges  []treeSitter.Range
+	isDirty bool
+	tree    *treeSitter.Tree
+	query   *treeSitter.Query
 
 	text    []byte
 	counter int
@@ -113,33 +111,6 @@ func (s *Syntax) Insert(ln0, col0, ln1, col1 int) {
 	if s != nil {
 		s.ops <- op{opKindInsert, ln0, col0, ln1, col1}
 	}
-}
-
-func (s *Syntax) BeginHighlight(idx int) {
-	s.hlSpanIdx = 0
-	s.hlIdx = idx
-}
-
-func (s *Syntax) Highlight(l int) CharFgColor {
-	spans := s.spans
-
-	for i := s.hlSpanIdx; i < len(spans); i += 1 {
-		span := spans[i]
-
-		if s.hlIdx < span.start {
-			continue
-		}
-
-		if s.hlIdx < span.end {
-			s.hlSpanIdx = i
-			s.hlIdx += l
-			return span.color
-		}
-	}
-
-	s.hlIdx += l
-
-	return CharFgColorUndefined
 }
 
 func (s *Syntax) run() {
@@ -250,7 +221,7 @@ func (s *Syntax) updateHighlight(f *os.File) {
 	end := int(s.ranges[0].EndByte)
 	copy(s.text[start:end], std.IterToStr(s.buffer.Read(start, end)))
 
-	var spans = make([]span, 0, 1000)
+	highlight := newHighlight()
 
 	qc := treeSitter.NewQueryCursor()
 	defer qc.Close()
@@ -259,29 +230,7 @@ func (s *Syntax) updateHighlight(f *os.File) {
 
 	capts := qc.Captures(s.query, s.tree.RootNode(), s.text)
 	for match, captIdx := capts.Next(); match != nil; match, captIdx = capts.Next() {
-		capt := match.Captures[captIdx]
-		node := capt.Node
-
-		start := int(node.StartByte())
-		end := int(node.EndByte())
-
-		i := len(spans) - 1
-		if len(spans) == 0 || spans[i].start != start || spans[i].end != end {
-			spans = append(spans, span{start: start, end: end, captures: make([]int, 0, 2)})
-			i += 1
-		}
-
-		spans[i].captures = append(spans[i].captures, int(capt.Index))
-
-		if slices.Contains(spans[i].captures, 0 /*variable*/) {
-			spans[i].color = CharFgColorVariable
-		} else if slices.Contains(spans[i].captures, 18) {
-			spans[i].color = CharFgColorKeyword
-		} else if slices.Contains(spans[i].captures, 9 /*comment*/) {
-			spans[i].color = CharFgColorComment
-		} else {
-			spans[i].color = CharFgColorUndefined
-		}
+		highlight.AddCapture(match.Captures[captIdx])
 
 		/*
 			fmt.Fprintf(f,
@@ -296,7 +245,7 @@ func (s *Syntax) updateHighlight(f *os.File) {
 		*/
 	}
 
-	s.spans = spans
+	s.Highlight = highlight
 
 	fmt.Fprintf(f, "hl: elapsed %v\n", time.Since(started))
 }

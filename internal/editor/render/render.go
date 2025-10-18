@@ -230,14 +230,16 @@ func (r *Render) scrollH() {
 }
 
 func (r *Render) renderLines() {
+	h := r.syntax.Highlight
+
 	idx, _ := r.buffer.LnIndex(r.ScrollLn)
-	r.syntax.BeginHighlight(idx)
+	h.Start(idx)
 
 	row := r.area.Y
 
 	for ln := r.ScrollLn; ; ln += 1 {
 		if ln < r.buffer.LineCount() {
-			row = r.renderLine(ln, row)
+			row = r.renderLine(h, ln, row)
 		} else {
 			vt.SetCursor(vt.Buf, row, r.area.X)
 			vt.Buf.Write(r.colorVoidBg)
@@ -251,7 +253,7 @@ func (r *Render) renderLines() {
 	}
 }
 
-func (r *Render) renderLine(ln int, row int) int {
+func (r *Render) renderLine(h *syntax.Highlight, ln int, row int) int {
 	currentFg := syntax.CharFgColorUndefined
 	currentBg := false
 	availableW := 0
@@ -295,7 +297,7 @@ func (r *Render) renderLine(ln int, row int) int {
 			}
 		}
 
-		colorFg := r.syntax.Highlight(len(cell.G.Seg))
+		colorFg := h.Next(len(cell.G.Seg))
 		if colorFg == syntax.CharFgColorUndefined {
 			if cell.G.IsVisible {
 				colorFg = syntax.CharFgColorVisible
