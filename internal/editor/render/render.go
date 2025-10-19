@@ -173,7 +173,7 @@ func (r *Render) scrollV() {
 	for i := 0; i < len(xs); i += 1 {
 		xs[i] = 1
 		for cell := range r.buffer.IterLine(r.ScrollLn+i, false) {
-			if cell.I > 0 && cell.Col == 0 {
+			if cell.Col > 0 && cell.WrapCol == 0 {
 				xs[i] += 1
 			}
 		}
@@ -201,12 +201,12 @@ func (r *Render) scrollH() {
 		break
 	}
 	if cell != nil {
-		r.cursorY += cell.Ln
+		r.cursorY += cell.WrapLn
 	}
 
 	col := 0
 	if cell != nil {
-		col = cell.Col
+		col = cell.WrapCol
 	}
 
 	deltaCol := col - r.ScrollCol
@@ -222,7 +222,7 @@ func (r *Render) scrollH() {
 
 	xs := make([]int, deltaCol)
 	for c := range r.buffer.IterLine2(r.cursor.Ln, true, r.cursor.Col-deltaCol, r.cursor.Col) {
-		xs[c.I] = c.Gr.Width
+		xs[c.Col] = c.Gr.Width
 	}
 
 	width := std.Sum(xs)
@@ -270,8 +270,8 @@ func (r *Render) renderLine(ln int, row int) int {
 	availableW := 0
 
 	for cell := range r.buffer.IterLine(ln, false) {
-		if cell.Col == 0 {
-			if cell.I > 0 {
+		if cell.WrapCol == 0 {
+			if cell.Col > 0 {
 				row += 1
 				if row >= r.area.Y+r.area.H {
 					return row
@@ -281,7 +281,7 @@ func (r *Render) renderLine(ln int, row int) int {
 			vt.SetCursor(vt.Buf, row, r.area.X)
 
 			if r.indexWidth > 0 {
-				if cell.I == 0 {
+				if cell.Col == 0 {
 					vt.Buf.Write(r.colorIndex)
 					fmt.Fprintf(vt.Buf, "%*d ", r.indexWidth-1, ln+1)
 					vt.Buf.Write(r.colorMainBg)
@@ -296,11 +296,11 @@ func (r *Render) renderLine(ln int, row int) int {
 
 		spanName := r.nextSegSpanName(len(cell.Gr.Seg))
 
-		if (cell.Col < r.ScrollCol) || (cell.Gr.Width > availableW) {
+		if (cell.WrapCol < r.ScrollCol) || (cell.Gr.Width > availableW) {
 			continue
 		}
 
-		bg := r.cursor.IsSelected(ln, cell.I)
+		bg := r.cursor.IsSelected(ln, cell.Col)
 		if bg != currentBg {
 			currentBg = bg
 			if currentBg {

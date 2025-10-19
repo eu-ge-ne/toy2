@@ -31,13 +31,13 @@ type IterOptions struct {
 }
 
 type IterCell struct {
-	I   int
-	Gr  *Grapheme
-	Ln  int
-	Col int
+	Gr      *Grapheme
+	Col     int
+	WrapLn  int
+	WrapCol int
 }
 
-func (p GraphemePool) Iter(it iter.Seq[string], opts IterOptions) iter.Seq[IterCell] {
+func (p GraphemePool) IterString(it iter.Seq[string], opts IterOptions) iter.Seq[IterCell] {
 	return func(yield func(IterCell) bool) {
 		cell := IterCell{}
 		w := 0
@@ -58,16 +58,16 @@ func (p GraphemePool) Iter(it iter.Seq[string], opts IterOptions) iter.Seq[IterC
 				w += cell.Gr.Width
 				if w > opts.WrapWidth {
 					w = cell.Gr.Width
-					cell.Ln += 1
-					cell.Col = 0
+					cell.WrapLn += 1
+					cell.WrapCol = 0
 				}
 
 				if !yield(cell) {
 					return
 				}
 
-				cell.I += 1
 				cell.Col += 1
+				cell.WrapCol += 1
 			}
 		}
 
@@ -77,8 +77,8 @@ func (p GraphemePool) Iter(it iter.Seq[string], opts IterOptions) iter.Seq[IterC
 			w += cell.Gr.Width
 			if w > opts.WrapWidth {
 				w = cell.Gr.Width
-				cell.Ln += 1
-				cell.Col = 0
+				cell.WrapLn += 1
+				cell.WrapCol = 0
 			}
 
 			if !yield(cell) {

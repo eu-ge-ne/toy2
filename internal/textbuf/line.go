@@ -25,13 +25,13 @@ func (buf *TextBuf) IterLine(ln int, extra bool) iter.Seq[grapheme.IterCell] {
 		Extra:     extra,
 	}
 
-	return grapheme.Graphemes.Iter(buf.Read(start, end), opts)
+	return grapheme.Graphemes.IterString(buf.Read(start, end), opts)
 }
 
 func (buf *TextBuf) IterLine2(ln int, extra bool, start, end int) iter.Seq[grapheme.IterCell] {
 	return func(yield func(grapheme.IterCell) bool) {
 		for cell := range buf.IterLine(ln, extra) {
-			if cell.I >= start && cell.I < end {
+			if cell.Col >= start && cell.Col < end {
 				if !yield(cell) {
 					return
 				}

@@ -44,7 +44,7 @@ func (buf *TextBuf) ColIndex(ln, col int) (int, bool) {
 	index := 0
 
 	for cell := range buf.IterLine(ln, true) {
-		if cell.I == col {
+		if cell.Col == col {
 			return index, true
 		}
 

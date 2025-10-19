@@ -81,7 +81,7 @@ func (buf *TextBuf) Insert2(ln, col int, text string) {
 	}
 
 	for cell := range buf.IterLine(ln, false) {
-		if cell.I == col {
+		if cell.Col == col {
 			break
 		}
 		index += len(cell.Gr.Seg)
