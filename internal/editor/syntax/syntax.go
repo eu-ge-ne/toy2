@@ -87,14 +87,14 @@ func (s *Syntax) Insert(ln0, col0, ln1, col1 int) {
 	}
 }
 
-func (s *Syntax) Highlight(ln0, ln1 int) chan Span {
+func (s *Syntax) Highlight(startLn, endLn int) chan Span {
 	if s == nil {
 		return nil
 	}
 
 	spans := make(chan Span, 1024)
 
-	s.highlights <- highlightReq{ln0, ln1, spans}
+	s.highlights <- highlightReq{startLn, endLn, spans}
 
 	return spans
 }
@@ -140,12 +140,10 @@ func (s *Syntax) handleHighlight(req highlightReq) {
 		s.updateTree()
 	}
 
-	ln0 := max(0, req.ln0)
-	ln1 := min(s.buffer.LineCount(), req.ln1)
-	startByte, _ := s.buffer.LnIndex(ln0)
-	endByte, _ := s.buffer.LnIndex(ln1)
-	startPoint := treeSitter.NewPoint(uint(ln0), 0)
-	endPoint := treeSitter.NewPoint(uint(ln1), 0)
+	startLn := max(0, req.startLn)
+	endLn := min(s.buffer.LineCount(), req.endLn)
+	startByte, _ := s.buffer.LnIndex(startLn)
+	endByte, _ := s.buffer.LnIndex(endLn)
 
 	if s.buffer.Count() > len(s.text) {
 		s.text = make([]byte, s.buffer.Count())
@@ -155,7 +153,7 @@ func (s *Syntax) handleHighlight(req highlightReq) {
 	qc := treeSitter.NewQueryCursor()
 	defer qc.Close()
 
-	qc.SetPointRange(startPoint, endPoint)
+	qc.SetPointRange(treeSitter.NewPoint(uint(startLn), 0), treeSitter.NewPoint(uint(endLn), 0))
 	capts := qc.Captures(s.query, s.tree.RootNode(), s.text)
 
 	var span Span
@@ -163,8 +161,8 @@ func (s *Syntax) handleHighlight(req highlightReq) {
 	match, captIdx := capts.Next()
 	if match != nil {
 		span = Span{
-			Start: int(match.Captures[captIdx].Node.StartByte()),
-			End:   int(match.Captures[captIdx].Node.EndByte()),
+			StartByte: int(match.Captures[captIdx].Node.StartByte()),
+			EndByte:   int(match.Captures[captIdx].Node.EndByte()),
 		}
 	}
 
@@ -182,15 +180,12 @@ func (s *Syntax) handleHighlight(req highlightReq) {
 			//capt.Index,
 		)
 
-		start := int(capt.Node.StartByte())
-		end := int(capt.Node.EndByte())
+		startByte := int(capt.Node.StartByte())
+		endByte := int(capt.Node.EndByte())
 
-		if span.Start != start || span.End != end {
+		if span.StartByte != startByte || span.EndByte != endByte {
 			req.spans <- span
-			span = Span{
-				Start: start,
-				End:   end,
-			}
+			span = Span{StartByte: startByte, EndByte: endByte}
 		}
 
 		span.Name = name

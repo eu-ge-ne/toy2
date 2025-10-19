@@ -33,7 +33,7 @@ type Render struct {
 
 	hlSpans chan syntax.Span
 	hlSpan  syntax.Span
-	hlIdx   int
+	hlPos   int
 
 	colorMainBg     []byte
 	colorMainFg     []byte
@@ -239,8 +239,8 @@ func (r *Render) scrollH() {
 
 func (r *Render) initHighlight() {
 	r.hlSpans = r.syntax.Highlight(r.ScrollLn, r.ScrollLn+r.area.H)
-	r.hlSpan = syntax.Span{Start: -1, End: -1}
-	r.hlIdx, _ = r.buffer.LnIndex(r.ScrollLn)
+	r.hlSpan = syntax.Span{StartByte: -1, EndByte: -1}
+	r.hlPos, _ = r.buffer.LnIndex(r.ScrollLn)
 }
 
 func (r *Render) renderLines() {
@@ -338,17 +338,17 @@ func (r *Render) renderLine(ln int, row int) int {
 func (r *Render) nextSegSpanName(l int) string {
 	var name string
 
-	if r.hlIdx >= r.hlSpan.End {
+	if r.hlPos >= r.hlSpan.EndByte {
 		if s, ok := <-r.hlSpans; ok {
 			r.hlSpan = s
 		}
 	}
 
-	if r.hlIdx >= r.hlSpan.Start && r.hlIdx < r.hlSpan.End {
+	if r.hlPos >= r.hlSpan.StartByte && r.hlPos < r.hlSpan.EndByte {
 		name = r.hlSpan.Name
 	}
 
-	r.hlIdx += l
+	r.hlPos += l
 
 	return name
 }
