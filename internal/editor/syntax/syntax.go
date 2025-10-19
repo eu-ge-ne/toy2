@@ -134,12 +134,6 @@ func (s *Syntax) handleClose() {
 }
 
 func (s *Syntax) handleHighlight(req highlightReq) {
-	f, err := os.OpenFile("tmp/syntax-highlight.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-
 	started := time.Now()
 
 	if s.tree == nil {
@@ -178,14 +172,14 @@ func (s *Syntax) handleHighlight(req highlightReq) {
 		capt := match.Captures[captIdx]
 		name := s.query.CaptureNames()[capt.Index]
 
-		fmt.Fprintf(f,
-			"%v:%v %s (%s, %d, %d)\n",
+		fmt.Fprintf(s.log,
+			"highlight: %v:%v %s (%s)\n",
 			capt.Node.StartPosition(),
 			capt.Node.EndPosition(),
 			capt.Node.Utf8Text(s.text),
 			name,
-			match.PatternIndex,
-			capt.Index,
+			//match.PatternIndex,
+			//capt.Index,
 		)
 
 		start := int(capt.Node.StartByte())
@@ -205,16 +199,10 @@ func (s *Syntax) handleHighlight(req highlightReq) {
 	req.spans <- span
 	close(req.spans)
 
-	fmt.Fprintf(f, "elapsed %v\n", time.Since(started))
+	fmt.Fprintf(s.log, "highlight: elapsed %v\n", time.Since(started))
 }
 
 func (s *Syntax) handleEdit(req editReq) {
-	f, err := os.OpenFile("tmp/syntax-edit.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-
 	if s.tree == nil {
 		return
 	}
@@ -262,8 +250,8 @@ func (s *Syntax) handleEdit(req editReq) {
 		s.edit.NewEndPosition.Column = uint(col1)
 	}
 
-	fmt.Fprintf(f, "%v\n", req)
-	fmt.Fprintf(f, "%+v\n", s.edit)
+	fmt.Fprintf(s.log, "edit: %v\n", req)
+	fmt.Fprintf(s.log, "edit: %+v\n", s.edit)
 
 	s.tree.Edit(&s.edit)
 
