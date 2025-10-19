@@ -221,8 +221,10 @@ func (r *Render) scrollH() {
 	// After?
 
 	xs := make([]int, deltaCol)
+	xsI := 0
 	for c := range r.buffer.IterLine2(r.cursor.Ln, true, r.cursor.Col-deltaCol, r.cursor.Col) {
-		xs[c.Col] = c.Gr.Width
+		xs[xsI] = c.Gr.Width
+		xsI += 1
 	}
 
 	width := std.Sum(xs)
