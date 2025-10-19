@@ -51,8 +51,8 @@ func New(buffer *textbuf.TextBuf, cursor *cursor.Cursor) *Render {
 }
 
 func (r *Render) SetColors(t theme.Theme) {
-	r.colorMainBg = /*t.MainBg()*/ vt.CharBg([3]byte{0x1E, 0x1E, 0x1E})
-	r.colorMainFg = /*t.Light1Fg(),*/ vt.CharFg([3]byte{0xD4, 0xD4, 0xD4})
+	r.colorMainBg = vt.CharBg([3]byte{0x1E, 0x1E, 0x1E}) // t.MainBg()
+	r.colorMainFg = vt.CharFg([3]byte{0xD4, 0xD4, 0xD4}) // t.Light1Fg()
 	r.colorSelectedBg = t.Light2Bg()
 	r.colorVoidBg = t.Dark0Bg()
 	r.colorIndex = append(t.Light0Bg(), t.Dark0Fg()...)
@@ -63,9 +63,6 @@ func (r *Render) SetColors(t theme.Theme) {
 		"_ws_disabled": t.MainFg(),
 		"keyword":      vt.CharFg([3]byte{0xCE, 0x92, 0xA4}),
 		"comment":      vt.CharFg([3]byte{0x6A, 0x99, 0x55}),
-		//int(syntax.SpanKindVariable): vt.CharFg(color.Sky200),
-		//int(syntax.SpanKindComment):  vt.CharFg(color.Green600),
-		//int(syntax.SpanKindType):     vt.CharFg(color.Sky300),
 	}
 }
 
