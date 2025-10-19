@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 
+	"github.com/eu-ge-ne/toy2/internal/color"
 	"github.com/eu-ge-ne/toy2/internal/editor/cursor"
 	"github.com/eu-ge-ne/toy2/internal/editor/syntax"
 	"github.com/eu-ge-ne/toy2/internal/std"
@@ -61,7 +62,7 @@ func (r *Render) SetColors(t theme.Theme) {
 		"_text":        r.colorMainFg,
 		"_ws_enabled":  t.Dark0Fg(),
 		"_ws_disabled": t.MainFg(),
-		"keyword":      vt.CharFg([3]byte{0xCE, 0x92, 0xA4}),
+		"keyword":      vt.CharFg(color.Fuchsia300),
 		"comment":      vt.CharFg([3]byte{0x6A, 0x99, 0x55}),
 		"function":     vt.CharFg([3]byte{0xDC, 0xDC, 0xAA}),
 	}
