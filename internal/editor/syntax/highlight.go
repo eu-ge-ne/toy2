@@ -9,14 +9,5 @@ type highlightReq struct {
 type Span struct {
 	Start int
 	End   int
-	Kind  SpanKind
+	Name  string
 }
-
-type SpanKind int
-
-const (
-	SpanKindNone SpanKind = 1000 + iota
-	SpanKindVariable
-	SpanKindKeyword
-	SpanKindComment
-)

@@ -4,7 +4,6 @@ import (
 	_ "embed"
 	"fmt"
 	"os"
-	"slices"
 	"time"
 
 	treeSitter "github.com/tree-sitter/go-tree-sitter"
@@ -148,10 +147,7 @@ func (s *Syntax) handleHighlightReq(req highlightReq) {
 	qc.SetPointRange(startPoint, endPoint)
 	capts := qc.Captures(s.query, s.tree.RootNode(), s.text)
 
-	var (
-		span     Span
-		captures []int
-	)
+	var span Span
 
 	match, captIdx := capts.Next()
 	if match != nil {
@@ -159,18 +155,18 @@ func (s *Syntax) handleHighlightReq(req highlightReq) {
 			Start: int(match.Captures[captIdx].Node.StartByte()),
 			End:   int(match.Captures[captIdx].Node.EndByte()),
 		}
-		captures = make([]int, 0, 5)
 	}
 
 	for ; match != nil; match, captIdx = capts.Next() {
 		capt := match.Captures[captIdx]
+		name := s.query.CaptureNames()[capt.Index]
 
 		fmt.Fprintf(f,
 			"%v:%v %s (%s, %d, %d)\n",
 			capt.Node.StartPosition(),
 			capt.Node.EndPosition(),
 			capt.Node.Utf8Text(s.text),
-			s.query.CaptureNames()[capt.Index],
+			name,
 			match.PatternIndex,
 			capt.Index,
 		)
@@ -184,20 +180,9 @@ func (s *Syntax) handleHighlightReq(req highlightReq) {
 				Start: start,
 				End:   end,
 			}
-			captures = make([]int, 0, 5)
 		}
 
-		captures = append(captures, int(capt.Index))
-
-		if slices.Contains(captures, 0 /*variable*/) {
-			span.Kind = SpanKindVariable
-		} else if slices.Contains(captures, 18 /*keyword*/) {
-			span.Kind = SpanKindKeyword
-		} else if slices.Contains(captures, 9 /*comment*/) {
-			span.Kind = SpanKindComment
-		} else {
-			span.Kind = SpanKindNone
-		}
+		span.Name = name
 	}
 
 	req.spans <- span
