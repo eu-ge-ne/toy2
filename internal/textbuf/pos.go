@@ -43,12 +43,12 @@ func (buf TextBuf) LnIndex(ln int) (int, bool) {
 func (buf *TextBuf) ColIndex(ln, col int) (int, bool) {
 	index := 0
 
-	for i, cell := range buf.IterLine(ln, true) {
-		if i == col {
+	for cell := range buf.IterLine(ln, true) {
+		if cell.I == col {
 			return index, true
 		}
 
-		index += len(cell.G.Seg)
+		index += len(cell.Gr.Seg)
 	}
 
 	return 0, false

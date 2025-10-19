@@ -125,8 +125,8 @@ func (cur *Cursor) setLn(ln int) {
 func (cur *Cursor) setCol(col int) {
 	len := 0
 
-	for _, c := range cur.buffer.IterLine(cur.Ln, false) {
-		if c.G.IsEol {
+	for cell := range cur.buffer.IterLine(cur.Ln, false) {
+		if cell.Gr.IsEol {
 			break
 		}
 		len += 1

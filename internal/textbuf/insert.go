@@ -80,11 +80,11 @@ func (buf *TextBuf) Insert2(ln, col int, text string) {
 		}
 	}
 
-	for i, cell := range buf.IterLine(ln, false) {
-		if i == col {
+	for cell := range buf.IterLine(ln, false) {
+		if cell.I == col {
 			break
 		}
-		index += len(cell.G.Seg)
+		index += len(cell.Gr.Seg)
 	}
 
 	buf.Insert(index, text)

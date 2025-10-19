@@ -7,6 +7,7 @@ import (
 	"github.com/eu-ge-ne/toy2/internal/color"
 	"github.com/eu-ge-ne/toy2/internal/editor/cursor"
 	"github.com/eu-ge-ne/toy2/internal/editor/syntax"
+	"github.com/eu-ge-ne/toy2/internal/grapheme"
 	"github.com/eu-ge-ne/toy2/internal/std"
 	"github.com/eu-ge-ne/toy2/internal/textbuf"
 	"github.com/eu-ge-ne/toy2/internal/theme"
@@ -171,8 +172,8 @@ func (r *Render) scrollV() {
 	xs := make([]int, r.cursor.Ln+1-r.ScrollLn)
 	for i := 0; i < len(xs); i += 1 {
 		xs[i] = 1
-		for j, cell := range r.buffer.IterLine(r.ScrollLn+i, false) {
-			if j > 0 && cell.Col == 0 {
+		for cell := range r.buffer.IterLine(r.ScrollLn+i, false) {
+			if cell.I > 0 && cell.Col == 0 {
 				xs[i] += 1
 			}
 		}
@@ -194,8 +195,8 @@ func (r *Render) scrollV() {
 }
 
 func (r *Render) scrollH() {
-	var cell *textbuf.LineCell = nil
-	for _, c := range r.buffer.IterLine2(r.cursor.Ln, true, r.cursor.Col, math.MaxInt) {
+	var cell *grapheme.IterCell = nil
+	for c := range r.buffer.IterLine2(r.cursor.Ln, true, r.cursor.Col, math.MaxInt) {
 		cell = &c
 		break
 	}
@@ -220,8 +221,8 @@ func (r *Render) scrollH() {
 	// After?
 
 	xs := make([]int, deltaCol)
-	for i, c := range r.buffer.IterLine2(r.cursor.Ln, true, r.cursor.Col-deltaCol, r.cursor.Col) {
-		xs[i] = c.G.Width
+	for c := range r.buffer.IterLine2(r.cursor.Ln, true, r.cursor.Col-deltaCol, r.cursor.Col) {
+		xs[c.I] = c.Gr.Width
 	}
 
 	width := std.Sum(xs)
@@ -268,9 +269,9 @@ func (r *Render) renderLine(ln int, row int) int {
 	currentBg := false
 	availableW := 0
 
-	for i, cell := range r.buffer.IterLine(ln, false) {
+	for cell := range r.buffer.IterLine(ln, false) {
 		if cell.Col == 0 {
-			if i > 0 {
+			if cell.I > 0 {
 				row += 1
 				if row >= r.area.Y+r.area.H {
 					return row
@@ -280,7 +281,7 @@ func (r *Render) renderLine(ln int, row int) int {
 			vt.SetCursor(vt.Buf, row, r.area.X)
 
 			if r.indexWidth > 0 {
-				if i == 0 {
+				if cell.I == 0 {
 					vt.Buf.Write(r.colorIndex)
 					fmt.Fprintf(vt.Buf, "%*d ", r.indexWidth-1, ln+1)
 					vt.Buf.Write(r.colorMainBg)
@@ -293,13 +294,13 @@ func (r *Render) renderLine(ln int, row int) int {
 			availableW = r.area.W - r.indexWidth
 		}
 
-		spanName := r.nextSegSpanName(len(cell.G.Seg))
+		spanName := r.nextSegSpanName(len(cell.Gr.Seg))
 
-		if (cell.Col < r.ScrollCol) || (cell.G.Width > availableW) {
+		if (cell.Col < r.ScrollCol) || (cell.Gr.Width > availableW) {
 			continue
 		}
 
-		bg := r.cursor.IsSelected(ln, i)
+		bg := r.cursor.IsSelected(ln, cell.I)
 		if bg != currentBg {
 			currentBg = bg
 			if currentBg {
@@ -311,7 +312,7 @@ func (r *Render) renderLine(ln int, row int) int {
 
 		fg := spanName
 		if len(fg) == 0 {
-			if cell.G.IsVisible {
+			if cell.Gr.IsVisible {
 				fg = "_text"
 			} else if r.whitespaceEnabled {
 				fg = "_ws_enabled"
@@ -328,9 +329,9 @@ func (r *Render) renderLine(ln int, row int) int {
 			vt.Buf.Write(b)
 		}
 
-		vt.Buf.Write(cell.G.Bytes)
+		vt.Buf.Write(cell.Gr.Bytes)
 
-		availableW -= cell.G.Width
+		availableW -= cell.Gr.Width
 	}
 
 	return row
