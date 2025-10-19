@@ -51,8 +51,8 @@ func New(buffer *textbuf.TextBuf, cursor *cursor.Cursor) *Render {
 }
 
 func (r *Render) SetColors(t theme.Theme) {
-	r.colorMainBg = vt.CharBg([3]byte{0x1E, 0x1E, 0x1E}) // t.MainBg()
-	r.colorMainFg = vt.CharFg([3]byte{0xD4, 0xD4, 0xD4}) // t.Light1Fg()
+	r.colorMainBg = t.MainBg()
+	r.colorMainFg = t.Light1Fg()
 	r.colorSelectedBg = t.Light2Bg()
 	r.colorVoidBg = t.Dark0Bg()
 	r.colorIndex = append(t.Light0Bg(), t.Dark0Fg()...)
