@@ -31,6 +31,7 @@ type Syntax struct {
 
 	tree *treeSitter.Tree
 	text []byte
+	log  *os.File
 }
 
 func New(buffer *textbuf.TextBuf) *Syntax {
@@ -99,12 +100,17 @@ func (s *Syntax) Highlight(ln0, ln1 int) chan Span {
 }
 
 func (s *Syntax) run() {
+	f, err := os.OpenFile("tmp/syntax.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+	if err != nil {
+		panic(err)
+	}
+	s.log = f
+
 	go func() {
 		for {
 			select {
 			case <-s.close:
-				s.tree.Close()
-				s.tree = nil
+				s.handleClose()
 				return
 
 			case req := <-s.edits:
@@ -115,6 +121,16 @@ func (s *Syntax) run() {
 			}
 		}
 	}()
+}
+
+func (s *Syntax) handleClose() {
+	if s.log != nil {
+		s.log.Close()
+		s.log = nil
+	}
+
+	s.tree.Close()
+	s.tree = nil
 }
 
 func (s *Syntax) handleHighlight(req highlightReq) {
@@ -259,12 +275,6 @@ const maxChunkLen = 1024 * 64
 func (s *Syntax) updateTree() {
 	started := time.Now()
 
-	f, err := os.OpenFile("tmp/syntax-tree.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-
 	/*
 		s.parser.SetIncludedRanges([]treeSitter.Range{{
 			StartByte:  uint(startByte),
@@ -285,5 +295,5 @@ func (s *Syntax) updateTree() {
 	s.tree.Close()
 	s.tree = t
 
-	fmt.Fprintf(f, "elapsed %v\n", time.Since(started))
+	fmt.Fprintf(s.log, "update: elapsed %v\n", time.Since(started))
 }
