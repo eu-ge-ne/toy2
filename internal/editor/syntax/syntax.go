@@ -26,6 +26,7 @@ type Syntax struct {
 	query      *treeSitter.Query
 	close      chan struct{}
 	edits      chan editReq
+	edit       treeSitter.InputEdit
 	highlights chan highlightReq
 
 	tree *treeSitter.Tree
@@ -222,31 +223,29 @@ func (s *Syntax) handleEditReq(req editReq) {
 		panic(fmt.Sprintf("in Syntax.handleEditReq: %v", req))
 	}
 
-	var ed treeSitter.InputEdit
-
 	switch req.kind {
 	case editKindDelete:
-		ed.StartByte = uint(i0)
-		ed.OldEndByte = uint(i1)
-		ed.NewEndByte = uint(i0)
+		s.edit.StartByte = uint(i0)
+		s.edit.OldEndByte = uint(i1)
+		s.edit.NewEndByte = uint(i0)
 
-		ed.StartPosition = treeSitter.NewPoint(uint(req.ln0), uint(col0))
-		ed.OldEndPosition = treeSitter.NewPoint(uint(req.ln1), uint(col1))
-		ed.NewEndPosition = treeSitter.NewPoint(uint(req.ln0), uint(col0))
+		s.edit.StartPosition = treeSitter.NewPoint(uint(req.ln0), uint(col0))
+		s.edit.OldEndPosition = treeSitter.NewPoint(uint(req.ln1), uint(col1))
+		s.edit.NewEndPosition = treeSitter.NewPoint(uint(req.ln0), uint(col0))
 	case editKindInsert:
-		ed.StartByte = uint(i0)
-		ed.OldEndByte = uint(i0)
-		ed.NewEndByte = uint(i1)
+		s.edit.StartByte = uint(i0)
+		s.edit.OldEndByte = s.edit.StartByte
+		s.edit.NewEndByte = uint(i1)
 
-		ed.StartPosition = treeSitter.NewPoint(uint(req.ln0), uint(col0))
-		ed.OldEndPosition = treeSitter.NewPoint(uint(req.ln0), uint(col0))
-		ed.NewEndPosition = treeSitter.NewPoint(uint(req.ln1), uint(col1))
+		s.edit.StartPosition = treeSitter.NewPoint(uint(req.ln0), uint(col0))
+		s.edit.OldEndPosition = s.edit.StartPosition
+		s.edit.NewEndPosition = treeSitter.NewPoint(uint(req.ln1), uint(col1))
 	}
 
-	fmt.Fprintf(f, "%+v\n", req)
-	fmt.Fprintf(f, "%+v\n", ed)
+	fmt.Fprintf(f, "%v\n", req)
+	fmt.Fprintf(f, "%+v\n", s.edit)
 
-	s.tree.Edit(&ed)
+	s.tree.Edit(&s.edit)
 
 	s.updateTree()
 }
