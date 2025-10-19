@@ -31,6 +31,7 @@ type Syntax struct {
 
 	tree *treeSitter.Tree
 	text []byte
+	log  *os.File
 }
 
 func New(buffer *textbuf.TextBuf) *Syntax {
@@ -86,56 +87,63 @@ func (s *Syntax) Insert(ln0, col0, ln1, col1 int) {
 	}
 }
 
-func (s *Syntax) Highlight(ln0, ln1 int) chan Span {
+func (s *Syntax) Highlight(startLn, endLn int) chan Span {
 	if s == nil {
 		return nil
 	}
 
 	spans := make(chan Span, 1024)
 
-	s.highlights <- highlightReq{ln0, ln1, spans}
+	s.highlights <- highlightReq{startLn, endLn, spans}
 
 	return spans
 }
 
 func (s *Syntax) run() {
+	f, err := os.OpenFile("tmp/syntax.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+	if err != nil {
+		panic(err)
+	}
+	s.log = f
+
 	go func() {
 		for {
 			select {
 			case <-s.close:
-				s.tree.Close()
-				s.tree = nil
+				s.handleClose()
 				return
 
 			case req := <-s.edits:
-				s.handleEditReq(req)
+				s.handleEdit(req)
 
 			case req := <-s.highlights:
-				s.handleHighlightReq(req)
+				s.handleHighlight(req)
 			}
 		}
 	}()
 }
 
-func (s *Syntax) handleHighlightReq(req highlightReq) {
-	f, err := os.OpenFile("tmp/syntax-highlight.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
-	if err != nil {
-		panic(err)
+func (s *Syntax) handleClose() {
+	if s.log != nil {
+		s.log.Close()
+		s.log = nil
 	}
-	defer f.Close()
 
+	s.tree.Close()
+	s.tree = nil
+}
+
+func (s *Syntax) handleHighlight(req highlightReq) {
 	started := time.Now()
 
 	if s.tree == nil {
 		s.updateTree()
 	}
 
-	ln0 := max(0, req.ln0)
-	ln1 := min(s.buffer.LineCount(), req.ln1)
-	startByte, _ := s.buffer.LnIndex(ln0)
-	endByte, _ := s.buffer.LnIndex(ln1)
-	startPoint := treeSitter.NewPoint(uint(ln0), 0)
-	endPoint := treeSitter.NewPoint(uint(ln1), 0)
+	startLn := max(0, req.startLn)
+	endLn := min(s.buffer.LineCount(), req.endLn)
+	startByte, _ := s.buffer.LnIndex(startLn)
+	endByte, _ := s.buffer.LnIndex(endLn)
 
 	if s.buffer.Count() > len(s.text) {
 		s.text = make([]byte, s.buffer.Count())
@@ -145,7 +153,7 @@ func (s *Syntax) handleHighlightReq(req highlightReq) {
 	qc := treeSitter.NewQueryCursor()
 	defer qc.Close()
 
-	qc.SetPointRange(startPoint, endPoint)
+	qc.SetPointRange(treeSitter.NewPoint(uint(startLn), 0), treeSitter.NewPoint(uint(endLn), 0))
 	capts := qc.Captures(s.query, s.tree.RootNode(), s.text)
 
 	var span Span
@@ -153,8 +161,8 @@ func (s *Syntax) handleHighlightReq(req highlightReq) {
 	match, captIdx := capts.Next()
 	if match != nil {
 		span = Span{
-			Start: int(match.Captures[captIdx].Node.StartByte()),
-			End:   int(match.Captures[captIdx].Node.EndByte()),
+			StartByte: int(match.Captures[captIdx].Node.StartByte()),
+			EndByte:   int(match.Captures[captIdx].Node.EndByte()),
 		}
 	}
 
@@ -162,25 +170,22 @@ func (s *Syntax) handleHighlightReq(req highlightReq) {
 		capt := match.Captures[captIdx]
 		name := s.query.CaptureNames()[capt.Index]
 
-		fmt.Fprintf(f,
-			"%v:%v %s (%s, %d, %d)\n",
+		fmt.Fprintf(s.log,
+			"highlight: %v:%v %s (%s)\n",
 			capt.Node.StartPosition(),
 			capt.Node.EndPosition(),
 			capt.Node.Utf8Text(s.text),
 			name,
-			match.PatternIndex,
-			capt.Index,
+			//match.PatternIndex,
+			//capt.Index,
 		)
 
-		start := int(capt.Node.StartByte())
-		end := int(capt.Node.EndByte())
+		startByte := int(capt.Node.StartByte())
+		endByte := int(capt.Node.EndByte())
 
-		if span.Start != start || span.End != end {
+		if span.StartByte != startByte || span.EndByte != endByte {
 			req.spans <- span
-			span = Span{
-				Start: start,
-				End:   end,
-			}
+			span = Span{StartByte: startByte, EndByte: endByte}
 		}
 
 		span.Name = name
@@ -189,16 +194,10 @@ func (s *Syntax) handleHighlightReq(req highlightReq) {
 	req.spans <- span
 	close(req.spans)
 
-	fmt.Fprintf(f, "elapsed %v\n", time.Since(started))
+	fmt.Fprintf(s.log, "highlight: elapsed %v\n", time.Since(started))
 }
 
-func (s *Syntax) handleEditReq(req editReq) {
-	f, err := os.OpenFile("tmp/syntax-edit.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-
+func (s *Syntax) handleEdit(req editReq) {
 	if s.tree == nil {
 		return
 	}
@@ -246,8 +245,8 @@ func (s *Syntax) handleEditReq(req editReq) {
 		s.edit.NewEndPosition.Column = uint(col1)
 	}
 
-	fmt.Fprintf(f, "%v\n", req)
-	fmt.Fprintf(f, "%+v\n", s.edit)
+	fmt.Fprintf(s.log, "edit: %v\n", req)
+	fmt.Fprintf(s.log, "edit: %+v\n", s.edit)
 
 	s.tree.Edit(&s.edit)
 
@@ -258,12 +257,6 @@ const maxChunkLen = 1024 * 64
 
 func (s *Syntax) updateTree() {
 	started := time.Now()
-
-	f, err := os.OpenFile("tmp/syntax-tree.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
 
 	/*
 		s.parser.SetIncludedRanges([]treeSitter.Range{{
@@ -285,5 +278,5 @@ func (s *Syntax) updateTree() {
 	s.tree.Close()
 	s.tree = t
 
-	fmt.Fprintf(f, "elapsed %v\n", time.Since(started))
+	fmt.Fprintf(s.log, "update: elapsed %v\n", time.Since(started))
 }

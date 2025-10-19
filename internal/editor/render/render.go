@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 
+	"github.com/eu-ge-ne/toy2/internal/color"
 	"github.com/eu-ge-ne/toy2/internal/editor/cursor"
 	"github.com/eu-ge-ne/toy2/internal/editor/syntax"
 	"github.com/eu-ge-ne/toy2/internal/std"
@@ -33,7 +34,7 @@ type Render struct {
 
 	hlSpans chan syntax.Span
 	hlSpan  syntax.Span
-	hlIdx   int
+	hlPos   int
 
 	colorMainBg     []byte
 	colorMainFg     []byte
@@ -61,7 +62,7 @@ func (r *Render) SetColors(t theme.Theme) {
 		"_text":        r.colorMainFg,
 		"_ws_enabled":  t.Dark0Fg(),
 		"_ws_disabled": t.MainFg(),
-		"keyword":      vt.CharFg([3]byte{0xCE, 0x92, 0xA4}),
+		"keyword":      vt.CharFg(color.Fuchsia300),
 		"comment":      vt.CharFg([3]byte{0x6A, 0x99, 0x55}),
 		"function":     vt.CharFg([3]byte{0xDC, 0xDC, 0xAA}),
 	}
@@ -239,8 +240,8 @@ func (r *Render) scrollH() {
 
 func (r *Render) initHighlight() {
 	r.hlSpans = r.syntax.Highlight(r.ScrollLn, r.ScrollLn+r.area.H)
-	r.hlSpan = syntax.Span{Start: -1, End: -1}
-	r.hlIdx, _ = r.buffer.LnIndex(r.ScrollLn)
+	r.hlSpan = syntax.Span{StartByte: -1, EndByte: -1}
+	r.hlPos, _ = r.buffer.LnIndex(r.ScrollLn)
 }
 
 func (r *Render) renderLines() {
@@ -338,17 +339,17 @@ func (r *Render) renderLine(ln int, row int) int {
 func (r *Render) nextSegSpanName(l int) string {
 	var name string
 
-	if r.hlIdx >= r.hlSpan.End {
+	if r.hlPos >= r.hlSpan.EndByte {
 		if s, ok := <-r.hlSpans; ok {
 			r.hlSpan = s
 		}
 	}
 
-	if r.hlIdx >= r.hlSpan.Start && r.hlIdx < r.hlSpan.End {
+	if r.hlPos >= r.hlSpan.StartByte && r.hlPos < r.hlSpan.EndByte {
 		name = r.hlSpan.Name
 	}
 
-	r.hlIdx += l
+	r.hlPos += l
 
 	return name
 }
