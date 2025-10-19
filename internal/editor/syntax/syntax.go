@@ -227,21 +227,19 @@ func (s *Syntax) handleEditReq(req editReq) {
 	switch req.kind {
 	case editKindDelete:
 		ed.StartByte = uint(i0)
-		ed.StartPosition = treeSitter.NewPoint(uint(req.ln0), uint(col0))
-
 		ed.OldEndByte = uint(i1)
-		ed.OldEndPosition = treeSitter.NewPoint(uint(req.ln1), uint(col1))
-
 		ed.NewEndByte = uint(i0)
+
+		ed.StartPosition = treeSitter.NewPoint(uint(req.ln0), uint(col0))
+		ed.OldEndPosition = treeSitter.NewPoint(uint(req.ln1), uint(col1))
 		ed.NewEndPosition = treeSitter.NewPoint(uint(req.ln0), uint(col0))
 	case editKindInsert:
 		ed.StartByte = uint(i0)
-		ed.StartPosition = treeSitter.NewPoint(uint(req.ln0), uint(col0))
-
 		ed.OldEndByte = uint(i0)
-		ed.OldEndPosition = treeSitter.NewPoint(uint(req.ln0), uint(col0))
-
 		ed.NewEndByte = uint(i1)
+
+		ed.StartPosition = treeSitter.NewPoint(uint(req.ln0), uint(col0))
+		ed.OldEndPosition = treeSitter.NewPoint(uint(req.ln0), uint(col0))
 		ed.NewEndPosition = treeSitter.NewPoint(uint(req.ln1), uint(col1))
 	}
 
