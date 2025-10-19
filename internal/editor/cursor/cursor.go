@@ -125,7 +125,7 @@ func (cur *Cursor) setLn(ln int) {
 func (cur *Cursor) setCol(col int) {
 	len := 0
 
-	for cell := range cur.buffer.IterLine(cur.Ln, false) {
+	for cell := range cur.buffer.IterLine(cur.Ln, false, 0, math.MaxInt) {
 		if cell.Gr.IsEol {
 			break
 		}

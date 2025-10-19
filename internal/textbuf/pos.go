@@ -1,6 +1,8 @@
 package textbuf
 
 import (
+	"math"
+
 	"github.com/eu-ge-ne/toy2/internal/textbuf/node"
 )
 
@@ -43,7 +45,7 @@ func (buf TextBuf) LnIndex(ln int) (int, bool) {
 func (buf *TextBuf) ColIndex(ln, col int) (int, bool) {
 	index := 0
 
-	for cell := range buf.IterLine(ln, true) {
+	for cell := range buf.IterLine(ln, true, 0, math.MaxInt) {
 		if cell.Col == col {
 			return index, true
 		}

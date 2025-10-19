@@ -28,6 +28,8 @@ type IterOptions struct {
 	WcharX    int
 	WrapWidth int
 	Extra     bool
+	Start     int
+	End       int
 }
 
 type IterCell struct {
@@ -62,8 +64,10 @@ func (p GraphemePool) IterString(it iter.Seq[string], opts IterOptions) iter.Seq
 					cell.WrapCol = 0
 				}
 
-				if !yield(cell) {
-					return
+				if cell.Col >= opts.Start && cell.Col < opts.End {
+					if !yield(cell) {
+						return
+					}
 				}
 
 				cell.Col += 1
@@ -81,8 +85,10 @@ func (p GraphemePool) IterString(it iter.Seq[string], opts IterOptions) iter.Seq
 				cell.WrapCol = 0
 			}
 
-			if !yield(cell) {
-				return
+			if cell.Col >= opts.Start && cell.Col < opts.End {
+				if !yield(cell) {
+					return
+				}
 			}
 		}
 	}

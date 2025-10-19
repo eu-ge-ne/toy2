@@ -172,7 +172,7 @@ func (r *Render) scrollV() {
 	xs := make([]int, r.cursor.Ln+1-r.ScrollLn)
 	for i := 0; i < len(xs); i += 1 {
 		xs[i] = 1
-		for cell := range r.buffer.IterLine(r.ScrollLn+i, false) {
+		for cell := range r.buffer.IterLine(r.ScrollLn+i, false, 0, math.MaxInt) {
 			if cell.Col > 0 && cell.WrapCol == 0 {
 				xs[i] += 1
 			}
@@ -196,7 +196,7 @@ func (r *Render) scrollV() {
 
 func (r *Render) scrollH() {
 	var cell *grapheme.IterCell = nil
-	for c := range r.buffer.IterLine2(r.cursor.Ln, true, r.cursor.Col, math.MaxInt) {
+	for c := range r.buffer.IterLine(r.cursor.Ln, true, r.cursor.Col, math.MaxInt) {
 		cell = &c
 		break
 	}
@@ -222,7 +222,7 @@ func (r *Render) scrollH() {
 
 	xs := make([]int, deltaCol)
 	xsI := 0
-	for c := range r.buffer.IterLine2(r.cursor.Ln, true, r.cursor.Col-deltaCol, r.cursor.Col) {
+	for c := range r.buffer.IterLine(r.cursor.Ln, true, r.cursor.Col-deltaCol, r.cursor.Col) {
 		xs[xsI] = c.Gr.Width
 		xsI += 1
 	}
@@ -271,7 +271,7 @@ func (r *Render) renderLine(ln int, row int) int {
 	currentBg := false
 	availableW := 0
 
-	for cell := range r.buffer.IterLine(ln, false) {
+	for cell := range r.buffer.IterLine(ln, false, 0, math.MaxInt) {
 		if cell.WrapCol == 0 {
 			if cell.Col > 0 {
 				row += 1

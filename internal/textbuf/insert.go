@@ -1,6 +1,8 @@
 package textbuf
 
 import (
+	"math"
+
 	"github.com/eu-ge-ne/toy2/internal/textbuf/node"
 )
 
@@ -80,7 +82,7 @@ func (buf *TextBuf) Insert2(ln, col int, text string) {
 		}
 	}
 
-	for cell := range buf.IterLine(ln, false) {
+	for cell := range buf.IterLine(ln, false, 0, math.MaxInt) {
 		if cell.Col == col {
 			break
 		}
