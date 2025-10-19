@@ -4,7 +4,6 @@ import (
 	_ "embed"
 	"fmt"
 	"os"
-	"slices"
 	"time"
 
 	treeSitter "github.com/tree-sitter/go-tree-sitter"
@@ -27,6 +26,7 @@ type Syntax struct {
 	query      *treeSitter.Query
 	close      chan struct{}
 	edits      chan editReq
+	edit       treeSitter.InputEdit
 	highlights chan highlightReq
 
 	tree *treeSitter.Tree
@@ -148,10 +148,7 @@ func (s *Syntax) handleHighlightReq(req highlightReq) {
 	qc.SetPointRange(startPoint, endPoint)
 	capts := qc.Captures(s.query, s.tree.RootNode(), s.text)
 
-	var (
-		span     Span
-		captures []int
-	)
+	var span Span
 
 	match, captIdx := capts.Next()
 	if match != nil {
@@ -159,18 +156,18 @@ func (s *Syntax) handleHighlightReq(req highlightReq) {
 			Start: int(match.Captures[captIdx].Node.StartByte()),
 			End:   int(match.Captures[captIdx].Node.EndByte()),
 		}
-		captures = make([]int, 0, 5)
 	}
 
 	for ; match != nil; match, captIdx = capts.Next() {
 		capt := match.Captures[captIdx]
+		name := s.query.CaptureNames()[capt.Index]
 
 		fmt.Fprintf(f,
 			"%v:%v %s (%s, %d, %d)\n",
 			capt.Node.StartPosition(),
 			capt.Node.EndPosition(),
 			capt.Node.Utf8Text(s.text),
-			s.query.CaptureNames()[capt.Index],
+			name,
 			match.PatternIndex,
 			capt.Index,
 		)
@@ -184,20 +181,9 @@ func (s *Syntax) handleHighlightReq(req highlightReq) {
 				Start: start,
 				End:   end,
 			}
-			captures = make([]int, 0, 5)
 		}
 
-		captures = append(captures, int(capt.Index))
-
-		if slices.Contains(captures, 0 /*variable*/) {
-			span.Kind = SpanKindVariable
-		} else if slices.Contains(captures, 18 /*keyword*/) {
-			span.Kind = SpanKindKeyword
-		} else if slices.Contains(captures, 9 /*comment*/) {
-			span.Kind = SpanKindComment
-		} else {
-			span.Kind = SpanKindNone
-		}
+		span.Name = name
 	}
 
 	req.spans <- span
@@ -237,33 +223,33 @@ func (s *Syntax) handleEditReq(req editReq) {
 		panic(fmt.Sprintf("in Syntax.handleEditReq: %v", req))
 	}
 
-	var ed treeSitter.InputEdit
-
 	switch req.kind {
 	case editKindDelete:
-		ed.StartByte = uint(i0)
-		ed.StartPosition = treeSitter.NewPoint(uint(req.ln0), uint(col0))
+		s.edit.StartByte = uint(i0)
+		s.edit.OldEndByte = uint(i1)
+		s.edit.NewEndByte = s.edit.StartByte
 
-		ed.OldEndByte = uint(i1)
-		ed.OldEndPosition = treeSitter.NewPoint(uint(req.ln1), uint(col1))
-
-		ed.NewEndByte = uint(i0)
-		ed.NewEndPosition = treeSitter.NewPoint(uint(req.ln0), uint(col0))
+		s.edit.StartPosition.Row = uint(req.ln0)
+		s.edit.StartPosition.Column = uint(col0)
+		s.edit.OldEndPosition.Row = uint(req.ln1)
+		s.edit.OldEndPosition.Column = uint(col1)
+		s.edit.NewEndPosition = s.edit.StartPosition
 	case editKindInsert:
-		ed.StartByte = uint(i0)
-		ed.StartPosition = treeSitter.NewPoint(uint(req.ln0), uint(col0))
+		s.edit.StartByte = uint(i0)
+		s.edit.OldEndByte = s.edit.StartByte
+		s.edit.NewEndByte = uint(i1)
 
-		ed.OldEndByte = uint(i0)
-		ed.OldEndPosition = treeSitter.NewPoint(uint(req.ln0), uint(col0))
-
-		ed.NewEndByte = uint(i1)
-		ed.NewEndPosition = treeSitter.NewPoint(uint(req.ln1), uint(col1))
+		s.edit.StartPosition.Row = uint(req.ln0)
+		s.edit.StartPosition.Column = uint(col0)
+		s.edit.OldEndPosition = s.edit.StartPosition
+		s.edit.NewEndPosition.Row = uint(req.ln1)
+		s.edit.NewEndPosition.Column = uint(col1)
 	}
 
-	fmt.Fprintf(f, "%+v\n", req)
-	fmt.Fprintf(f, "%+v\n", ed)
+	fmt.Fprintf(f, "%v\n", req)
+	fmt.Fprintf(f, "%+v\n", s.edit)
 
-	s.tree.Edit(&ed)
+	s.tree.Edit(&s.edit)
 
 	s.updateTree()
 }
@@ -295,6 +281,7 @@ func (s *Syntax) updateTree() {
 		}
 		return []byte(text)
 	}, s.tree, nil)
+
 	s.tree.Close()
 	s.tree = t
 

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/eu-ge-ne/toy2/internal/color"
 	"github.com/eu-ge-ne/toy2/internal/editor/cursor"
 	"github.com/eu-ge-ne/toy2/internal/editor/syntax"
 	"github.com/eu-ge-ne/toy2/internal/std"
@@ -37,19 +36,12 @@ type Render struct {
 	hlIdx   int
 
 	colorMainBg     []byte
+	colorMainFg     []byte
 	colorSelectedBg []byte
 	colorVoidBg     []byte
 	colorIndex      []byte
-	colorCharFg     map[int][]byte
+	colorCharFg     map[string][]byte
 }
-
-type CharKind int
-
-const (
-	CharKindVisible CharKind = iota
-	CharKindWsEnabled
-	CharKindWsDisabled
-)
 
 func New(buffer *textbuf.TextBuf, cursor *cursor.Cursor) *Render {
 	return &Render{
@@ -60,17 +52,18 @@ func New(buffer *textbuf.TextBuf, cursor *cursor.Cursor) *Render {
 
 func (r *Render) SetColors(t theme.Theme) {
 	r.colorMainBg = t.MainBg()
+	r.colorMainFg = t.Light1Fg()
 	r.colorSelectedBg = t.Light2Bg()
 	r.colorVoidBg = t.Dark0Bg()
 	r.colorIndex = append(t.Light0Bg(), t.Dark0Fg()...)
 
-	r.colorCharFg = map[int][]byte{
-		int(CharKindVisible):         t.Light1Fg(),
-		int(CharKindWsEnabled):       t.Dark0Fg(),
-		int(CharKindWsDisabled):      t.MainFg(),
-		int(syntax.SpanKindVariable): vt.CharFg(color.Sky200),
-		int(syntax.SpanKindKeyword):  vt.CharFg(color.Purple400),
-		int(syntax.SpanKindComment):  vt.CharFg(color.Green600),
+	r.colorCharFg = map[string][]byte{
+		"_text":        r.colorMainFg,
+		"_ws_enabled":  t.Dark0Fg(),
+		"_ws_disabled": t.MainFg(),
+		"keyword":      vt.CharFg([3]byte{0xCE, 0x92, 0xA4}),
+		"comment":      vt.CharFg([3]byte{0x6A, 0x99, 0x55}),
+		"function":     vt.CharFg([3]byte{0xDC, 0xDC, 0xAA}),
 	}
 }
 
@@ -270,7 +263,7 @@ func (r *Render) renderLines() {
 }
 
 func (r *Render) renderLine(ln int, row int) int {
-	currentFg := -1
+	currentFg := ""
 	currentBg := false
 	availableW := 0
 
@@ -299,7 +292,7 @@ func (r *Render) renderLine(ln int, row int) int {
 			availableW = r.area.W - r.indexWidth
 		}
 
-		segKind := r.nextSegKind(len(cell.G.Seg))
+		spanName := r.nextSegSpanName(len(cell.G.Seg))
 
 		if (cell.Col < r.ScrollCol) || (cell.G.Width > availableW) {
 			continue
@@ -315,19 +308,23 @@ func (r *Render) renderLine(ln int, row int) int {
 			}
 		}
 
-		fg := int(segKind)
-		if fg == int(syntax.SpanKindNone) {
+		fg := spanName
+		if len(fg) == 0 {
 			if cell.G.IsVisible {
-				fg = int(CharKindVisible)
+				fg = "_text"
 			} else if r.whitespaceEnabled {
-				fg = int(CharKindWsEnabled)
+				fg = "_ws_enabled"
 			} else {
-				fg = int(CharKindWsDisabled)
+				fg = "_ws_disabled"
 			}
 		}
 		if fg != currentFg {
 			currentFg = fg
-			vt.Buf.Write(r.colorCharFg[fg])
+			b, ok := r.colorCharFg[fg]
+			if !ok {
+				b = r.colorMainFg
+			}
+			vt.Buf.Write(b)
 		}
 
 		vt.Buf.Write(cell.G.Bytes)
@@ -338,8 +335,8 @@ func (r *Render) renderLine(ln int, row int) int {
 	return row
 }
 
-func (r *Render) nextSegKind(l int) syntax.SpanKind {
-	kind := syntax.SpanKindNone
+func (r *Render) nextSegSpanName(l int) string {
+	var name string
 
 	if r.hlIdx >= r.hlSpan.End {
 		if s, ok := <-r.hlSpans; ok {
@@ -348,10 +345,10 @@ func (r *Render) nextSegKind(l int) syntax.SpanKind {
 	}
 
 	if r.hlIdx >= r.hlSpan.Start && r.hlIdx < r.hlSpan.End {
-		kind = r.hlSpan.Kind
+		name = r.hlSpan.Name
 	}
 
 	r.hlIdx += l
 
-	return kind
+	return name
 }
