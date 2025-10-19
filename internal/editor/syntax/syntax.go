@@ -108,16 +108,16 @@ func (s *Syntax) run() {
 				return
 
 			case req := <-s.edits:
-				s.handleEditReq(req)
+				s.handleEdit(req)
 
 			case req := <-s.highlights:
-				s.handleHighlightReq(req)
+				s.handleHighlight(req)
 			}
 		}
 	}()
 }
 
-func (s *Syntax) handleHighlightReq(req highlightReq) {
+func (s *Syntax) handleHighlight(req highlightReq) {
 	f, err := os.OpenFile("tmp/syntax-highlight.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
 	if err != nil {
 		panic(err)
@@ -192,7 +192,7 @@ func (s *Syntax) handleHighlightReq(req highlightReq) {
 	fmt.Fprintf(f, "elapsed %v\n", time.Since(started))
 }
 
-func (s *Syntax) handleEditReq(req editReq) {
+func (s *Syntax) handleEdit(req editReq) {
 	f, err := os.OpenFile("tmp/syntax-edit.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
 	if err != nil {
 		panic(err)
