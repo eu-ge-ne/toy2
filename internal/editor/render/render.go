@@ -299,6 +299,8 @@ func (r *Render) renderLine(ln int, row int) int {
 			availableW = r.area.W - r.indexWidth
 		}
 
+		segKind := r.nextSegKind(len(cell.G.Seg))
+
 		if (cell.Col < r.ScrollCol) || (cell.G.Width > availableW) {
 			continue
 		}
@@ -313,7 +315,7 @@ func (r *Render) renderLine(ln int, row int) int {
 			}
 		}
 
-		fg := int(r.nextSegKind(len(cell.G.Seg)))
+		fg := int(segKind)
 		if fg == int(syntax.SpanKindNone) {
 			if cell.G.IsVisible {
 				fg = int(CharKindVisible)
