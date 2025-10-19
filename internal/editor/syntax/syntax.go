@@ -86,16 +86,16 @@ func (s *Syntax) Insert(ln0, col0, ln1, col1 int) {
 	}
 }
 
-func (s *Syntax) Highlight(ln0, ln1 int) chan HighlightSpan {
+func (s *Syntax) Highlight(ln0, ln1 int) chan Span {
 	if s == nil {
 		return nil
 	}
 
-	hls := make(chan HighlightSpan, 1024)
+	spans := make(chan Span, 1024)
 
-	s.highlights <- highlightReq{ln0, ln1, hls}
+	s.highlights <- highlightReq{ln0, ln1, spans}
 
-	return hls
+	return spans
 }
 
 func (s *Syntax) run() {
@@ -149,18 +149,17 @@ func (s *Syntax) handleHighlightReq(req highlightReq) {
 	capts := qc.Captures(s.query, s.tree.RootNode(), s.text)
 
 	var (
-		span         HighlightSpan
-		spanCaptures []int
+		span     Span
+		captures []int
 	)
 
 	match, captIdx := capts.Next()
 	if match != nil {
-		span = HighlightSpan{
+		span = Span{
 			Start: int(match.Captures[captIdx].Node.StartByte()),
 			End:   int(match.Captures[captIdx].Node.EndByte()),
-			Color: CharFgColorUndefined,
 		}
-		spanCaptures = make([]int, 0, 5)
+		captures = make([]int, 0, 5)
 	}
 
 	for ; match != nil; match, captIdx = capts.Next() {
@@ -181,24 +180,23 @@ func (s *Syntax) handleHighlightReq(req highlightReq) {
 
 		if span.Start != start || span.End != end {
 			req.spans <- span
-			span = HighlightSpan{
+			span = Span{
 				Start: start,
 				End:   end,
-				Color: CharFgColorUndefined,
 			}
-			spanCaptures = make([]int, 0, 5)
+			captures = make([]int, 0, 5)
 		}
 
-		spanCaptures = append(spanCaptures, int(capt.Index))
+		captures = append(captures, int(capt.Index))
 
-		if slices.Contains(spanCaptures, 0 /*variable*/) {
-			span.Color = CharFgColorVariable
-		} else if slices.Contains(spanCaptures, 18 /*keyword*/) {
-			span.Color = CharFgColorKeyword
-		} else if slices.Contains(spanCaptures, 9 /*comment*/) {
-			span.Color = CharFgColorComment
+		if slices.Contains(captures, 0 /*variable*/) {
+			span.Kind = SpanKindVariable
+		} else if slices.Contains(captures, 18 /*keyword*/) {
+			span.Kind = SpanKindKeyword
+		} else if slices.Contains(captures, 9 /*comment*/) {
+			span.Kind = SpanKindComment
 		} else {
-			span.Color = CharFgColorUndefined
+			span.Kind = SpanKindNone
 		}
 	}
 
