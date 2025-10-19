@@ -86,22 +86,21 @@ func (s *Syntax) Insert(ln0, col0, ln1, col1 int) {
 	}
 }
 
-func (s *Syntax) Highlight(ln0, ln1 int) chan HighlightSpan {
+func (s *Syntax) Highlight(ln0, ln1 int) chan Span {
 	if s == nil {
 		return nil
 	}
 
-	hls := make(chan HighlightSpan, 1024)
+	spans := make(chan Span, 1024)
 
-	s.highlights <- highlightReq{ln0, ln1, hls}
+	s.highlights <- highlightReq{ln0, ln1, spans}
 
-	return hls
+	return spans
 }
 
 func (s *Syntax) run() {
 	go func() {
 		for {
-
 			select {
 			case <-s.close:
 				s.tree.Close()
@@ -117,8 +116,6 @@ func (s *Syntax) run() {
 		}
 	}()
 }
-
-const maxChunkLen = 1024 * 16
 
 func (s *Syntax) handleHighlightReq(req highlightReq) {
 	f, err := os.OpenFile("tmp/syntax-highlight.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
@@ -152,18 +149,17 @@ func (s *Syntax) handleHighlightReq(req highlightReq) {
 	capts := qc.Captures(s.query, s.tree.RootNode(), s.text)
 
 	var (
-		span         HighlightSpan
-		spanCaptures []int
+		span     Span
+		captures []int
 	)
 
 	match, captIdx := capts.Next()
 	if match != nil {
-		span = HighlightSpan{
+		span = Span{
 			Start: int(match.Captures[captIdx].Node.StartByte()),
 			End:   int(match.Captures[captIdx].Node.EndByte()),
-			Color: CharFgColorUndefined,
 		}
-		spanCaptures = make([]int, 0, 5)
+		captures = make([]int, 0, 5)
 	}
 
 	for ; match != nil; match, captIdx = capts.Next() {
@@ -184,24 +180,23 @@ func (s *Syntax) handleHighlightReq(req highlightReq) {
 
 		if span.Start != start || span.End != end {
 			req.spans <- span
-			span = HighlightSpan{
+			span = Span{
 				Start: start,
 				End:   end,
-				Color: CharFgColorUndefined,
 			}
-			spanCaptures = make([]int, 0, 5)
+			captures = make([]int, 0, 5)
 		}
 
-		spanCaptures = append(spanCaptures, int(capt.Index))
+		captures = append(captures, int(capt.Index))
 
-		if slices.Contains(spanCaptures, 0 /*variable*/) {
-			span.Color = CharFgColorVariable
-		} else if slices.Contains(spanCaptures, 18 /*keyword*/) {
-			span.Color = CharFgColorKeyword
-		} else if slices.Contains(spanCaptures, 9 /*comment*/) {
-			span.Color = CharFgColorComment
+		if slices.Contains(captures, 0 /*variable*/) {
+			span.Kind = SpanKindVariable
+		} else if slices.Contains(captures, 18 /*keyword*/) {
+			span.Kind = SpanKindKeyword
+		} else if slices.Contains(captures, 9 /*comment*/) {
+			span.Kind = SpanKindComment
 		} else {
-			span.Color = CharFgColorUndefined
+			span.Kind = SpanKindNone
 		}
 	}
 
@@ -212,28 +207,34 @@ func (s *Syntax) handleHighlightReq(req highlightReq) {
 }
 
 func (s *Syntax) handleEditReq(req editReq) {
+	f, err := os.OpenFile("tmp/syntax-edit.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
 	if s.tree == nil {
 		return
 	}
 
 	i0, ok := s.buffer.Index(req.ln0, req.col0)
 	if !ok {
-		panic(fmt.Sprintf("in Syntax.handleOp: %v", req))
+		panic(fmt.Sprintf("in Syntax.handleEditReq: %v", req))
 	}
 
 	i1, ok := s.buffer.Index(req.ln1, req.col1)
 	if !ok {
-		panic(fmt.Sprintf("in Syntax.handleOp: %v", req))
+		panic(fmt.Sprintf("in Syntax.handleEditReq: %v", req))
 	}
 
-	col0i, ok := s.buffer.ColIndex(req.ln0, req.col0)
+	col0, ok := s.buffer.ColIndex(req.ln0, req.col0)
 	if !ok {
-		panic(fmt.Sprintf("in Syntax.handleOp: %v", req))
+		panic(fmt.Sprintf("in Syntax.handleEditReq: %v", req))
 	}
 
-	col1i, ok := s.buffer.ColIndex(req.ln1, req.col1)
+	col1, ok := s.buffer.ColIndex(req.ln1, req.col1)
 	if !ok {
-		panic(fmt.Sprintf("in Syntax.handleOp: %v", req))
+		panic(fmt.Sprintf("in Syntax.handleEditReq: %v", req))
 	}
 
 	var ed treeSitter.InputEdit
@@ -241,24 +242,33 @@ func (s *Syntax) handleEditReq(req editReq) {
 	switch req.kind {
 	case editKindDelete:
 		ed.StartByte = uint(i0)
+		ed.StartPosition = treeSitter.NewPoint(uint(req.ln0), uint(col0))
+
 		ed.OldEndByte = uint(i1)
-		ed.NewEndByte = uint(i0 + 1)
-		ed.StartPosition = treeSitter.NewPoint(uint(req.ln0), uint(col0i))
-		ed.OldEndPosition = treeSitter.NewPoint(uint(req.ln1), uint(col1i))
-		ed.NewEndPosition = treeSitter.NewPoint(uint(req.ln0), uint(col0i+1))
+		ed.OldEndPosition = treeSitter.NewPoint(uint(req.ln1), uint(col1))
+
+		ed.NewEndByte = uint(i0)
+		ed.NewEndPosition = treeSitter.NewPoint(uint(req.ln0), uint(col0))
 	case editKindInsert:
 		ed.StartByte = uint(i0)
-		ed.OldEndByte = uint(i0 + 1)
+		ed.StartPosition = treeSitter.NewPoint(uint(req.ln0), uint(col0))
+
+		ed.OldEndByte = uint(i0)
+		ed.OldEndPosition = treeSitter.NewPoint(uint(req.ln0), uint(col0))
+
 		ed.NewEndByte = uint(i1)
-		ed.StartPosition = treeSitter.NewPoint(uint(req.ln0), uint(col0i))
-		ed.OldEndPosition = treeSitter.NewPoint(uint(req.ln0), uint(col0i+1))
-		ed.NewEndPosition = treeSitter.NewPoint(uint(req.ln1), uint(col1i))
+		ed.NewEndPosition = treeSitter.NewPoint(uint(req.ln1), uint(col1))
 	}
+
+	fmt.Fprintf(f, "%+v\n", req)
+	fmt.Fprintf(f, "%+v\n", ed)
 
 	s.tree.Edit(&ed)
 
 	s.updateTree()
 }
+
+const maxChunkLen = 1024 * 64
 
 func (s *Syntax) updateTree() {
 	started := time.Now()

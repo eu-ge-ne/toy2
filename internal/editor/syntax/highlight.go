@@ -3,11 +3,20 @@ package syntax
 type highlightReq struct {
 	ln0   int
 	ln1   int
-	spans chan HighlightSpan
+	spans chan Span
 }
 
-type HighlightSpan struct {
+type Span struct {
 	Start int
 	End   int
-	Color CharFgColor
+	Kind  SpanKind
 }
+
+type SpanKind int
+
+const (
+	SpanKindNone SpanKind = 1000 + iota
+	SpanKindVariable
+	SpanKindKeyword
+	SpanKindComment
+)

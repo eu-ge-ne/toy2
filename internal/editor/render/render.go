@@ -32,16 +32,24 @@ type Render struct {
 	ScrollLn   int
 	ScrollCol  int
 
-	hlSpans chan syntax.HighlightSpan
-	hlSpan  syntax.HighlightSpan
+	hlSpans chan syntax.Span
+	hlSpan  syntax.Span
 	hlIdx   int
 
 	colorMainBg     []byte
 	colorSelectedBg []byte
 	colorVoidBg     []byte
 	colorIndex      []byte
-	colorCharFg     map[syntax.CharFgColor][]byte
+	colorCharFg     map[int][]byte
 }
+
+type CharKind int
+
+const (
+	CharKindVisible CharKind = iota
+	CharKindWsEnabled
+	CharKindWsDisabled
+)
 
 func New(buffer *textbuf.TextBuf, cursor *cursor.Cursor) *Render {
 	return &Render{
@@ -56,13 +64,13 @@ func (r *Render) SetColors(t theme.Theme) {
 	r.colorVoidBg = t.Dark0Bg()
 	r.colorIndex = append(t.Light0Bg(), t.Dark0Fg()...)
 
-	r.colorCharFg = map[syntax.CharFgColor][]byte{
-		syntax.CharFgColorVisible:    t.Light1Fg(),
-		syntax.CharFgColorWhitespace: t.Dark0Fg(),
-		syntax.CharFgColorEmpty:      t.MainFg(),
-		syntax.CharFgColorVariable:   vt.CharFg(color.Sky200),
-		syntax.CharFgColorKeyword:    vt.CharFg(color.Purple400),
-		syntax.CharFgColorComment:    vt.CharFg(color.Green600),
+	r.colorCharFg = map[int][]byte{
+		int(CharKindVisible):         t.Light1Fg(),
+		int(CharKindWsEnabled):       t.Dark0Fg(),
+		int(CharKindWsDisabled):      t.MainFg(),
+		int(syntax.SpanKindVariable): vt.CharFg(color.Sky200),
+		int(syntax.SpanKindKeyword):  vt.CharFg(color.Purple400),
+		int(syntax.SpanKindComment):  vt.CharFg(color.Green600),
 	}
 }
 
@@ -238,7 +246,7 @@ func (r *Render) scrollH() {
 
 func (r *Render) initHighlight() {
 	r.hlSpans = r.syntax.Highlight(r.ScrollLn, r.ScrollLn+r.area.H)
-	r.hlSpan = syntax.HighlightSpan{Start: -1, End: -1, Color: 0}
+	r.hlSpan = syntax.Span{Start: -1, End: -1}
 	r.hlIdx, _ = r.buffer.LnIndex(r.ScrollLn)
 }
 
@@ -262,7 +270,7 @@ func (r *Render) renderLines() {
 }
 
 func (r *Render) renderLine(ln int, row int) int {
-	currentFg := syntax.CharFgColorUndefined
+	currentFg := -1
 	currentBg := false
 	availableW := 0
 
@@ -291,13 +299,15 @@ func (r *Render) renderLine(ln int, row int) int {
 			availableW = r.area.W - r.indexWidth
 		}
 
+		segKind := r.nextSegKind(len(cell.G.Seg))
+
 		if (cell.Col < r.ScrollCol) || (cell.G.Width > availableW) {
 			continue
 		}
 
-		colorBg := r.cursor.IsSelected(ln, i)
-		if colorBg != currentBg {
-			currentBg = colorBg
+		bg := r.cursor.IsSelected(ln, i)
+		if bg != currentBg {
+			currentBg = bg
 			if currentBg {
 				vt.Buf.Write(r.colorSelectedBg)
 			} else {
@@ -305,21 +315,19 @@ func (r *Render) renderLine(ln int, row int) int {
 			}
 		}
 
-		colorFg := r.nextColor(len(cell.G.Seg))
-
-		if colorFg == syntax.CharFgColorUndefined {
+		fg := int(segKind)
+		if fg == int(syntax.SpanKindNone) {
 			if cell.G.IsVisible {
-				colorFg = syntax.CharFgColorVisible
+				fg = int(CharKindVisible)
 			} else if r.whitespaceEnabled {
-				colorFg = syntax.CharFgColorWhitespace
+				fg = int(CharKindWsEnabled)
 			} else {
-				colorFg = syntax.CharFgColorEmpty
+				fg = int(CharKindWsDisabled)
 			}
 		}
-
-		if colorFg != currentFg {
-			currentFg = colorFg
-			vt.Buf.Write(r.colorCharFg[colorFg])
+		if fg != currentFg {
+			currentFg = fg
+			vt.Buf.Write(r.colorCharFg[fg])
 		}
 
 		vt.Buf.Write(cell.G.Bytes)
@@ -330,8 +338,8 @@ func (r *Render) renderLine(ln int, row int) int {
 	return row
 }
 
-func (r *Render) nextColor(l int) syntax.CharFgColor {
-	var color syntax.CharFgColor
+func (r *Render) nextSegKind(l int) syntax.SpanKind {
+	kind := syntax.SpanKindNone
 
 	if r.hlIdx >= r.hlSpan.End {
 		if s, ok := <-r.hlSpans; ok {
@@ -340,10 +348,10 @@ func (r *Render) nextColor(l int) syntax.CharFgColor {
 	}
 
 	if r.hlIdx >= r.hlSpan.Start && r.hlIdx < r.hlSpan.End {
-		color = r.hlSpan.Color
+		kind = r.hlSpan.Kind
 	}
 
 	r.hlIdx += l
 
-	return color
+	return kind
 }
