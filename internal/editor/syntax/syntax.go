@@ -280,6 +280,7 @@ func (s *Syntax) updateTree() {
 		}
 		return []byte(text)
 	}, s.tree, nil)
+
 	s.tree.Close()
 	s.tree = t
 
