@@ -142,8 +142,8 @@ func (s *Syntax) handleHighlight(req highlightReq) {
 
 	startLn := max(0, req.startLn)
 	endLn := min(s.buffer.LineCount(), req.endLn)
-	startByte, _ := s.buffer.LnIndex(startLn)
-	endByte, _ := s.buffer.LnIndex(endLn)
+	startByte, _ := s.buffer.LnToByte(startLn)
+	endByte, _ := s.buffer.LnToByte(endLn)
 
 	if s.buffer.Count() > len(s.text) {
 		s.text = make([]byte, s.buffer.Count())

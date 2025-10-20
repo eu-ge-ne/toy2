@@ -244,7 +244,7 @@ func (r *Render) scrollH() {
 func (r *Render) initHighlight() {
 	r.hlSpans = r.syntax.Highlight(r.ScrollLn, r.ScrollLn+r.area.H)
 	r.hlSpan = syntax.Span{StartByte: -1, EndByte: -1}
-	r.hlPos, _ = r.buffer.LnIndex(r.ScrollLn)
+	r.hlPos, _ = r.buffer.LnToByte(r.ScrollLn)
 }
 
 func (r *Render) renderLines() {
