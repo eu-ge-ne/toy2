@@ -70,7 +70,9 @@ func (buf *TextBuf) Insert(index int, text string) {
 }
 
 func (buf *TextBuf) Insert2(ln, col int, text string) {
-	buf.Insert(buf.posToInsertByte(ln, col), text)
+	pos := buf.EndPos(ln, col)
+
+	buf.Insert(pos.Idx, text)
 }
 
 func (buf *TextBuf) Append(text string) {

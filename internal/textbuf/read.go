@@ -25,12 +25,12 @@ func (buf *TextBuf) Read(start int, end int) iter.Seq[string] {
 }
 
 func (buf *TextBuf) Read2(startLn, startCol, endLn, endCol int) iter.Seq[string] {
-	start, _, ok := buf.PosToStartByte(startLn, startCol)
+	start, ok := buf.StartPos(startLn, startCol)
 	if !ok {
 		return empty
 	}
 
-	end, _ := buf.PosToEndByte(endLn, endCol)
+	end := buf.EndPos(endLn, endCol)
 
-	return buf.Read(start, end)
+	return buf.Read(start.Idx, end.Idx)
 }

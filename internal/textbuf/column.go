@@ -1,24 +1,24 @@
 package textbuf
 
-func (buf *TextBuf) ColMaxByte(ln int) int {
-	n := 0
+func (buf *TextBuf) colMaxIdx(ln int) int {
+	idx := 0
 
 	for _, gr := range buf.LineGraphemes(ln) {
-		n += len(gr.Str)
+		idx += len(gr.Str)
 	}
 
-	return n
+	return idx
 }
 
-func (buf *TextBuf) ColByte(ln, col int) (int, bool) {
-	index := 0
+func (buf *TextBuf) colIdx(ln, col int) (int, bool) {
+	idx := 0
 
 	for i, gr := range buf.LineGraphemes(ln) {
 		if i == col {
-			return index, true
+			return idx, true
 		}
 
-		index += len(gr.Str)
+		idx += len(gr.Str)
 	}
 
 	return 0, false

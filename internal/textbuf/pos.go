@@ -1,50 +1,37 @@
 package textbuf
 
-func (buf *TextBuf) PosToStartByte(ln, col int) (int, int, bool) {
-	lnByte, ok := buf.LnByte(ln)
-	if !ok {
-		return 0, 0, false
-	}
-
-	colByte, ok := buf.ColByte(ln, col)
-	if !ok {
-		return 0, 0, false
-	}
-
-	return lnByte + colByte, colByte, true
+type Pos struct {
+	Idx int
+	Ln  int
+	Col int
 }
 
-func (buf *TextBuf) PosToEndByte(ln, col int) (int, int) {
+func (buf *TextBuf) StartPos(ln, col int) (Pos, bool) {
+	lnIdx, ok := buf.LnIdx(ln)
+	if !ok {
+		return Pos{}, false
+	}
+
+	colIdx, ok := buf.colIdx(ln, col)
+	if !ok {
+		return Pos{}, false
+	}
+
+	return Pos{lnIdx + colIdx, ln, colIdx}, true
+}
+
+func (buf *TextBuf) EndPos(ln, col int) Pos {
 	maxLn := max(0, buf.LineCount()-1)
 	if ln > maxLn {
 		ln = maxLn
 	}
 
-	lnByte, ok := buf.LnByte(ln)
+	lnIdx, _ := buf.LnIdx(ln)
+
+	colIdx, ok := buf.colIdx(ln, col)
 	if !ok {
-		panic("in TextBuf.posToByte2")
+		colIdx = buf.colMaxIdx(ln)
 	}
 
-	colByte, ok := buf.ColByte(ln, col)
-	if !ok {
-		colByte = buf.ColMaxByte(ln)
-	}
-
-	return lnByte + colByte, colByte
-}
-
-func (buf *TextBuf) posToInsertByte(ln, col int) int {
-	maxLn := max(0, buf.LineCount()-1)
-	if ln > maxLn {
-		ln = maxLn
-	}
-
-	lnByte, _ := buf.LnByte(ln)
-
-	colByte, ok := buf.ColByte(ln, col)
-	if !ok {
-		colByte = buf.ColMaxByte(ln)
-	}
-
-	return lnByte + colByte
+	return Pos{lnIdx + colIdx, ln, colIdx}
 }

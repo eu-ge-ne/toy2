@@ -15,7 +15,7 @@ func (buf *TextBuf) LineCount() int {
 	return buf.tree.Root.TotalEolsLen + 1
 }
 
-func (buf TextBuf) LnByte(ln int) (int, bool) {
+func (buf TextBuf) LnIdx(ln int) (int, bool) {
 	if buf.Count() == 0 {
 		return 0, false
 	}
@@ -52,12 +52,12 @@ func (buf TextBuf) LnByte(ln int) (int, bool) {
 }
 
 func (buf *TextBuf) ReadLine(ln int) iter.Seq[string] {
-	start, ok := buf.LnByte(ln)
+	start, ok := buf.LnIdx(ln)
 	if !ok {
 		return func(yield func(string) bool) {}
 	}
 
-	end, ok := buf.LnByte(ln + 1)
+	end, ok := buf.LnIdx(ln + 1)
 	if !ok {
 		end = math.MaxInt
 	}
