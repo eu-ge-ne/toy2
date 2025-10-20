@@ -16,12 +16,12 @@ type LineCell struct {
 
 func (buf *TextBuf) IterLine(ln int, extra bool) iter.Seq2[int, LineCell] {
 	return func(yield func(int, LineCell) bool) {
-		start, ok := buf.LnIndex(ln)
+		start, ok := buf.LnToByte(ln)
 		if !ok {
 			return
 		}
 
-		end, ok := buf.LnIndex(ln + 1)
+		end, ok := buf.LnToByte(ln + 1)
 		if !ok {
 			end = math.MaxInt
 		}
@@ -65,20 +65,6 @@ func (buf *TextBuf) IterLine(ln int, extra bool) iter.Seq2[int, LineCell] {
 
 			if !yield(i, cell) {
 				return
-			}
-		}
-	}
-}
-
-func (buf *TextBuf) IterLine2(ln int, extra bool, start, end int) iter.Seq2[int, LineCell] {
-	return func(yield func(int, LineCell) bool) {
-		i := 0
-		for j, c := range buf.IterLine(ln, extra) {
-			if j >= start && j < end {
-				if !yield(i, c) {
-					return
-				}
-				i += 1
 			}
 		}
 	}

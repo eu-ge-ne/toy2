@@ -142,8 +142,8 @@ func (s *Syntax) handleHighlight(req highlightReq) {
 
 	startLn := max(0, req.startLn)
 	endLn := min(s.buffer.LineCount(), req.endLn)
-	startByte, _ := s.buffer.LnIndex(startLn)
-	endByte, _ := s.buffer.LnIndex(endLn)
+	startByte, _ := s.buffer.LnToByte(startLn)
+	endByte, _ := s.buffer.LnToByte(endLn)
 
 	if s.buffer.Count() > len(s.text) {
 		s.text = make([]byte, s.buffer.Count())
@@ -202,22 +202,22 @@ func (s *Syntax) handleEdit(req editReq) {
 		return
 	}
 
-	i0, ok := s.buffer.Index(req.ln0, req.col0)
+	i0, ok := s.buffer.LnColToByte(req.ln0, req.col0)
 	if !ok {
 		panic(fmt.Sprintf("in Syntax.handleEditReq: %v", req))
 	}
 
-	i1, ok := s.buffer.Index(req.ln1, req.col1)
+	i1, ok := s.buffer.LnColToByte(req.ln1, req.col1)
 	if !ok {
 		panic(fmt.Sprintf("in Syntax.handleEditReq: %v", req))
 	}
 
-	col0, ok := s.buffer.ColIndex(req.ln0, req.col0)
+	col0, ok := s.buffer.ColToByte(req.ln0, req.col0)
 	if !ok {
 		panic(fmt.Sprintf("in Syntax.handleEditReq: %v", req))
 	}
 
-	col1, ok := s.buffer.ColIndex(req.ln1, req.col1)
+	col1, ok := s.buffer.ColToByte(req.ln1, req.col1)
 	if !ok {
 		panic(fmt.Sprintf("in Syntax.handleEditReq: %v", req))
 	}

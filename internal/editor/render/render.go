@@ -195,9 +195,11 @@ func (r *Render) scrollV() {
 
 func (r *Render) scrollH() {
 	var cell *textbuf.LineCell = nil
-	for _, c := range r.buffer.IterLine2(r.cursor.Ln, true, r.cursor.Col, math.MaxInt) {
-		cell = &c
-		break
+	for i, c := range r.buffer.IterLine(r.cursor.Ln, true) {
+		if i >= r.cursor.Col {
+			cell = &c
+			break
+		}
 	}
 	if cell != nil {
 		r.cursorY += cell.Ln
@@ -220,8 +222,12 @@ func (r *Render) scrollH() {
 	// After?
 
 	xs := make([]int, deltaCol)
-	for i, c := range r.buffer.IterLine2(r.cursor.Ln, true, r.cursor.Col-deltaCol, r.cursor.Col) {
-		xs[i] = c.G.Width
+	xsI := 0
+	for i, c := range r.buffer.IterLine(r.cursor.Ln, true) {
+		if i >= r.cursor.Col-deltaCol && i < r.cursor.Col {
+			xs[xsI] = c.G.Width
+			xsI += 1
+		}
 	}
 
 	width := std.Sum(xs)
@@ -241,7 +247,7 @@ func (r *Render) scrollH() {
 func (r *Render) initHighlight() {
 	r.hlSpans = r.syntax.Highlight(r.ScrollLn, r.ScrollLn+r.area.H)
 	r.hlSpan = syntax.Span{StartByte: -1, EndByte: -1}
-	r.hlPos, _ = r.buffer.LnIndex(r.ScrollLn)
+	r.hlPos, _ = r.buffer.LnToByte(r.ScrollLn)
 }
 
 func (r *Render) renderLines() {

@@ -70,7 +70,7 @@ func (buf *TextBuf) Insert(index int, text string) {
 }
 
 func (buf *TextBuf) Insert2(ln, col int, text string) {
-	index, ok := buf.LnIndex(ln)
+	index, ok := buf.LnToByte(ln)
 
 	if !ok {
 		if ln == 0 {
@@ -80,6 +80,7 @@ func (buf *TextBuf) Insert2(ln, col int, text string) {
 		}
 	}
 
+	// TODO: buf.ColToByte
 	for i, cell := range buf.IterLine(ln, false) {
 		if i == col {
 			break
