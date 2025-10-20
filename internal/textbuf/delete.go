@@ -4,13 +4,13 @@ import (
 	"github.com/eu-ge-ne/toy2/internal/textbuf/node"
 )
 
-func (buf *TextBuf) Delete(start int, end int) {
-	n, offset := buf.tree.Root.Find(start)
+func (buf *TextBuf) Delete(startIdx int, endIdx int) {
+	n, offset := buf.tree.Root.Find(startIdx)
 	if n == nil {
 		return
 	}
 
-	count := end - start
+	count := endIdx - startIdx
 	offset2 := offset + count
 
 	if offset2 == n.Len {
@@ -38,7 +38,7 @@ func (buf *TextBuf) Delete(start int, end int) {
 			x = y
 		}
 
-		lastNode, lastOffset := buf.tree.Root.Find(end)
+		lastNode, lastOffset := buf.tree.Root.Find(endIdx)
 		if lastNode != nil && lastOffset != 0 {
 			y := buf.content.Split(lastNode, lastOffset, 0)
 			buf.tree.InsertAfter(lastNode, y)
@@ -57,12 +57,12 @@ func (buf *TextBuf) Delete(start int, end int) {
 }
 
 func (buf *TextBuf) Delete2(startLn, startCol, endLn, endCol int) {
-	start, ok := buf.Pos(startLn, startCol)
+	startIdx, ok := buf.Pos(startLn, startCol)
 	if !ok {
 		return
 	}
 
-	end := buf.PosNear(endLn, endCol)
+	endIdx := buf.PosNear(endLn, endCol)
 
-	buf.Delete(start.Idx, end.Idx)
+	buf.Delete(startIdx.Idx, endIdx.Idx)
 }

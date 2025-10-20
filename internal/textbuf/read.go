@@ -7,8 +7,8 @@ import (
 	"github.com/eu-ge-ne/toy2/internal/grapheme"
 )
 
-func (buf *TextBuf) Chunk(i int) string {
-	x, offset := buf.tree.Root.Find(i)
+func (buf *TextBuf) Chunk(idx int) string {
+	x, offset := buf.tree.Root.Find(idx)
 	if x == nil {
 		return ""
 	}
@@ -16,42 +16,40 @@ func (buf *TextBuf) Chunk(i int) string {
 	return buf.content.Chunk(x, offset)
 }
 
-func (buf *TextBuf) Read(start int, end int) iter.Seq[string] {
-	x, offset := buf.tree.Root.Find(start)
+func (buf *TextBuf) Read(startIdx int, endIdx int) iter.Seq[string] {
+	x, offset := buf.tree.Root.Find(startIdx)
 	if x == nil {
 		return func(yield func(string) bool) {}
 	}
 
-	return buf.content.Read(x, offset, end-start)
+	return buf.content.Read(x, offset, endIdx-startIdx)
 }
 
 func (buf *TextBuf) Read2(startLn, startCol, endLn, endCol int) iter.Seq[string] {
-	start, ok := buf.Pos(startLn, startCol)
+	startIdx, ok := buf.Pos(startLn, startCol)
 	if !ok {
 		return func(yield func(string) bool) {}
 	}
 
-	end := buf.PosNear(endLn, endCol)
+	endIdx := buf.PosNear(endLn, endCol)
 
-	return buf.Read(start.Idx, end.Idx)
+	return buf.Read(startIdx.Idx, endIdx.Idx)
 }
 
 func (buf *TextBuf) ReadLine(ln int) iter.Seq[string] {
-	start, ok := buf.lnIdx(ln)
+	startIdx, ok := buf.lnIdx(ln)
 	if !ok {
 		return func(yield func(string) bool) {}
 	}
 
-	end, ok := buf.lnIdx(ln + 1)
+	endIdx, ok := buf.lnIdx(ln + 1)
 	if !ok {
-		end = math.MaxInt
+		endIdx = math.MaxInt
 	}
 
-	return buf.Read(start, end)
+	return buf.Read(startIdx, endIdx)
 }
 
 func (buf *TextBuf) LineGraphemes(ln int) iter.Seq2[int, *grapheme.Grapheme] {
-	line := buf.ReadLine(ln)
-
-	return grapheme.Graphemes.FromString(line)
+	return grapheme.Graphemes.FromString(buf.ReadLine(ln))
 }
