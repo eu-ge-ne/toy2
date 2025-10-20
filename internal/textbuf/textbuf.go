@@ -56,3 +56,17 @@ func (buf *TextBuf) Reset(text string) {
 func (buf *TextBuf) Validate() {
 	buf.tree.Root.Validate()
 }
+
+func (buf *TextBuf) LnColToByte(ln, col int) (int, bool) {
+	lnIndex, ok := buf.LnToByte(ln)
+	if !ok {
+		return 0, false
+	}
+
+	colIndex, ok := buf.ColToByte(ln, col)
+	if !ok {
+		return 0, false
+	}
+
+	return lnIndex + colIndex, true
+}
