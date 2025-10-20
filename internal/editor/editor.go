@@ -238,7 +238,7 @@ func (ed *Editor) deletePrevChar() {
 
 	if cur.Ln > 0 && cur.Col == 0 {
 		l := 0
-		for range ed.buffer.IterLine(cur.Ln, false) {
+		for range ed.buffer.LineGraphemes(cur.Ln) {
 			l += 1
 			if l == 2 {
 				break

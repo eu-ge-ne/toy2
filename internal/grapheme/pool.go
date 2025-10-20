@@ -4,13 +4,17 @@ import (
 	"iter"
 
 	"github.com/rivo/uniseg"
+
+	"github.com/eu-ge-ne/toy2/internal/vt"
 )
 
-type GraphemePool struct {
-	pool map[string]*Grapheme
+type Pool struct {
+	pool   map[string]*Grapheme
+	wCharY int
+	wCharX int
 }
 
-func (p GraphemePool) Get(seg string) *Grapheme {
+func (p *Pool) Get(seg string) *Grapheme {
 	g, ok := p.pool[seg]
 
 	if !ok {
@@ -21,32 +25,45 @@ func (p GraphemePool) Get(seg string) *Grapheme {
 	return g
 }
 
-func (p GraphemePool) Iter(it iter.Seq[string]) iter.Seq[*Grapheme] {
-	return func(yield func(*Grapheme) bool) {
-		var seg string
+func (p *Pool) SetWcharPos(y, x int) {
+	p.wCharY = y
+	p.wCharX = x
+}
+
+func (p *Pool) FromString(it iter.Seq[string]) iter.Seq2[int, *Grapheme] {
+	return func(yield func(int, *Grapheme) bool) {
+		i := 0
+		str := ""
 
 		for text := range it {
 			state := -1
 
 			for len(text) > 0 {
-				seg, text, _, state = uniseg.StepString(text, state)
+				str, text, _, state = uniseg.StepString(text, state)
 
-				if !yield(p.Get(seg)) {
+				gr := p.Get(str)
+				if gr.Width < 0 {
+					gr.Width = vt.Wchar(p.wCharY, p.wCharX, gr.Bytes)
+				}
+
+				if !yield(i, gr) {
 					return
 				}
+
+				i += 1
 			}
 		}
 	}
 }
 
-func (p GraphemePool) MeasureString(text string) (ln, col int) {
-	var seg string
+func (p *Pool) MeasureString(text string) (ln, col int) {
+	str := ""
 	state := -1
 
 	for len(text) > 0 {
-		seg, text, _, state = uniseg.StepString(text, state)
+		str, text, _, state = uniseg.StepString(text, state)
 
-		if p.Get(seg).IsEol {
+		if p.Get(str).IsEol {
 			ln += 1
 			col = 0
 		} else {

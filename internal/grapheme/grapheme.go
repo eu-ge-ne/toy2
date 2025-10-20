@@ -10,7 +10,7 @@ var reOther = regexp.MustCompile(`\p{Other}`)
 var reEol = regexp.MustCompile(`\r?\n`)
 
 type Grapheme struct {
-	Seg   string
+	Str   string
 	Bytes []byte
 	Width int
 	//IsLetter    bool
@@ -20,17 +20,17 @@ type Grapheme struct {
 	IsEol     bool
 }
 
-func NewGrapheme(seg string, bytes []byte, width int) *Grapheme {
+func NewGrapheme(str string, bytes []byte, width int) *Grapheme {
 	g := Grapheme{}
 
-	g.Seg = seg
+	g.Str = str
 	g.Bytes = bytes
 	g.Width = width
 	//g.IsLetter = reLetter.MatchString(seg)
-	isSeparator := reSeparator.MatchString(seg)
-	isOther := reOther.MatchString(seg)
+	isSeparator := reSeparator.MatchString(str)
+	isOther := reOther.MatchString(str)
 	g.IsVisible = !isSeparator && !isOther
-	g.IsEol = reEol.MatchString(seg)
+	g.IsEol = reEol.MatchString(str)
 
 	return &g
 }

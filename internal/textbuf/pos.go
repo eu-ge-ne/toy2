@@ -1,69 +1,50 @@
 package textbuf
 
-import (
-	"github.com/eu-ge-ne/toy2/internal/textbuf/node"
-)
-
-func (buf TextBuf) LnIndex(ln int) (int, bool) {
-	if buf.Count() == 0 {
-		return 0, false
+func (buf *TextBuf) PosToStartByte(ln, col int) (int, int, bool) {
+	lnByte, ok := buf.LnByte(ln)
+	if !ok {
+		return 0, 0, false
 	}
 
-	if ln == 0 {
-		return 0, true
+	colByte, ok := buf.ColByte(ln, col)
+	if !ok {
+		return 0, 0, false
 	}
 
-	eolIndex := ln - 1
-	x := buf.tree.Root
-	i := 0
-
-	for x != node.NIL {
-		if eolIndex < x.Left.TotalEolsLen {
-			x = x.Left
-			continue
-		}
-
-		eolIndex -= x.Left.TotalEolsLen
-		i += x.Left.TotalLen
-
-		if eolIndex < x.EolsLen {
-			buf := buf.content.Table[x.PieceIndex]
-			eolEnd := buf.Eols[x.EolsStart+eolIndex].End
-			return i + eolEnd - x.Start, true
-		}
-
-		eolIndex -= x.EolsLen
-		i += x.Len
-		x = x.Right
-	}
-
-	return 0, false
+	return lnByte + colByte, colByte, true
 }
 
-func (buf *TextBuf) ColIndex(ln, col int) (int, bool) {
-	index := 0
-
-	for i, cell := range buf.IterLine(ln, true) {
-		if i == col {
-			return index, true
-		}
-
-		index += len(cell.G.Seg)
+func (buf *TextBuf) PosToEndByte(ln, col int) (int, int) {
+	maxLn := max(0, buf.LineCount()-1)
+	if ln > maxLn {
+		ln = maxLn
 	}
 
-	return 0, false
+	lnByte, ok := buf.LnByte(ln)
+	if !ok {
+		panic("in TextBuf.posToByte2")
+	}
+
+	colByte, ok := buf.ColByte(ln, col)
+	if !ok {
+		colByte = buf.ColMaxByte(ln)
+	}
+
+	return lnByte + colByte, colByte
 }
 
-func (buf *TextBuf) Index(ln, col int) (int, bool) {
-	lnIndex, ok := buf.LnIndex(ln)
-	if !ok {
-		return 0, false
+func (buf *TextBuf) posToInsertByte(ln, col int) int {
+	maxLn := max(0, buf.LineCount()-1)
+	if ln > maxLn {
+		ln = maxLn
 	}
 
-	colIndex, ok := buf.ColIndex(ln, col)
+	lnByte, _ := buf.LnByte(ln)
+
+	colByte, ok := buf.ColByte(ln, col)
 	if !ok {
-		return 0, false
+		colByte = buf.ColMaxByte(ln)
 	}
 
-	return lnIndex + colIndex, true
+	return lnByte + colByte
 }

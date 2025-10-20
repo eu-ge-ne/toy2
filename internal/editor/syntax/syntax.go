@@ -142,8 +142,8 @@ func (s *Syntax) handleHighlight(req highlightReq) {
 
 	startLn := max(0, req.startLn)
 	endLn := min(s.buffer.LineCount(), req.endLn)
-	startByte, _ := s.buffer.LnIndex(startLn)
-	endByte, _ := s.buffer.LnIndex(endLn)
+	startByte, _ := s.buffer.LnByte(startLn)
+	endByte, _ := s.buffer.LnByte(endLn)
 
 	if s.buffer.Count() > len(s.text) {
 		s.text = make([]byte, s.buffer.Count())
@@ -160,9 +160,11 @@ func (s *Syntax) handleHighlight(req highlightReq) {
 
 	match, captIdx := capts.Next()
 	if match != nil {
+		capt := match.Captures[captIdx]
 		span = Span{
-			StartByte: int(match.Captures[captIdx].Node.StartByte()),
-			EndByte:   int(match.Captures[captIdx].Node.EndByte()),
+			StartByte: int(capt.Node.StartByte()),
+			EndByte:   int(capt.Node.EndByte()),
+			Name:      s.query.CaptureNames()[capt.Index],
 		}
 	}
 
@@ -202,25 +204,12 @@ func (s *Syntax) handleEdit(req editReq) {
 		return
 	}
 
-	i0, ok := s.buffer.Index(req.ln0, req.col0)
+	i0, col0, ok := s.buffer.PosToStartByte(req.ln0, req.col0)
 	if !ok {
 		panic(fmt.Sprintf("in Syntax.handleEditReq: %v", req))
 	}
 
-	i1, ok := s.buffer.Index(req.ln1, req.col1)
-	if !ok {
-		panic(fmt.Sprintf("in Syntax.handleEditReq: %v", req))
-	}
-
-	col0, ok := s.buffer.ColIndex(req.ln0, req.col0)
-	if !ok {
-		panic(fmt.Sprintf("in Syntax.handleEditReq: %v", req))
-	}
-
-	col1, ok := s.buffer.ColIndex(req.ln1, req.col1)
-	if !ok {
-		panic(fmt.Sprintf("in Syntax.handleEditReq: %v", req))
-	}
+	i1, col1 := s.buffer.PosToEndByte(req.ln1, req.col1)
 
 	switch req.kind {
 	case editKindDelete:

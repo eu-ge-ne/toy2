@@ -2,12 +2,10 @@ package render
 
 import (
 	"fmt"
-	"math"
 
 	"github.com/eu-ge-ne/toy2/internal/color"
 	"github.com/eu-ge-ne/toy2/internal/editor/cursor"
 	"github.com/eu-ge-ne/toy2/internal/editor/syntax"
-	"github.com/eu-ge-ne/toy2/internal/std"
 	"github.com/eu-ge-ne/toy2/internal/textbuf"
 	"github.com/eu-ge-ne/toy2/internal/theme"
 	"github.com/eu-ge-ne/toy2/internal/ui"
@@ -27,6 +25,7 @@ type Render struct {
 
 	indexWidth int
 	textWidth  int
+	wrapWidth  int
 	cursorY    int
 	cursorX    int
 	ScrollLn   int
@@ -128,120 +127,10 @@ func (r *Render) Render() {
 	vt.Sync.Esu()
 }
 
-func (r *Render) scroll() {
-	if r.indexEnabled && r.buffer.LineCount() > 0 {
-		r.indexWidth = int(math.Log10(float64(r.buffer.LineCount()))) + 3
-	} else {
-		r.indexWidth = 0
-	}
-
-	r.textWidth = r.area.W - r.indexWidth
-
-	if r.wrapEnabled {
-		r.buffer.WrapWidth = r.textWidth
-	} else {
-		r.buffer.WrapWidth = math.MaxInt
-	}
-
-	r.cursorY = r.area.Y
-	r.cursorX = r.area.X + r.indexWidth
-
-	r.buffer.MeasureY = r.area.Y
-	r.buffer.MeasureX = r.area.X + r.indexWidth
-
-	r.scrollV()
-	r.scrollH()
-}
-
-func (r *Render) scrollV() {
-	deltaLn := r.cursor.Ln - r.ScrollLn
-
-	// Above?
-	if deltaLn <= 0 {
-		r.ScrollLn = r.cursor.Ln
-		return
-	}
-
-	// Below?
-
-	if deltaLn > r.area.H {
-		r.ScrollLn = r.cursor.Ln - r.area.H
-	}
-
-	xs := make([]int, r.cursor.Ln+1-r.ScrollLn)
-	for i := 0; i < len(xs); i += 1 {
-		xs[i] = 1
-		for j, cell := range r.buffer.IterLine(r.ScrollLn+i, false) {
-			if j > 0 && cell.Col == 0 {
-				xs[i] += 1
-			}
-		}
-	}
-
-	i := 0
-	height := std.Sum(xs)
-
-	for height > r.area.H {
-		height -= xs[i]
-		r.ScrollLn += 1
-		i += 1
-	}
-
-	for i < len(xs)-1 {
-		r.cursorY += xs[i]
-		i += 1
-	}
-}
-
-func (r *Render) scrollH() {
-	var cell *textbuf.LineCell = nil
-	for _, c := range r.buffer.IterLine2(r.cursor.Ln, true, r.cursor.Col, math.MaxInt) {
-		cell = &c
-		break
-	}
-	if cell != nil {
-		r.cursorY += cell.Ln
-	}
-
-	col := 0
-	if cell != nil {
-		col = cell.Col
-	}
-
-	deltaCol := col - r.ScrollCol
-
-	// Before?
-
-	if deltaCol <= 0 {
-		r.ScrollCol = col
-		return
-	}
-
-	// After?
-
-	xs := make([]int, deltaCol)
-	for i, c := range r.buffer.IterLine2(r.cursor.Ln, true, r.cursor.Col-deltaCol, r.cursor.Col) {
-		xs[i] = c.G.Width
-	}
-
-	width := std.Sum(xs)
-
-	for _, w := range xs {
-		if width < r.textWidth {
-			break
-		}
-
-		r.ScrollCol += 1
-		width -= w
-	}
-
-	r.cursorX += width
-}
-
 func (r *Render) initHighlight() {
 	r.hlSpans = r.syntax.Highlight(r.ScrollLn, r.ScrollLn+r.area.H)
 	r.hlSpan = syntax.Span{StartByte: -1, EndByte: -1}
-	r.hlPos, _ = r.buffer.LnIndex(r.ScrollLn)
+	r.hlPos, _ = r.buffer.LnByte(r.ScrollLn)
 }
 
 func (r *Render) renderLines() {
@@ -268,9 +157,9 @@ func (r *Render) renderLine(ln int, row int) int {
 	currentBg := false
 	availableW := 0
 
-	for i, cell := range r.buffer.IterLine(ln, false) {
-		if cell.Col == 0 {
-			if i > 0 {
+	for cell := range r.wrapLine(ln, false) {
+		if cell.WrapCol == 0 {
+			if cell.Col > 0 {
 				row += 1
 				if row >= r.area.Y+r.area.H {
 					return row
@@ -280,7 +169,7 @@ func (r *Render) renderLine(ln int, row int) int {
 			vt.SetCursor(vt.Buf, row, r.area.X)
 
 			if r.indexWidth > 0 {
-				if i == 0 {
+				if cell.Col == 0 {
 					vt.Buf.Write(r.colorIndex)
 					fmt.Fprintf(vt.Buf, "%*d ", r.indexWidth-1, ln+1)
 					vt.Buf.Write(r.colorMainBg)
@@ -293,13 +182,13 @@ func (r *Render) renderLine(ln int, row int) int {
 			availableW = r.area.W - r.indexWidth
 		}
 
-		spanName := r.nextSegSpanName(len(cell.G.Seg))
+		spanName := r.nextSegSpanName(len(cell.Gr.Str))
 
-		if (cell.Col < r.ScrollCol) || (cell.G.Width > availableW) {
+		if (cell.WrapCol < r.ScrollCol) || (cell.Gr.Width > availableW) {
 			continue
 		}
 
-		bg := r.cursor.IsSelected(ln, i)
+		bg := r.cursor.IsSelected(ln, cell.Col)
 		if bg != currentBg {
 			currentBg = bg
 			if currentBg {
@@ -311,7 +200,7 @@ func (r *Render) renderLine(ln int, row int) int {
 
 		fg := spanName
 		if len(fg) == 0 {
-			if cell.G.IsVisible {
+			if cell.Gr.IsVisible {
 				fg = "_text"
 			} else if r.whitespaceEnabled {
 				fg = "_ws_enabled"
@@ -328,9 +217,9 @@ func (r *Render) renderLine(ln int, row int) int {
 			vt.Buf.Write(b)
 		}
 
-		vt.Buf.Write(cell.G.Bytes)
+		vt.Buf.Write(cell.Gr.Bytes)
 
-		availableW -= cell.G.Width
+		availableW -= cell.Gr.Width
 	}
 
 	return row

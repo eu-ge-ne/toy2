@@ -1,8 +1,6 @@
 package textbuf
 
 import (
-	"math"
-
 	"github.com/eu-ge-ne/toy2/internal/textbuf/node"
 )
 
@@ -59,15 +57,12 @@ func (buf *TextBuf) Delete(start int, end int) {
 }
 
 func (buf *TextBuf) Delete2(startLn, startCol, endLn, endCol int) {
-	start, ok := buf.Index(startLn, startCol)
+	start, _, ok := buf.PosToStartByte(startLn, startCol)
 	if !ok {
 		return
 	}
 
-	end, ok := buf.Index(endLn, endCol)
-	if !ok {
-		end = math.MaxInt
-	}
+	end, _ := buf.PosToEndByte(endLn, endCol)
 
 	buf.Delete(start, end)
 }

@@ -9,10 +9,6 @@ import (
 )
 
 type TextBuf struct {
-	WrapWidth int
-	MeasureY  int
-	MeasureX  int
-
 	content content.Content
 	tree    tree.Tree
 }
@@ -23,8 +19,6 @@ type Snapshot struct {
 
 func New() *TextBuf {
 	return &TextBuf{
-		WrapWidth: math.MaxInt,
-
 		content: content.Content{},
 		tree:    tree.Tree{Root: node.NIL},
 	}
@@ -32,13 +26,6 @@ func New() *TextBuf {
 
 func (buf *TextBuf) Count() int {
 	return buf.tree.Root.TotalLen
-}
-
-func (buf *TextBuf) LineCount() int {
-	if buf.Count() == 0 {
-		return 0
-	}
-	return buf.tree.Root.TotalEolsLen + 1
 }
 
 func (buf *TextBuf) Save() Snapshot {
