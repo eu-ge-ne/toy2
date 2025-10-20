@@ -9,10 +9,9 @@ import (
 )
 
 type Pool struct {
-	pool      map[string]*Grapheme
-	wCharY    int
-	wCharX    int
-	wrapWidth int
+	pool   map[string]*Grapheme
+	wCharY int
+	wCharX int
 }
 
 func (p *Pool) Get(seg string) *Grapheme {
@@ -31,21 +30,9 @@ func (p *Pool) SetWcharPos(y, x int) {
 	p.wCharX = x
 }
 
-func (p *Pool) SetWrapWidth(w int) {
-	p.wrapWidth = w
-}
-
-type Segment struct {
-	Gr      *Grapheme
-	Col     int
-	WrapLn  int
-	WrapCol int
-}
-
-func (p *Pool) Segments(it iter.Seq[string], extra bool) iter.Seq[Segment] {
-	return func(yield func(Segment) bool) {
-		seg := Segment{}
-		w := 0
+func (p *Pool) FromString(it iter.Seq[string]) iter.Seq2[int, *Grapheme] {
+	return func(yield func(int, *Grapheme) bool) {
+		i := 0
 		str := ""
 
 		for text := range it {
@@ -54,39 +41,16 @@ func (p *Pool) Segments(it iter.Seq[string], extra bool) iter.Seq[Segment] {
 			for len(text) > 0 {
 				str, text, _, state = uniseg.StepString(text, state)
 
-				seg.Gr = p.Get(str)
-				if seg.Gr.Width < 0 {
-					seg.Gr.Width = vt.Wchar(p.wCharY, p.wCharX, seg.Gr.Bytes)
+				gr := p.Get(str)
+				if gr.Width < 0 {
+					gr.Width = vt.Wchar(p.wCharY, p.wCharX, gr.Bytes)
 				}
 
-				w += seg.Gr.Width
-				if w > p.wrapWidth {
-					w = seg.Gr.Width
-					seg.WrapLn += 1
-					seg.WrapCol = 0
-				}
-
-				if !yield(seg) {
+				if !yield(i, gr) {
 					return
 				}
 
-				seg.Col += 1
-				seg.WrapCol += 1
-			}
-		}
-
-		if extra {
-			seg.Gr = p.Get(" ")
-
-			w += seg.Gr.Width
-			if w > p.wrapWidth {
-				w = seg.Gr.Width
-				seg.WrapLn += 1
-				seg.WrapCol = 0
-			}
-
-			if !yield(seg) {
-				return
+				i += 1
 			}
 		}
 	}

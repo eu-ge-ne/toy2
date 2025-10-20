@@ -81,11 +81,11 @@ func (buf *TextBuf) Insert2(ln, col int, text string) {
 	}
 
 	// TODO: buf.ColToByte
-	for seg := range buf.LineSegments(ln) {
-		if seg.Col == col {
+	for i, gr := range buf.LineGraphemes(ln) {
+		if i == col {
 			break
 		}
-		index += len(seg.Gr.Str)
+		index += len(gr.Str)
 	}
 
 	buf.Insert(index, text)

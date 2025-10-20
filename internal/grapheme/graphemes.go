@@ -47,5 +47,5 @@ func init() {
 		pool[s] = NewGrapheme(s, []byte(s), 1)
 	}
 
-	Graphemes = Pool{pool, 0, 0, 0}
+	Graphemes = Pool{pool, 0, 0}
 }

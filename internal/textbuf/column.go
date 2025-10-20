@@ -1,14 +1,14 @@
 package textbuf
 
 func (buf *TextBuf) ColToByte(ln, col int) (int, bool) {
-	i := 0
+	index := 0
 
-	for seg := range buf.LineSegments(ln) {
-		if seg.Col == col {
-			return i, true
+	for i, gr := range buf.LineGraphemes(ln) {
+		if i == col {
+			return index, true
 		}
 
-		i += len(seg.Gr.Str)
+		index += len(gr.Str)
 	}
 
 	return 0, false

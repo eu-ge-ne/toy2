@@ -125,8 +125,8 @@ func (cur *Cursor) setLn(ln int) {
 func (cur *Cursor) setCol(col int) {
 	len := 0
 
-	for c := range cur.buffer.LineSegments(cur.Ln) {
-		if c.Gr.IsEol {
+	for _, gr := range cur.buffer.LineGraphemes(cur.Ln) {
+		if gr.IsEol {
 			break
 		}
 		len += 1

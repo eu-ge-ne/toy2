@@ -2,6 +2,7 @@ package render
 
 import (
 	"fmt"
+	"iter"
 	"math"
 
 	"github.com/eu-ge-ne/toy2/internal/color"
@@ -28,6 +29,7 @@ type Render struct {
 
 	indexWidth int
 	textWidth  int
+	wrapWidth  int
 	cursorY    int
 	cursorX    int
 	ScrollLn   int
@@ -139,9 +141,9 @@ func (r *Render) scroll() {
 	r.textWidth = r.area.W - r.indexWidth
 
 	if r.wrapEnabled {
-		grapheme.Graphemes.SetWrapWidth(r.textWidth)
+		r.wrapWidth = r.textWidth
 	} else {
-		grapheme.Graphemes.SetWrapWidth(math.MaxInt)
+		r.wrapWidth = math.MaxInt
 	}
 
 	r.cursorY = r.area.Y
@@ -171,8 +173,8 @@ func (r *Render) scrollV() {
 	xs := make([]int, r.cursor.Ln+1-r.ScrollLn)
 	for i := 0; i < len(xs); i += 1 {
 		xs[i] = 1
-		for seg := range r.buffer.LineSegments(r.ScrollLn + i) {
-			if seg.Col > 0 && seg.WrapCol == 0 {
+		for cell := range r.WrapLine(r.ScrollLn+i, false) {
+			if cell.Col > 0 && cell.WrapCol == 0 {
 				xs[i] += 1
 			}
 		}
@@ -194,21 +196,20 @@ func (r *Render) scrollV() {
 }
 
 func (r *Render) scrollH() {
-	var seg *grapheme.Segment = nil
-	line := r.buffer.ReadLine(r.cursor.Ln)
-	for s := range grapheme.Graphemes.Segments(line, true) {
-		if s.Col >= r.cursor.Col {
-			seg = &s
+	var cell *cell = nil
+	for c := range r.WrapLine(r.cursor.Ln, true) {
+		if c.Col >= r.cursor.Col {
+			cell = &c
 			break
 		}
 	}
-	if seg != nil {
-		r.cursorY += seg.WrapLn
+	if cell != nil {
+		r.cursorY += cell.WrapLn
 	}
 
 	col := 0
-	if seg != nil {
-		col = seg.WrapCol
+	if cell != nil {
+		col = cell.WrapCol
 	}
 
 	deltaCol := col - r.ScrollCol
@@ -224,10 +225,9 @@ func (r *Render) scrollH() {
 
 	xs := make([]int, deltaCol)
 	xsI := 0
-	line = r.buffer.ReadLine(r.cursor.Ln)
-	for s := range grapheme.Graphemes.Segments(line, true) {
-		if s.Col >= r.cursor.Col-deltaCol && s.Col < r.cursor.Col {
-			xs[xsI] = s.Gr.Width
+	for c := range r.WrapLine(r.cursor.Ln, true) {
+		if c.Col >= r.cursor.Col-deltaCol && c.Col < r.cursor.Col {
+			xs[xsI] = c.Gr.Width
 			xsI += 1
 		}
 	}
@@ -276,7 +276,7 @@ func (r *Render) renderLine(ln int, row int) int {
 	currentBg := false
 	availableW := 0
 
-	for cell := range r.buffer.LineSegments(ln) {
+	for cell := range r.WrapLine(ln, false) {
 		if cell.WrapCol == 0 {
 			if cell.Col > 0 {
 				row += 1
@@ -360,4 +360,51 @@ func (r *Render) nextSegSpanName(l int) string {
 	r.hlPos += l
 
 	return name
+}
+
+type cell struct {
+	Gr      *grapheme.Grapheme
+	Col     int
+	WrapLn  int
+	WrapCol int
+}
+
+func (r *Render) WrapLine(ln int, extra bool) iter.Seq[cell] {
+	return func(yield func(cell) bool) {
+		cell := cell{}
+		w := 0
+
+		for _, gr := range r.buffer.LineGraphemes(ln) {
+			cell.Gr = gr
+
+			w += cell.Gr.Width
+			if w > r.wrapWidth {
+				w = cell.Gr.Width
+				cell.WrapLn += 1
+				cell.WrapCol = 0
+			}
+
+			if !yield(cell) {
+				return
+			}
+
+			cell.Col += 1
+			cell.WrapCol += 1
+		}
+
+		if extra {
+			cell.Gr = grapheme.Graphemes.Get(" ")
+
+			w += cell.Gr.Width
+			if w > r.wrapWidth {
+				w = cell.Gr.Width
+				cell.WrapLn += 1
+				cell.WrapCol = 0
+			}
+
+			if !yield(cell) {
+				return
+			}
+		}
+	}
 }

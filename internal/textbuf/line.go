@@ -58,8 +58,8 @@ func (buf *TextBuf) ReadLine(ln int) iter.Seq[string] {
 	return buf.Read(start, end)
 }
 
-func (buf *TextBuf) LineSegments(ln int) iter.Seq[grapheme.Segment] {
+func (buf *TextBuf) LineGraphemes(ln int) iter.Seq2[int, *grapheme.Grapheme] {
 	line := buf.ReadLine(ln)
 
-	return grapheme.Graphemes.Segments(line, false)
+	return grapheme.Graphemes.FromString(line)
 }
