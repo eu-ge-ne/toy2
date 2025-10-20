@@ -202,22 +202,12 @@ func (s *Syntax) handleEdit(req editReq) {
 		return
 	}
 
-	i0, ok := s.buffer.LnColToByte(req.ln0, req.col0)
+	i0, ln0, col0, ok := s.buffer.LnColToBytes(req.ln0, req.col0)
 	if !ok {
 		panic(fmt.Sprintf("in Syntax.handleEditReq: %v", req))
 	}
 
-	i1, ok := s.buffer.LnColToByte(req.ln1, req.col1)
-	if !ok {
-		panic(fmt.Sprintf("in Syntax.handleEditReq: %v", req))
-	}
-
-	col0, ok := s.buffer.ColToByte(req.ln0, req.col0)
-	if !ok {
-		panic(fmt.Sprintf("in Syntax.handleEditReq: %v", req))
-	}
-
-	col1, ok := s.buffer.ColToByte(req.ln1, req.col1)
+	i1, ln1, col1, ok := s.buffer.LnColToBytes(req.ln1, req.col1)
 	if !ok {
 		panic(fmt.Sprintf("in Syntax.handleEditReq: %v", req))
 	}
@@ -228,9 +218,9 @@ func (s *Syntax) handleEdit(req editReq) {
 		s.edit.OldEndByte = uint(i1)
 		s.edit.NewEndByte = s.edit.StartByte
 
-		s.edit.StartPosition.Row = uint(req.ln0)
+		s.edit.StartPosition.Row = uint(ln0)
 		s.edit.StartPosition.Column = uint(col0)
-		s.edit.OldEndPosition.Row = uint(req.ln1)
+		s.edit.OldEndPosition.Row = uint(ln1)
 		s.edit.OldEndPosition.Column = uint(col1)
 		s.edit.NewEndPosition = s.edit.StartPosition
 	case editKindInsert:
@@ -238,10 +228,10 @@ func (s *Syntax) handleEdit(req editReq) {
 		s.edit.OldEndByte = s.edit.StartByte
 		s.edit.NewEndByte = uint(i1)
 
-		s.edit.StartPosition.Row = uint(req.ln0)
+		s.edit.StartPosition.Row = uint(ln0)
 		s.edit.StartPosition.Column = uint(col0)
 		s.edit.OldEndPosition = s.edit.StartPosition
-		s.edit.NewEndPosition.Row = uint(req.ln1)
+		s.edit.NewEndPosition.Row = uint(ln1)
 		s.edit.NewEndPosition.Column = uint(col1)
 	}
 
