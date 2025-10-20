@@ -293,11 +293,11 @@ func (ed *Editor) insertText(text string) {
 
 	dLn, dCol := grapheme.Graphemes.MeasureString(text)
 
+	ed.buffer.Insert2(cur.Ln, cur.Col, text)
+
 	start, _ := ed.buffer.StartPos(cur.Ln, cur.Col)
 	end := ed.buffer.EndPos(cur.Ln+dLn, cur.Col+dCol)
 	ed.syntax.Insert(start, end)
-
-	ed.buffer.Insert2(cur.Ln, cur.Col, text)
 
 	cur.Forward(dLn, dCol)
 
