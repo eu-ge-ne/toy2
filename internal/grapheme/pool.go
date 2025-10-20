@@ -37,7 +37,7 @@ func (p *Pool) SetWrapWidth(w int) {
 
 type Segment struct {
 	Gr      *Grapheme
-	I       int
+	Col     int
 	WrapLn  int
 	WrapCol int
 }
@@ -70,7 +70,7 @@ func (p *Pool) Segments(it iter.Seq[string], extra bool) iter.Seq[Segment] {
 					return
 				}
 
-				seg.I += 1
+				seg.Col += 1
 				seg.WrapCol += 1
 			}
 		}

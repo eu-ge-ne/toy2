@@ -171,8 +171,8 @@ func (r *Render) scrollV() {
 	xs := make([]int, r.cursor.Ln+1-r.ScrollLn)
 	for i := 0; i < len(xs); i += 1 {
 		xs[i] = 1
-		for cell := range r.buffer.LineSegments(r.ScrollLn + i) {
-			if cell.I > 0 && cell.WrapCol == 0 {
+		for seg := range r.buffer.LineSegments(r.ScrollLn + i) {
+			if seg.Col > 0 && seg.WrapCol == 0 {
 				xs[i] += 1
 			}
 		}
@@ -194,21 +194,21 @@ func (r *Render) scrollV() {
 }
 
 func (r *Render) scrollH() {
-	var cell *grapheme.Segment = nil
+	var seg *grapheme.Segment = nil
 	line := r.buffer.ReadLine(r.cursor.Ln)
-	for c := range grapheme.Graphemes.Segments(line, true) {
-		if c.I >= r.cursor.Col {
-			cell = &c
+	for s := range grapheme.Graphemes.Segments(line, true) {
+		if s.Col >= r.cursor.Col {
+			seg = &s
 			break
 		}
 	}
-	if cell != nil {
-		r.cursorY += cell.WrapLn
+	if seg != nil {
+		r.cursorY += seg.WrapLn
 	}
 
 	col := 0
-	if cell != nil {
-		col = cell.WrapCol
+	if seg != nil {
+		col = seg.WrapCol
 	}
 
 	deltaCol := col - r.ScrollCol
@@ -225,9 +225,9 @@ func (r *Render) scrollH() {
 	xs := make([]int, deltaCol)
 	xsI := 0
 	line = r.buffer.ReadLine(r.cursor.Ln)
-	for c := range grapheme.Graphemes.Segments(line, true) {
-		if c.I >= r.cursor.Col-deltaCol && c.I < r.cursor.Col {
-			xs[xsI] = c.Gr.Width
+	for s := range grapheme.Graphemes.Segments(line, true) {
+		if s.Col >= r.cursor.Col-deltaCol && s.Col < r.cursor.Col {
+			xs[xsI] = s.Gr.Width
 			xsI += 1
 		}
 	}
@@ -278,7 +278,7 @@ func (r *Render) renderLine(ln int, row int) int {
 
 	for cell := range r.buffer.LineSegments(ln) {
 		if cell.WrapCol == 0 {
-			if cell.I > 0 {
+			if cell.Col > 0 {
 				row += 1
 				if row >= r.area.Y+r.area.H {
 					return row
@@ -288,7 +288,7 @@ func (r *Render) renderLine(ln int, row int) int {
 			vt.SetCursor(vt.Buf, row, r.area.X)
 
 			if r.indexWidth > 0 {
-				if cell.I == 0 {
+				if cell.Col == 0 {
 					vt.Buf.Write(r.colorIndex)
 					fmt.Fprintf(vt.Buf, "%*d ", r.indexWidth-1, ln+1)
 					vt.Buf.Write(r.colorMainBg)
@@ -307,7 +307,7 @@ func (r *Render) renderLine(ln int, row int) int {
 			continue
 		}
 
-		bg := r.cursor.IsSelected(ln, cell.I)
+		bg := r.cursor.IsSelected(ln, cell.Col)
 		if bg != currentBg {
 			currentBg = bg
 			if currentBg {
