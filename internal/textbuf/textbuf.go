@@ -63,7 +63,7 @@ func (buf *TextBuf) LnColToBytes(ln, col int) (int, int, int, bool) {
 		return 0, 0, 0, false
 	}
 
-	c, ok := buf.ColToByte(ln, col)
+	c, ok := buf.colToByte(ln, col)
 	if !ok {
 		return 0, 0, 0, false
 	}
@@ -77,7 +77,7 @@ func (buf *TextBuf) lnColToByte(ln, col int) (int, bool) {
 		return 0, false
 	}
 
-	colIndex, ok := buf.ColToByte(ln, col)
+	colIndex, ok := buf.colToByte(ln, col)
 	if !ok {
 		return 0, false
 	}

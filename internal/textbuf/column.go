@@ -1,6 +1,6 @@
 package textbuf
 
-func (buf *TextBuf) ColToByte(ln, col int) (int, bool) {
+func (buf *TextBuf) colToByte(ln, col int) (int, bool) {
 	index := 0
 
 	for i, gr := range buf.LineGraphemes(ln) {
