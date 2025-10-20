@@ -238,7 +238,8 @@ func (ed *Editor) deletePrevChar() {
 
 	if cur.Ln > 0 && cur.Col == 0 {
 		l := 0
-		for range ed.buffer.IterLine(cur.Ln, false, 0, math.MaxInt) {
+		line := ed.buffer.ReadLine(cur.Ln)
+		for range grapheme.Graphemes.IterString(line, false, 0, math.MaxInt) {
 			l += 1
 			if l == 2 {
 				break

@@ -171,7 +171,8 @@ func (r *Render) scrollV() {
 	xs := make([]int, r.cursor.Ln+1-r.ScrollLn)
 	for i := 0; i < len(xs); i += 1 {
 		xs[i] = 1
-		for cell := range r.buffer.IterLine(r.ScrollLn+i, false, 0, math.MaxInt) {
+		line := r.buffer.ReadLine(r.ScrollLn + i)
+		for cell := range grapheme.Graphemes.IterString(line, false, 0, math.MaxInt) {
 			if cell.Col > 0 && cell.WrapCol == 0 {
 				xs[i] += 1
 			}
@@ -270,7 +271,8 @@ func (r *Render) renderLine(ln int, row int) int {
 	currentBg := false
 	availableW := 0
 
-	for cell := range r.buffer.IterLine(ln, false, 0, math.MaxInt) {
+	line := r.buffer.ReadLine(ln)
+	for cell := range grapheme.Graphemes.IterString(line, false, 0, math.MaxInt) {
 		if cell.WrapCol == 0 {
 			if cell.Col > 0 {
 				row += 1
