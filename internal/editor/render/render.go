@@ -2,6 +2,7 @@ package render
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/eu-ge-ne/toy2/internal/color"
 	"github.com/eu-ge-ne/toy2/internal/editor/cursor"
@@ -33,7 +34,7 @@ type Render struct {
 
 	hlSpans chan syntax.Span
 	hlSpan  syntax.Span
-	hlPos   int
+	hlIdx   int
 
 	colorMainBg     []byte
 	colorMainFg     []byte
@@ -128,9 +129,12 @@ func (r *Render) Render() {
 }
 
 func (r *Render) initHighlight() {
-	r.hlSpans = r.syntax.Highlight(r.ScrollLn, r.ScrollLn+r.area.H)
-	r.hlSpan = syntax.Span{StartByte: -1, EndByte: -1}
-	r.hlPos, _ = r.buffer.LnByte(r.ScrollLn)
+	start, _ := r.buffer.StartPos(r.ScrollLn, 0)
+	end := r.buffer.EndPos(r.ScrollLn+r.area.H-1, math.MaxInt)
+	r.hlSpans = r.syntax.Highlight(start, end)
+
+	r.hlSpan = syntax.Span{StartIdx: -1, EndIdx: -1}
+	r.hlIdx, _ = r.buffer.LnIdx(r.ScrollLn)
 }
 
 func (r *Render) renderLines() {
@@ -228,17 +232,17 @@ func (r *Render) renderLine(ln int, row int) int {
 func (r *Render) nextSegSpanName(l int) string {
 	var name string
 
-	if r.hlPos >= r.hlSpan.EndByte {
+	if r.hlIdx >= r.hlSpan.EndIdx {
 		if s, ok := <-r.hlSpans; ok {
 			r.hlSpan = s
 		}
 	}
 
-	if r.hlPos >= r.hlSpan.StartByte && r.hlPos < r.hlSpan.EndByte {
+	if r.hlIdx >= r.hlSpan.StartIdx && r.hlIdx < r.hlSpan.EndIdx {
 		name = r.hlSpan.Name
 	}
 
-	r.hlPos += l
+	r.hlIdx += l
 
 	return name
 }
