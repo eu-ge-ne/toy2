@@ -160,9 +160,11 @@ func (s *Syntax) handleHighlight(req highlightReq) {
 
 	match, captIdx := capts.Next()
 	if match != nil {
+		capt := match.Captures[captIdx]
 		span = Span{
-			StartByte: int(match.Captures[captIdx].Node.StartByte()),
-			EndByte:   int(match.Captures[captIdx].Node.EndByte()),
+			StartByte: int(capt.Node.StartByte()),
+			EndByte:   int(capt.Node.EndByte()),
+			Name:      s.query.CaptureNames()[capt.Index],
 		}
 	}
 
