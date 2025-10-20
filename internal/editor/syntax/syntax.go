@@ -142,8 +142,8 @@ func (s *Syntax) handleHighlight(req highlightReq) {
 
 	startLn := max(0, req.startLn)
 	endLn := min(s.buffer.LineCount(), req.endLn)
-	startByte, _ := s.buffer.LnToByte(startLn)
-	endByte, _ := s.buffer.LnToByte(endLn)
+	startByte, _ := s.buffer.LnByte(startLn)
+	endByte, _ := s.buffer.LnByte(endLn)
 
 	if s.buffer.Count() > len(s.text) {
 		s.text = make([]byte, s.buffer.Count())
@@ -204,15 +204,12 @@ func (s *Syntax) handleEdit(req editReq) {
 		return
 	}
 
-	i0, ln0, col0, ok := s.buffer.LnColToBytes(req.ln0, req.col0)
+	i0, col0, ok := s.buffer.PosToStartByte(req.ln0, req.col0)
 	if !ok {
 		panic(fmt.Sprintf("in Syntax.handleEditReq: %v", req))
 	}
 
-	i1, ln1, col1, ok := s.buffer.LnColToBytes(req.ln1, req.col1)
-	if !ok {
-		panic(fmt.Sprintf("in Syntax.handleEditReq: %v", req))
-	}
+	i1, col1 := s.buffer.PosToEndByte(req.ln1, req.col1)
 
 	switch req.kind {
 	case editKindDelete:
@@ -220,9 +217,9 @@ func (s *Syntax) handleEdit(req editReq) {
 		s.edit.OldEndByte = uint(i1)
 		s.edit.NewEndByte = s.edit.StartByte
 
-		s.edit.StartPosition.Row = uint(ln0)
+		s.edit.StartPosition.Row = uint(req.ln0)
 		s.edit.StartPosition.Column = uint(col0)
-		s.edit.OldEndPosition.Row = uint(ln1)
+		s.edit.OldEndPosition.Row = uint(req.ln1)
 		s.edit.OldEndPosition.Column = uint(col1)
 		s.edit.NewEndPosition = s.edit.StartPosition
 	case editKindInsert:
@@ -230,10 +227,10 @@ func (s *Syntax) handleEdit(req editReq) {
 		s.edit.OldEndByte = s.edit.StartByte
 		s.edit.NewEndByte = uint(i1)
 
-		s.edit.StartPosition.Row = uint(ln0)
+		s.edit.StartPosition.Row = uint(req.ln0)
 		s.edit.StartPosition.Column = uint(col0)
 		s.edit.OldEndPosition = s.edit.StartPosition
-		s.edit.NewEndPosition.Row = uint(ln1)
+		s.edit.NewEndPosition.Row = uint(req.ln1)
 		s.edit.NewEndPosition.Column = uint(col1)
 	}
 

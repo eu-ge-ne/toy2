@@ -16,7 +16,7 @@ func TestDeleteLine(t *testing.T) {
 
 	assert.Equal(t, 5, buf.LineCount())
 
-	buf.Delete2(4, 0, 5, 0)
+	buf.Delete2(4, 0, 4, math.MaxInt)
 
 	assert.Equal(t, "Lorem \nipsum \ndolor \nsit \n", std.IterToStr(buf.Read(0, math.MaxInt)))
 	assert.Equal(t, 26, buf.Count())
@@ -42,5 +42,19 @@ func TestDeleteLine(t *testing.T) {
 	assert.Equal(t, "Lorem \n", std.IterToStr(buf.Read(0, math.MaxInt)))
 	assert.Equal(t, 7, buf.Count())
 	assert.Equal(t, 2, buf.LineCount())
+	buf.Validate()
+}
+
+func TestDeleteLine2(t *testing.T) {
+	buf := textbuf.New()
+	buf.Append("\r\n")
+
+	assert.Equal(t, 2, buf.LineCount())
+
+	buf.Delete2(0, 0, 0, 1)
+
+	assert.Equal(t, "", std.IterToStr(buf.Read(0, math.MaxInt)))
+	assert.Equal(t, 0, buf.Count())
+	assert.Equal(t, 0, buf.LineCount())
 	buf.Validate()
 }

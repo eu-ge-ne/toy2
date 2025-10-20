@@ -130,7 +130,7 @@ func (r *Render) Render() {
 func (r *Render) initHighlight() {
 	r.hlSpans = r.syntax.Highlight(r.ScrollLn, r.ScrollLn+r.area.H)
 	r.hlSpan = syntax.Span{StartByte: -1, EndByte: -1}
-	r.hlPos, _ = r.buffer.LnToByte(r.ScrollLn)
+	r.hlPos, _ = r.buffer.LnByte(r.ScrollLn)
 }
 
 func (r *Render) renderLines() {

@@ -2,7 +2,6 @@ package textbuf
 
 import (
 	"iter"
-	"math"
 )
 
 var empty = func(yield func(string) bool) {}
@@ -26,15 +25,12 @@ func (buf *TextBuf) Read(start int, end int) iter.Seq[string] {
 }
 
 func (buf *TextBuf) Read2(startLn, startCol, endLn, endCol int) iter.Seq[string] {
-	start, ok := buf.lnColToByte(startLn, startCol)
+	start, _, ok := buf.PosToStartByte(startLn, startCol)
 	if !ok {
 		return empty
 	}
 
-	end, ok := buf.lnColToByte(endLn, endCol)
-	if !ok {
-		end = math.MaxInt
-	}
+	end, _ := buf.PosToEndByte(endLn, endCol)
 
 	return buf.Read(start, end)
 }

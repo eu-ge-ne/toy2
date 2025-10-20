@@ -24,7 +24,7 @@ func Test1Line(t *testing.T) {
 	buf.Append("0")
 
 	assert.Equal(t, 1, buf.LineCount())
-	assert.Equal(t, "0", std.IterToStr(buf.Read2(0, 0, 1, 0)))
+	assert.Equal(t, "0", std.IterToStr(buf.Read2(0, 0, 0, 1)))
 
 	buf.Validate()
 }
@@ -84,7 +84,7 @@ func TestReadLineAtValidIndex(t *testing.T) {
 	assert.Equal(t, "et\n", std.IterToStr(buf.Read2(15, 0, 16, 0)))
 	assert.Equal(t, "dolore\n", std.IterToStr(buf.Read2(16, 0, 17, 0)))
 	assert.Equal(t, "magna\n", std.IterToStr(buf.Read2(17, 0, 18, 0)))
-	assert.Equal(t, "aliqua.", std.IterToStr(buf.Read2(18, 0, 19, 0)))
+	assert.Equal(t, "aliqua.", std.IterToStr(buf.Read2(18, 0, 18, 7)))
 
 	buf.Validate()
 }
@@ -93,7 +93,7 @@ func TestReadLineAtIndexGTELineCount(t *testing.T) {
 	buf := textbuf.New()
 	buf.Append("Lorem\nipsum\ndolor\nsit\namet")
 
-	assert.Equal(t, "amet", std.IterToStr(buf.Read2(4, 0, 5, 0)))
+	assert.Equal(t, "amet", std.IterToStr(buf.Read2(4, 0, 4, 4)))
 	assert.Equal(t, "", std.IterToStr(buf.Read2(5, 0, 6, 0)))
 	assert.Equal(t, "", std.IterToStr(buf.Read2(6, 0, 7, 0)))
 
@@ -105,7 +105,7 @@ func TestReadLineAtIndexLT0(t *testing.T) {
 	buf.Append("Lorem\nipsum\ndolor\nsit\namet")
 
 	assert.Equal(t, "Lorem\n", std.IterToStr(buf.Read2(0, 0, 1, 0)))
-	assert.Equal(t, "amet", std.IterToStr(buf.Read2(buf.LineCount()-1, 0, buf.LineCount(), 0)))
+	assert.Equal(t, "amet", std.IterToStr(buf.Read2(buf.LineCount()-1, 0, buf.LineCount()-1, 4)))
 	assert.Equal(t, "sit\n", std.IterToStr(buf.Read2(buf.LineCount()-2, 0, buf.LineCount()-1, 0)))
 
 	buf.Validate()

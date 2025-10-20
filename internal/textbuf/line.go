@@ -8,7 +8,14 @@ import (
 	"github.com/eu-ge-ne/toy2/internal/textbuf/node"
 )
 
-func (buf TextBuf) LnToByte(ln int) (int, bool) {
+func (buf *TextBuf) LineCount() int {
+	if buf.Count() == 0 {
+		return 0
+	}
+	return buf.tree.Root.TotalEolsLen + 1
+}
+
+func (buf TextBuf) LnByte(ln int) (int, bool) {
 	if buf.Count() == 0 {
 		return 0, false
 	}
@@ -45,12 +52,12 @@ func (buf TextBuf) LnToByte(ln int) (int, bool) {
 }
 
 func (buf *TextBuf) ReadLine(ln int) iter.Seq[string] {
-	start, ok := buf.LnToByte(ln)
+	start, ok := buf.LnByte(ln)
 	if !ok {
 		return func(yield func(string) bool) {}
 	}
 
-	end, ok := buf.LnToByte(ln + 1)
+	end, ok := buf.LnByte(ln + 1)
 	if !ok {
 		end = math.MaxInt
 	}

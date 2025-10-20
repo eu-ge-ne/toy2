@@ -28,13 +28,6 @@ func (buf *TextBuf) Count() int {
 	return buf.tree.Root.TotalLen
 }
 
-func (buf *TextBuf) LineCount() int {
-	if buf.Count() == 0 {
-		return 0
-	}
-	return buf.tree.Root.TotalEolsLen + 1
-}
-
 func (buf *TextBuf) Save() Snapshot {
 	return Snapshot{
 		node: buf.tree.Root.Clone(node.NIL),
@@ -55,32 +48,4 @@ func (buf *TextBuf) Reset(text string) {
 
 func (buf *TextBuf) Validate() {
 	buf.tree.Root.Validate()
-}
-
-func (buf *TextBuf) LnColToBytes(ln, col int) (int, int, int, bool) {
-	i, ok := buf.lnColToByte(ln, col)
-	if !ok {
-		return 0, 0, 0, false
-	}
-
-	c, ok := buf.colToByte(ln, col)
-	if !ok {
-		return 0, 0, 0, false
-	}
-
-	return i, ln, c, true
-}
-
-func (buf *TextBuf) lnColToByte(ln, col int) (int, bool) {
-	lnIndex, ok := buf.LnToByte(ln)
-	if !ok {
-		return 0, false
-	}
-
-	colIndex, ok := buf.colToByte(ln, col)
-	if !ok {
-		return 0, false
-	}
-
-	return lnIndex + colIndex, true
 }

@@ -70,25 +70,7 @@ func (buf *TextBuf) Insert(index int, text string) {
 }
 
 func (buf *TextBuf) Insert2(ln, col int, text string) {
-	index, ok := buf.LnToByte(ln)
-
-	if !ok {
-		if ln == 0 {
-			index = 0
-		} else {
-			index = max(0, buf.LineCount()-1)
-		}
-	}
-
-	// TODO: buf.ColToByte
-	for i, gr := range buf.LineGraphemes(ln) {
-		if i == col {
-			break
-		}
-		index += len(gr.Str)
-	}
-
-	buf.Insert(index, text)
+	buf.Insert(buf.posToInsertByte(ln, col), text)
 }
 
 func (buf *TextBuf) Append(text string) {
