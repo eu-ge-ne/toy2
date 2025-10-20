@@ -227,73 +227,79 @@ func (ed *Editor) Save(filePath string) error {
 func (ed *Editor) deleteChar() {
 	cur := ed.cursor
 
+	start, _ := ed.buffer.StartPos(cur.Ln, cur.Col)
+	end := ed.buffer.EndPos(cur.Ln, cur.Col+1)
+	ed.syntax.Delete(start, end)
+
 	ed.buffer.Delete2(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
-	ed.syntax.Delete(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
 
 	ed.history.Push()
 }
 
 func (ed *Editor) deletePrevChar() {
-	cur := ed.cursor
+	/*
+		cur := ed.cursor
 
-	if cur.Ln > 0 && cur.Col == 0 {
-		l := 0
-		for range ed.buffer.LineGraphemes(cur.Ln) {
-			l += 1
-			if l == 2 {
-				break
+		if cur.Ln > 0 && cur.Col == 0 {
+			l := 0
+			for range ed.buffer.LineGraphemes(cur.Ln) {
+				l += 1
+				if l == 2 {
+					break
+				}
 			}
-		}
 
-		if l == 1 {
-			ed.buffer.Delete2(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
-			ed.syntax.Delete(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
-			cur.Left(false)
+			if l == 1 {
+				ed.buffer.Delete2(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
+				ed.syntax.Delete(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
+				cur.Left(false)
+			} else {
+				cur.Left(false)
+				ed.buffer.Delete2(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
+				ed.syntax.Delete(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
+			}
 		} else {
+			ed.buffer.Delete2(cur.Ln, cur.Col-1, cur.Ln, cur.Col)
+			ed.syntax.Delete(cur.Ln, cur.Col-1, cur.Ln, cur.Col)
 			cur.Left(false)
-			ed.buffer.Delete2(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
-			ed.syntax.Delete(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
 		}
-	} else {
-		ed.buffer.Delete2(cur.Ln, cur.Col-1, cur.Ln, cur.Col)
-		ed.syntax.Delete(cur.Ln, cur.Col-1, cur.Ln, cur.Col)
-		cur.Left(false)
-	}
 
-	ed.history.Push()
+		ed.history.Push()
+	*/
 }
 
 func (ed *Editor) deleteSelection() {
-	cur := ed.cursor
+	/*
+		cur := ed.cursor
 
-	ed.buffer.Delete2(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol)
-	ed.syntax.Delete(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol)
-	ed.cursor.Set(cur.StartLn, cur.StartCol, false)
+		ed.buffer.Delete2(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol)
+		ed.syntax.Delete(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol)
+		ed.cursor.Set(cur.StartLn, cur.StartCol, false)
 
-	ed.history.Push()
+		ed.history.Push()
+	*/
 }
 
 func (ed *Editor) insertText(text string) {
 	cur := ed.cursor
 
 	if cur.Selecting {
-		ed.buffer.Delete2(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol)
-		ed.syntax.Delete(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol)
-		cur.Set(cur.StartLn, cur.StartCol, false)
+		/*
+			ed.buffer.Delete2(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol)
+			ed.syntax.Delete(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol)
+			cur.Set(cur.StartLn, cur.StartCol, false)
+		*/
 	}
+
+	dLn, dCol := grapheme.Graphemes.MeasureString(text)
+
+	start, _ := ed.buffer.StartPos(cur.Ln, cur.Col)
+	end := ed.buffer.EndPos(cur.Ln+dLn, cur.Col+dCol)
+	ed.syntax.Insert(start, end)
 
 	ed.buffer.Insert2(cur.Ln, cur.Col, text)
 
-	startLn := cur.Ln
-	startCol := cur.Col
-
-	dLn, dCol := grapheme.Graphemes.MeasureString(text)
 	cur.Forward(dLn, dCol)
-
-	endLn := cur.Ln
-	endCol := cur.Col
-
-	ed.syntax.Insert(startLn, startCol, endLn, endCol)
 
 	ed.history.Push()
 }
