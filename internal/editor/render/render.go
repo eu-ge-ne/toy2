@@ -2,14 +2,10 @@ package render
 
 import (
 	"fmt"
-	"iter"
-	"math"
 
 	"github.com/eu-ge-ne/toy2/internal/color"
 	"github.com/eu-ge-ne/toy2/internal/editor/cursor"
 	"github.com/eu-ge-ne/toy2/internal/editor/syntax"
-	"github.com/eu-ge-ne/toy2/internal/grapheme"
-	"github.com/eu-ge-ne/toy2/internal/std"
 	"github.com/eu-ge-ne/toy2/internal/textbuf"
 	"github.com/eu-ge-ne/toy2/internal/theme"
 	"github.com/eu-ge-ne/toy2/internal/ui"
@@ -131,121 +127,6 @@ func (r *Render) Render() {
 	vt.Sync.Esu()
 }
 
-func (r *Render) scroll() {
-	if r.indexEnabled && r.buffer.LineCount() > 0 {
-		r.indexWidth = int(math.Log10(float64(r.buffer.LineCount()))) + 3
-	} else {
-		r.indexWidth = 0
-	}
-
-	r.textWidth = r.area.W - r.indexWidth
-
-	if r.wrapEnabled {
-		r.wrapWidth = r.textWidth
-	} else {
-		r.wrapWidth = math.MaxInt
-	}
-
-	r.cursorY = r.area.Y
-	r.cursorX = r.area.X + r.indexWidth
-
-	grapheme.Graphemes.SetWcharPos(r.area.Y, r.area.X+r.indexWidth)
-
-	r.scrollV()
-	r.scrollH()
-}
-
-func (r *Render) scrollV() {
-	deltaLn := r.cursor.Ln - r.ScrollLn
-
-	// Above?
-	if deltaLn <= 0 {
-		r.ScrollLn = r.cursor.Ln
-		return
-	}
-
-	// Below?
-
-	if deltaLn > r.area.H {
-		r.ScrollLn = r.cursor.Ln - r.area.H
-	}
-
-	xs := make([]int, r.cursor.Ln+1-r.ScrollLn)
-	for i := 0; i < len(xs); i += 1 {
-		xs[i] = 1
-		for cell := range r.WrapLine(r.ScrollLn+i, false) {
-			if cell.Col > 0 && cell.WrapCol == 0 {
-				xs[i] += 1
-			}
-		}
-	}
-
-	i := 0
-	height := std.Sum(xs)
-
-	for height > r.area.H {
-		height -= xs[i]
-		r.ScrollLn += 1
-		i += 1
-	}
-
-	for i < len(xs)-1 {
-		r.cursorY += xs[i]
-		i += 1
-	}
-}
-
-func (r *Render) scrollH() {
-	var cell *cell = nil
-	for c := range r.WrapLine(r.cursor.Ln, true) {
-		if c.Col >= r.cursor.Col {
-			cell = &c
-			break
-		}
-	}
-	if cell != nil {
-		r.cursorY += cell.WrapLn
-	}
-
-	col := 0
-	if cell != nil {
-		col = cell.WrapCol
-	}
-
-	deltaCol := col - r.ScrollCol
-
-	// Before?
-
-	if deltaCol <= 0 {
-		r.ScrollCol = col
-		return
-	}
-
-	// After?
-
-	xs := make([]int, deltaCol)
-	xsI := 0
-	for c := range r.WrapLine(r.cursor.Ln, true) {
-		if c.Col >= r.cursor.Col-deltaCol && c.Col < r.cursor.Col {
-			xs[xsI] = c.Gr.Width
-			xsI += 1
-		}
-	}
-
-	width := std.Sum(xs)
-
-	for _, w := range xs {
-		if width < r.textWidth {
-			break
-		}
-
-		r.ScrollCol += 1
-		width -= w
-	}
-
-	r.cursorX += width
-}
-
 func (r *Render) initHighlight() {
 	r.hlSpans = r.syntax.Highlight(r.ScrollLn, r.ScrollLn+r.area.H)
 	r.hlSpan = syntax.Span{StartByte: -1, EndByte: -1}
@@ -276,7 +157,7 @@ func (r *Render) renderLine(ln int, row int) int {
 	currentBg := false
 	availableW := 0
 
-	for cell := range r.WrapLine(ln, false) {
+	for cell := range r.wrapLine(ln, false) {
 		if cell.WrapCol == 0 {
 			if cell.Col > 0 {
 				row += 1
@@ -360,51 +241,4 @@ func (r *Render) nextSegSpanName(l int) string {
 	r.hlPos += l
 
 	return name
-}
-
-type cell struct {
-	Gr      *grapheme.Grapheme
-	Col     int
-	WrapLn  int
-	WrapCol int
-}
-
-func (r *Render) WrapLine(ln int, extra bool) iter.Seq[cell] {
-	return func(yield func(cell) bool) {
-		cell := cell{}
-		w := 0
-
-		for _, gr := range r.buffer.LineGraphemes(ln) {
-			cell.Gr = gr
-
-			w += cell.Gr.Width
-			if w > r.wrapWidth {
-				w = cell.Gr.Width
-				cell.WrapLn += 1
-				cell.WrapCol = 0
-			}
-
-			if !yield(cell) {
-				return
-			}
-
-			cell.Col += 1
-			cell.WrapCol += 1
-		}
-
-		if extra {
-			cell.Gr = grapheme.Graphemes.Get(" ")
-
-			w += cell.Gr.Width
-			if w > r.wrapWidth {
-				w = cell.Gr.Width
-				cell.WrapLn += 1
-				cell.WrapCol = 0
-			}
-
-			if !yield(cell) {
-				return
-			}
-		}
-	}
 }
