@@ -172,7 +172,7 @@ func (r *Render) scrollV() {
 	for i := 0; i < len(xs); i += 1 {
 		xs[i] = 1
 		line := r.buffer.ReadLine(r.ScrollLn + i)
-		for cell := range grapheme.Graphemes.IterString(line, false, 0, math.MaxInt) {
+		for cell := range grapheme.Graphemes.IterString(line, false) {
 			if cell.Col > 0 && cell.WrapCol == 0 {
 				xs[i] += 1
 			}
@@ -197,9 +197,11 @@ func (r *Render) scrollV() {
 func (r *Render) scrollH() {
 	var cell *grapheme.IterCell = nil
 	line := r.buffer.ReadLine(r.cursor.Ln)
-	for c := range grapheme.Graphemes.IterString(line, true, r.cursor.Col, math.MaxInt) {
-		cell = &c
-		break
+	for c := range grapheme.Graphemes.IterString(line, true) {
+		if c.Col >= r.cursor.Col {
+			cell = &c
+			break
+		}
 	}
 	if cell != nil {
 		r.cursorY += cell.WrapLn
@@ -224,9 +226,11 @@ func (r *Render) scrollH() {
 	xs := make([]int, deltaCol)
 	xsI := 0
 	line = r.buffer.ReadLine(r.cursor.Ln)
-	for c := range grapheme.Graphemes.IterString(line, true, r.cursor.Col-deltaCol, r.cursor.Col) {
-		xs[xsI] = c.Gr.Width
-		xsI += 1
+	for c := range grapheme.Graphemes.IterString(line, true) {
+		if c.Col >= r.cursor.Col-deltaCol && c.Col < r.cursor.Col {
+			xs[xsI] = c.Gr.Width
+			xsI += 1
+		}
 	}
 
 	width := std.Sum(xs)
@@ -274,7 +278,7 @@ func (r *Render) renderLine(ln int, row int) int {
 	availableW := 0
 
 	line := r.buffer.ReadLine(ln)
-	for cell := range grapheme.Graphemes.IterString(line, false, 0, math.MaxInt) {
+	for cell := range grapheme.Graphemes.IterString(line, false) {
 		if cell.WrapCol == 0 {
 			if cell.Col > 0 {
 				row += 1

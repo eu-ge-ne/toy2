@@ -1,8 +1,6 @@
 package textbuf
 
 import (
-	"math"
-
 	"github.com/eu-ge-ne/toy2/internal/grapheme"
 	"github.com/eu-ge-ne/toy2/internal/textbuf/node"
 )
@@ -84,7 +82,7 @@ func (buf *TextBuf) Insert2(ln, col int, text string) {
 	}
 
 	line := buf.ReadLine(ln)
-	for cell := range grapheme.Graphemes.IterString(line, false, 0, math.MaxInt) {
+	for cell := range grapheme.Graphemes.IterString(line, false) {
 		if cell.Col == col {
 			break
 		}

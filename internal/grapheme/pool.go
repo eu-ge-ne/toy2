@@ -42,7 +42,7 @@ type IterCell struct {
 	WrapCol int
 }
 
-func (p *GraphemePool) IterString(it iter.Seq[string], extra bool, start int, end int) iter.Seq[IterCell] {
+func (p *GraphemePool) IterString(it iter.Seq[string], extra bool) iter.Seq[IterCell] {
 	return func(yield func(IterCell) bool) {
 		cell := IterCell{}
 		w := 0
@@ -67,10 +67,8 @@ func (p *GraphemePool) IterString(it iter.Seq[string], extra bool, start int, en
 					cell.WrapCol = 0
 				}
 
-				if cell.Col >= start && cell.Col < end {
-					if !yield(cell) {
-						return
-					}
+				if !yield(cell) {
+					return
 				}
 
 				cell.Col += 1
@@ -88,10 +86,8 @@ func (p *GraphemePool) IterString(it iter.Seq[string], extra bool, start int, en
 				cell.WrapCol = 0
 			}
 
-			if cell.Col >= start && cell.Col < end {
-				if !yield(cell) {
-					return
-				}
+			if !yield(cell) {
+				return
 			}
 		}
 	}

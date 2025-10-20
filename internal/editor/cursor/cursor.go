@@ -127,7 +127,7 @@ func (cur *Cursor) setCol(col int) {
 	len := 0
 
 	line := cur.buffer.ReadLine(cur.Ln)
-	for cell := range grapheme.Graphemes.IterString(line, false, 0, math.MaxInt) {
+	for cell := range grapheme.Graphemes.IterString(line, false) {
 		if cell.Gr.IsEol {
 			break
 		}
