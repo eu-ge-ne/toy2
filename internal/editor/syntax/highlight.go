@@ -52,10 +52,7 @@ func (s *Syntax) handleHighlight(req highlightReq) {
 	qc := treeSitter.NewQueryCursor()
 	defer qc.Close()
 
-	qc.SetPointRange(
-		treeSitter.NewPoint(uint(req.start.Ln), uint(req.start.Col)),
-		treeSitter.NewPoint(uint(req.end.Ln), uint(req.end.Col)),
-	)
+	qc.SetByteRange(uint(req.start.Idx), uint(req.end.Idx))
 	capts := qc.Captures(s.query, s.tree.RootNode(), s.text)
 
 	var span Span

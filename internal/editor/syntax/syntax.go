@@ -113,15 +113,6 @@ const maxChunkLen = 1024 * 64
 func (s *Syntax) updateTree() {
 	started := time.Now()
 
-	/*
-		s.parser.SetIncludedRanges([]treeSitter.Range{{
-			StartByte:  uint(startByte),
-			EndByte:    uint(endByte),
-			StartPoint: startPoint,
-			EndPoint:   endPoint,
-		}})
-	*/
-
 	t := s.parser.ParseWithOptions(func(i int, p treeSitter.Point) []byte {
 		text := s.buffer.Chunk(i)
 		if len(text) > maxChunkLen {
