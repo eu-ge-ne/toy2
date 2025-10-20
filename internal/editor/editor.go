@@ -227,8 +227,8 @@ func (ed *Editor) Save(filePath string) error {
 func (ed *Editor) deleteChar() {
 	cur := ed.cursor
 
-	start, _ := ed.buffer.StartPos(cur.Ln, cur.Col)
-	end := ed.buffer.EndPos(cur.Ln, cur.Col+1)
+	start, _ := ed.buffer.Pos(cur.Ln, cur.Col)
+	end := ed.buffer.PosNear(cur.Ln, cur.Col+1)
 	ed.syntax.Delete(start, end)
 
 	ed.buffer.Delete2(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
@@ -268,6 +268,26 @@ func (ed *Editor) deletePrevChar() {
 	*/
 }
 
+func (ed *Editor) insertText(text string) {
+	cur := ed.cursor
+
+	if cur.Selecting {
+		ed.deleteSelection()
+	}
+
+	dLn, dCol := grapheme.Graphemes.MeasureString(text)
+
+	ed.buffer.Insert2(cur.Ln, cur.Col, text)
+
+	start, _ := ed.buffer.Pos(cur.Ln, cur.Col)
+	end := ed.buffer.PosNear(cur.Ln+dLn, cur.Col+dCol)
+	ed.syntax.Insert(start, end)
+
+	cur.Forward(dLn, dCol)
+
+	ed.history.Push()
+}
+
 func (ed *Editor) deleteSelection() {
 	/*
 		cur := ed.cursor
@@ -278,28 +298,10 @@ func (ed *Editor) deleteSelection() {
 
 		ed.history.Push()
 	*/
-}
 
-func (ed *Editor) insertText(text string) {
-	cur := ed.cursor
-
-	if cur.Selecting {
-		/*
-			ed.buffer.Delete2(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol)
-			ed.syntax.Delete(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol)
-			cur.Set(cur.StartLn, cur.StartCol, false)
-		*/
-	}
-
-	dLn, dCol := grapheme.Graphemes.MeasureString(text)
-
-	ed.buffer.Insert2(cur.Ln, cur.Col, text)
-
-	start, _ := ed.buffer.StartPos(cur.Ln, cur.Col)
-	end := ed.buffer.EndPos(cur.Ln+dLn, cur.Col+dCol)
-	ed.syntax.Insert(start, end)
-
-	cur.Forward(dLn, dCol)
-
-	ed.history.Push()
+	/*
+		ed.buffer.Delete2(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol)
+		ed.syntax.Delete(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol)
+		cur.Set(cur.StartLn, cur.StartCol, false)
+	*/
 }

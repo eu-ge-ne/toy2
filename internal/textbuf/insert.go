@@ -70,7 +70,7 @@ func (buf *TextBuf) Insert(index int, text string) {
 }
 
 func (buf *TextBuf) Insert2(ln, col int, text string) {
-	pos := buf.EndPos(ln, col)
+	pos := buf.PosNear(ln, col)
 
 	buf.Insert(pos.Idx, text)
 }

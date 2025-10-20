@@ -2,9 +2,10 @@ package textbuf
 
 import (
 	"iter"
-)
+	"math"
 
-var empty = func(yield func(string) bool) {}
+	"github.com/eu-ge-ne/toy2/internal/grapheme"
+)
 
 func (buf *TextBuf) Chunk(i int) string {
 	x, offset := buf.tree.Root.Find(i)
@@ -18,19 +19,39 @@ func (buf *TextBuf) Chunk(i int) string {
 func (buf *TextBuf) Read(start int, end int) iter.Seq[string] {
 	x, offset := buf.tree.Root.Find(start)
 	if x == nil {
-		return empty
+		return func(yield func(string) bool) {}
 	}
 
 	return buf.content.Read(x, offset, end-start)
 }
 
 func (buf *TextBuf) Read2(startLn, startCol, endLn, endCol int) iter.Seq[string] {
-	start, ok := buf.StartPos(startLn, startCol)
+	start, ok := buf.Pos(startLn, startCol)
 	if !ok {
-		return empty
+		return func(yield func(string) bool) {}
 	}
 
-	end := buf.EndPos(endLn, endCol)
+	end := buf.PosNear(endLn, endCol)
 
 	return buf.Read(start.Idx, end.Idx)
+}
+
+func (buf *TextBuf) ReadLine(ln int) iter.Seq[string] {
+	start, ok := buf.lnIdx(ln)
+	if !ok {
+		return func(yield func(string) bool) {}
+	}
+
+	end, ok := buf.lnIdx(ln + 1)
+	if !ok {
+		end = math.MaxInt
+	}
+
+	return buf.Read(start, end)
+}
+
+func (buf *TextBuf) LineGraphemes(ln int) iter.Seq2[int, *grapheme.Grapheme] {
+	line := buf.ReadLine(ln)
+
+	return grapheme.Graphemes.FromString(line)
 }

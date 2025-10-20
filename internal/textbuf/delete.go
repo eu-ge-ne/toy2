@@ -57,12 +57,12 @@ func (buf *TextBuf) Delete(start int, end int) {
 }
 
 func (buf *TextBuf) Delete2(startLn, startCol, endLn, endCol int) {
-	start, ok := buf.StartPos(startLn, startCol)
+	start, ok := buf.Pos(startLn, startCol)
 	if !ok {
 		return
 	}
 
-	end := buf.EndPos(endLn, endCol)
+	end := buf.PosNear(endLn, endCol)
 
 	buf.Delete(start.Idx, end.Idx)
 }
