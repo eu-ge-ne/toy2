@@ -9,10 +9,6 @@ import (
 )
 
 type TextBuf struct {
-	WrapWidth int
-	MeasureY  int
-	MeasureX  int
-
 	content content.Content
 	tree    tree.Tree
 }
@@ -23,8 +19,6 @@ type Snapshot struct {
 
 func New() *TextBuf {
 	return &TextBuf{
-		WrapWidth: math.MaxInt,
-
 		content: content.Content{},
 		tree:    tree.Tree{Root: node.NIL},
 	}

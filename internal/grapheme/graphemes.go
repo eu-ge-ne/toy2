@@ -1,6 +1,6 @@
 package grapheme
 
-var Graphemes GraphemePool
+var Graphemes Pool
 
 func init() {
 	pool := map[string]*Grapheme{
@@ -47,5 +47,5 @@ func init() {
 		pool[s] = NewGrapheme(s, []byte(s), 1)
 	}
 
-	Graphemes = GraphemePool{pool}
+	Graphemes = Pool{pool, 0, 0, 0}
 }

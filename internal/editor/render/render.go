@@ -7,6 +7,7 @@ import (
 	"github.com/eu-ge-ne/toy2/internal/color"
 	"github.com/eu-ge-ne/toy2/internal/editor/cursor"
 	"github.com/eu-ge-ne/toy2/internal/editor/syntax"
+	"github.com/eu-ge-ne/toy2/internal/grapheme"
 	"github.com/eu-ge-ne/toy2/internal/std"
 	"github.com/eu-ge-ne/toy2/internal/textbuf"
 	"github.com/eu-ge-ne/toy2/internal/theme"
@@ -138,16 +139,15 @@ func (r *Render) scroll() {
 	r.textWidth = r.area.W - r.indexWidth
 
 	if r.wrapEnabled {
-		r.buffer.WrapWidth = r.textWidth
+		grapheme.Graphemes.SetWrapWidth(r.textWidth)
 	} else {
-		r.buffer.WrapWidth = math.MaxInt
+		grapheme.Graphemes.SetWrapWidth(math.MaxInt)
 	}
 
 	r.cursorY = r.area.Y
 	r.cursorX = r.area.X + r.indexWidth
 
-	r.buffer.MeasureY = r.area.Y
-	r.buffer.MeasureX = r.area.X + r.indexWidth
+	grapheme.Graphemes.SetWcharPos(r.area.Y, r.area.X+r.indexWidth)
 
 	r.scrollV()
 	r.scrollH()
@@ -171,8 +171,8 @@ func (r *Render) scrollV() {
 	xs := make([]int, r.cursor.Ln+1-r.ScrollLn)
 	for i := 0; i < len(xs); i += 1 {
 		xs[i] = 1
-		for j, cell := range r.buffer.IterLine(r.ScrollLn+i, false) {
-			if j > 0 && cell.Col == 0 {
+		for cell := range r.buffer.LineSegments(r.ScrollLn + i) {
+			if cell.I > 0 && cell.WrapCol == 0 {
 				xs[i] += 1
 			}
 		}
@@ -194,20 +194,21 @@ func (r *Render) scrollV() {
 }
 
 func (r *Render) scrollH() {
-	var cell *textbuf.LineCell = nil
-	for i, c := range r.buffer.IterLine(r.cursor.Ln, true) {
-		if i >= r.cursor.Col {
+	var cell *grapheme.Segment = nil
+	line := r.buffer.ReadLine(r.cursor.Ln)
+	for c := range grapheme.Graphemes.Segments(line, true) {
+		if c.I >= r.cursor.Col {
 			cell = &c
 			break
 		}
 	}
 	if cell != nil {
-		r.cursorY += cell.Ln
+		r.cursorY += cell.WrapLn
 	}
 
 	col := 0
 	if cell != nil {
-		col = cell.Col
+		col = cell.WrapCol
 	}
 
 	deltaCol := col - r.ScrollCol
@@ -223,9 +224,10 @@ func (r *Render) scrollH() {
 
 	xs := make([]int, deltaCol)
 	xsI := 0
-	for i, c := range r.buffer.IterLine(r.cursor.Ln, true) {
-		if i >= r.cursor.Col-deltaCol && i < r.cursor.Col {
-			xs[xsI] = c.G.Width
+	line = r.buffer.ReadLine(r.cursor.Ln)
+	for c := range grapheme.Graphemes.Segments(line, true) {
+		if c.I >= r.cursor.Col-deltaCol && c.I < r.cursor.Col {
+			xs[xsI] = c.Gr.Width
 			xsI += 1
 		}
 	}
@@ -274,9 +276,9 @@ func (r *Render) renderLine(ln int, row int) int {
 	currentBg := false
 	availableW := 0
 
-	for i, cell := range r.buffer.IterLine(ln, false) {
-		if cell.Col == 0 {
-			if i > 0 {
+	for cell := range r.buffer.LineSegments(ln) {
+		if cell.WrapCol == 0 {
+			if cell.I > 0 {
 				row += 1
 				if row >= r.area.Y+r.area.H {
 					return row
@@ -286,7 +288,7 @@ func (r *Render) renderLine(ln int, row int) int {
 			vt.SetCursor(vt.Buf, row, r.area.X)
 
 			if r.indexWidth > 0 {
-				if i == 0 {
+				if cell.I == 0 {
 					vt.Buf.Write(r.colorIndex)
 					fmt.Fprintf(vt.Buf, "%*d ", r.indexWidth-1, ln+1)
 					vt.Buf.Write(r.colorMainBg)
@@ -299,13 +301,13 @@ func (r *Render) renderLine(ln int, row int) int {
 			availableW = r.area.W - r.indexWidth
 		}
 
-		spanName := r.nextSegSpanName(len(cell.G.Seg))
+		spanName := r.nextSegSpanName(len(cell.Gr.Str))
 
-		if (cell.Col < r.ScrollCol) || (cell.G.Width > availableW) {
+		if (cell.WrapCol < r.ScrollCol) || (cell.Gr.Width > availableW) {
 			continue
 		}
 
-		bg := r.cursor.IsSelected(ln, i)
+		bg := r.cursor.IsSelected(ln, cell.I)
 		if bg != currentBg {
 			currentBg = bg
 			if currentBg {
@@ -317,7 +319,7 @@ func (r *Render) renderLine(ln int, row int) int {
 
 		fg := spanName
 		if len(fg) == 0 {
-			if cell.G.IsVisible {
+			if cell.Gr.IsVisible {
 				fg = "_text"
 			} else if r.whitespaceEnabled {
 				fg = "_ws_enabled"
@@ -334,9 +336,9 @@ func (r *Render) renderLine(ln int, row int) int {
 			vt.Buf.Write(b)
 		}
 
-		vt.Buf.Write(cell.G.Bytes)
+		vt.Buf.Write(cell.Gr.Bytes)
 
-		availableW -= cell.G.Width
+		availableW -= cell.Gr.Width
 	}
 
 	return row

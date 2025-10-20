@@ -4,13 +4,18 @@ import (
 	"iter"
 
 	"github.com/rivo/uniseg"
+
+	"github.com/eu-ge-ne/toy2/internal/vt"
 )
 
-type GraphemePool struct {
-	pool map[string]*Grapheme
+type Pool struct {
+	pool      map[string]*Grapheme
+	wCharY    int
+	wCharX    int
+	wrapWidth int
 }
 
-func (p GraphemePool) Get(seg string) *Grapheme {
+func (p *Pool) Get(seg string) *Grapheme {
 	g, ok := p.pool[seg]
 
 	if !ok {
@@ -21,32 +26,80 @@ func (p GraphemePool) Get(seg string) *Grapheme {
 	return g
 }
 
-func (p GraphemePool) Iter(it iter.Seq[string]) iter.Seq[*Grapheme] {
-	return func(yield func(*Grapheme) bool) {
-		var seg string
+func (p *Pool) SetWcharPos(y, x int) {
+	p.wCharY = y
+	p.wCharX = x
+}
+
+func (p *Pool) SetWrapWidth(w int) {
+	p.wrapWidth = w
+}
+
+type Segment struct {
+	Gr      *Grapheme
+	I       int
+	WrapLn  int
+	WrapCol int
+}
+
+func (p *Pool) Segments(it iter.Seq[string], extra bool) iter.Seq[Segment] {
+	return func(yield func(Segment) bool) {
+		seg := Segment{}
+		w := 0
+		str := ""
 
 		for text := range it {
 			state := -1
 
 			for len(text) > 0 {
-				seg, text, _, state = uniseg.StepString(text, state)
+				str, text, _, state = uniseg.StepString(text, state)
 
-				if !yield(p.Get(seg)) {
+				seg.Gr = p.Get(str)
+				if seg.Gr.Width < 0 {
+					seg.Gr.Width = vt.Wchar(p.wCharY, p.wCharX, seg.Gr.Bytes)
+				}
+
+				w += seg.Gr.Width
+				if w > p.wrapWidth {
+					w = seg.Gr.Width
+					seg.WrapLn += 1
+					seg.WrapCol = 0
+				}
+
+				if !yield(seg) {
 					return
 				}
+
+				seg.I += 1
+				seg.WrapCol += 1
+			}
+		}
+
+		if extra {
+			seg.Gr = p.Get(" ")
+
+			w += seg.Gr.Width
+			if w > p.wrapWidth {
+				w = seg.Gr.Width
+				seg.WrapLn += 1
+				seg.WrapCol = 0
+			}
+
+			if !yield(seg) {
+				return
 			}
 		}
 	}
 }
 
-func (p GraphemePool) MeasureString(text string) (ln, col int) {
-	var seg string
+func (p *Pool) MeasureString(text string) (ln, col int) {
+	str := ""
 	state := -1
 
 	for len(text) > 0 {
-		seg, text, _, state = uniseg.StepString(text, state)
+		str, text, _, state = uniseg.StepString(text, state)
 
-		if p.Get(seg).IsEol {
+		if p.Get(str).IsEol {
 			ln += 1
 			col = 0
 		} else {

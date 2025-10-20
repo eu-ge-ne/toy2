@@ -43,12 +43,12 @@ func (buf TextBuf) LnToByte(ln int) (int, bool) {
 func (buf *TextBuf) ColToByte(ln, col int) (int, bool) {
 	index := 0
 
-	for i, cell := range buf.IterLine(ln, false) {
-		if i == col {
+	for cell := range buf.LineSegments(ln) {
+		if cell.I == col {
 			return index, true
 		}
 
-		index += len(cell.G.Seg)
+		index += len(cell.Gr.Str)
 	}
 
 	return 0, false
