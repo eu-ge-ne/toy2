@@ -224,18 +224,6 @@ func (ed *Editor) Save(filePath string) error {
 	return nil
 }
 
-func (ed *Editor) deleteChar() {
-	cur := ed.cursor
-
-	start, _ := ed.buffer.Pos(cur.Ln, cur.Col)
-	end := ed.buffer.PosNear(cur.Ln, cur.Col+1)
-	ed.syntax.Delete(start, end)
-
-	ed.buffer.Delete2(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
-
-	ed.history.Push()
-}
-
 func (ed *Editor) deletePrevChar() {
 	/*
 		cur := ed.cursor
@@ -295,6 +283,19 @@ func (ed *Editor) deleteSelection() {
 	ed.syntax.Delete(start, end)
 
 	cur.Set(cur.StartLn, cur.StartCol, false)
+
+	ed.history.Push()
+}
+
+func (ed *Editor) deleteChar() {
+	cur := ed.cursor
+
+	start, _ := ed.buffer.Pos(cur.Ln, cur.Col)
+	end := ed.buffer.PosNear(cur.Ln, cur.Col+1)
+
+	ed.buffer.Delete2(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
+
+	ed.syntax.Delete(start, end)
 
 	ed.history.Push()
 }
