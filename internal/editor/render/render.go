@@ -196,7 +196,8 @@ func (r *Render) scrollV() {
 
 func (r *Render) scrollH() {
 	var cell *grapheme.IterCell = nil
-	for c := range r.buffer.IterLine(r.cursor.Ln, true, r.cursor.Col, math.MaxInt) {
+	line := r.buffer.ReadLine(r.cursor.Ln)
+	for c := range grapheme.Graphemes.IterString(line, true, r.cursor.Col, math.MaxInt) {
 		cell = &c
 		break
 	}
@@ -222,7 +223,8 @@ func (r *Render) scrollH() {
 
 	xs := make([]int, deltaCol)
 	xsI := 0
-	for c := range r.buffer.IterLine(r.cursor.Ln, true, r.cursor.Col-deltaCol, r.cursor.Col) {
+	line = r.buffer.ReadLine(r.cursor.Ln)
+	for c := range grapheme.Graphemes.IterString(line, true, r.cursor.Col-deltaCol, r.cursor.Col) {
 		xs[xsI] = c.Gr.Width
 		xsI += 1
 	}

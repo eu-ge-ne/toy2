@@ -4,7 +4,6 @@ import (
 	"iter"
 	"math"
 
-	"github.com/eu-ge-ne/toy2/internal/grapheme"
 	"github.com/eu-ge-ne/toy2/internal/textbuf/node"
 )
 
@@ -56,8 +55,4 @@ func (buf *TextBuf) ReadLine(ln int) iter.Seq[string] {
 	}
 
 	return buf.Read(start, end)
-}
-
-func (buf *TextBuf) IterLine(ln int, extra bool, iterStart, iterEnd int) iter.Seq[grapheme.IterCell] {
-	return grapheme.Graphemes.IterString(buf.ReadLine(ln), extra, iterStart, iterEnd)
 }
