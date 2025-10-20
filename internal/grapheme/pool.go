@@ -9,10 +9,13 @@ import (
 )
 
 type GraphemePool struct {
-	pool map[string]*Grapheme
+	pool      map[string]*Grapheme
+	wcharY    int
+	wcharX    int
+	wrapWidth int
 }
 
-func (p GraphemePool) Get(seg string) *Grapheme {
+func (p *GraphemePool) Get(seg string) *Grapheme {
 	g, ok := p.pool[seg]
 
 	if !ok {
@@ -23,13 +26,13 @@ func (p GraphemePool) Get(seg string) *Grapheme {
 	return g
 }
 
-type IterOptions struct {
-	WcharY    int
-	WcharX    int
-	WrapWidth int
-	Extra     bool
-	Start     int
-	End       int
+func (p *GraphemePool) SetWcharPos(y, x int) {
+	p.wcharY = y
+	p.wcharX = x
+}
+
+func (p *GraphemePool) SetWrapWidth(wrapWidth int) {
+	p.wrapWidth = wrapWidth
 }
 
 type IterCell struct {
@@ -39,7 +42,7 @@ type IterCell struct {
 	WrapCol int
 }
 
-func (p GraphemePool) IterString(it iter.Seq[string], opts IterOptions) iter.Seq[IterCell] {
+func (p *GraphemePool) IterString(it iter.Seq[string], extra bool, start int, end int) iter.Seq[IterCell] {
 	return func(yield func(IterCell) bool) {
 		cell := IterCell{}
 		w := 0
@@ -54,17 +57,17 @@ func (p GraphemePool) IterString(it iter.Seq[string], opts IterOptions) iter.Seq
 				cell.Gr = p.Get(seg)
 
 				if cell.Gr.Width < 0 {
-					cell.Gr.Width = vt.Wchar(opts.WcharY, opts.WcharX, cell.Gr.Bytes)
+					cell.Gr.Width = vt.Wchar(p.wcharY, p.wcharX, cell.Gr.Bytes)
 				}
 
 				w += cell.Gr.Width
-				if w > opts.WrapWidth {
+				if w > p.wrapWidth {
 					w = cell.Gr.Width
 					cell.WrapLn += 1
 					cell.WrapCol = 0
 				}
 
-				if cell.Col >= opts.Start && cell.Col < opts.End {
+				if cell.Col >= start && cell.Col < end {
 					if !yield(cell) {
 						return
 					}
@@ -75,17 +78,17 @@ func (p GraphemePool) IterString(it iter.Seq[string], opts IterOptions) iter.Seq
 			}
 		}
 
-		if opts.Extra {
+		if extra {
 			cell.Gr = p.Get(" ")
 
 			w += cell.Gr.Width
-			if w > opts.WrapWidth {
+			if w > p.wrapWidth {
 				w = cell.Gr.Width
 				cell.WrapLn += 1
 				cell.WrapCol = 0
 			}
 
-			if cell.Col >= opts.Start && cell.Col < opts.End {
+			if cell.Col >= start && cell.Col < end {
 				if !yield(cell) {
 					return
 				}
@@ -94,7 +97,7 @@ func (p GraphemePool) IterString(it iter.Seq[string], opts IterOptions) iter.Seq
 	}
 }
 
-func (p GraphemePool) MeasureString(text string) (ln, col int) {
+func (p *GraphemePool) MeasureString(text string) (ln, col int) {
 	var seg string
 	state := -1
 

@@ -139,16 +139,15 @@ func (r *Render) scroll() {
 	r.textWidth = r.area.W - r.indexWidth
 
 	if r.wrapEnabled {
-		r.buffer.WrapWidth = r.textWidth
+		grapheme.Graphemes.SetWrapWidth(r.textWidth)
 	} else {
-		r.buffer.WrapWidth = math.MaxInt
+		grapheme.Graphemes.SetWrapWidth(math.MaxInt)
 	}
 
 	r.cursorY = r.area.Y
 	r.cursorX = r.area.X + r.indexWidth
 
-	r.buffer.MeasureY = r.area.Y
-	r.buffer.MeasureX = r.area.X + r.indexWidth
+	grapheme.Graphemes.SetWcharPos(r.area.Y, r.area.X+r.indexWidth)
 
 	r.scrollV()
 	r.scrollH()

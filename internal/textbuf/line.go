@@ -22,14 +22,5 @@ func (buf *TextBuf) ReadLine(ln int) iter.Seq[string] {
 }
 
 func (buf *TextBuf) IterLine(ln int, extra bool, iterStart, iterEnd int) iter.Seq[grapheme.IterCell] {
-	opts := grapheme.IterOptions{
-		WcharY:    buf.MeasureY,
-		WcharX:    buf.MeasureX,
-		WrapWidth: buf.WrapWidth,
-		Extra:     extra,
-		Start:     iterStart,
-		End:       iterEnd,
-	}
-
-	return grapheme.Graphemes.IterString(buf.ReadLine(ln), opts)
+	return grapheme.Graphemes.IterString(buf.ReadLine(ln), extra, iterStart, iterEnd)
 }
