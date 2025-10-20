@@ -10,6 +10,7 @@ import (
 	_ "github.com/tree-sitter/tree-sitter-javascript/bindings/go"
 	treeSitterTs "github.com/tree-sitter/tree-sitter-typescript/bindings/go"
 
+	"github.com/eu-ge-ne/toy2/internal/grapheme"
 	"github.com/eu-ge-ne/toy2/internal/std"
 	"github.com/eu-ge-ne/toy2/internal/textbuf"
 )
@@ -212,12 +213,14 @@ func (s *Syntax) handleEdit(req editReq) {
 		panic(fmt.Sprintf("in Syntax.handleEditReq: %v", req))
 	}
 
-	col0, ok := s.buffer.ColIndex(req.ln0, req.col0)
+	line0 := s.buffer.ReadLine(req.ln0)
+	col0, ok := grapheme.Graphemes.ColToByte(line0, req.col0)
 	if !ok {
 		panic(fmt.Sprintf("in Syntax.handleEditReq: %v", req))
 	}
 
-	col1, ok := s.buffer.ColIndex(req.ln1, req.col1)
+	line1 := s.buffer.ReadLine(req.ln1)
+	col1, ok := grapheme.Graphemes.ColToByte(line1, req.col1)
 	if !ok {
 		panic(fmt.Sprintf("in Syntax.handleEditReq: %v", req))
 	}

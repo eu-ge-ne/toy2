@@ -4,28 +4,14 @@ import (
 	"github.com/eu-ge-ne/toy2/internal/grapheme"
 )
 
-func (buf *TextBuf) ColIndex(ln, col int) (int, bool) {
-	index := 0
-
-	line := buf.ReadLine(ln)
-	for cell := range grapheme.Graphemes.IterString(line, true) {
-		if cell.Col == col {
-			return index, true
-		}
-
-		index += len(cell.Gr.Seg)
-	}
-
-	return 0, false
-}
-
 func (buf *TextBuf) Index(ln, col int) (int, bool) {
 	lnIndex, ok := buf.LnToByte(ln)
 	if !ok {
 		return 0, false
 	}
 
-	colIndex, ok := buf.ColIndex(ln, col)
+	line := buf.ReadLine(ln)
+	colIndex, ok := grapheme.Graphemes.ColToByte(line, col)
 	if !ok {
 		return 0, false
 	}

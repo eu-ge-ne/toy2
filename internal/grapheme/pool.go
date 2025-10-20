@@ -93,6 +93,20 @@ func (p *GraphemePool) IterString(it iter.Seq[string], extra bool) iter.Seq[Iter
 	}
 }
 
+func (p *GraphemePool) ColToByte(it iter.Seq[string], col int) (int, bool) {
+	index := 0
+
+	for cell := range p.IterString(it, true) {
+		if cell.Col == col {
+			return index, true
+		}
+
+		index += len(cell.Gr.Seg)
+	}
+
+	return 0, false
+}
+
 func (p *GraphemePool) MeasureString(text string) (ln, col int) {
 	var seg string
 	state := -1
