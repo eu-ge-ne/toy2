@@ -7,13 +7,12 @@ import (
 	treeSitter "github.com/tree-sitter/go-tree-sitter"
 
 	"github.com/eu-ge-ne/toy2/internal/std"
-	"github.com/eu-ge-ne/toy2/internal/textbuf"
 )
 
 type highlightReq struct {
-	start textbuf.Pos
-	end   textbuf.Pos
-	spans chan Span
+	startIdx int
+	endIdx   int
+	spans    chan Span
 }
 
 type Span struct {
@@ -22,14 +21,14 @@ type Span struct {
 	Name     string
 }
 
-func (s *Syntax) Highlight(start, end textbuf.Pos) chan Span {
+func (s *Syntax) Highlight(startIdx, endIdx int) chan Span {
 	if s == nil {
 		return nil
 	}
 
 	spans := make(chan Span, 1024)
 
-	s.highlights <- highlightReq{start, end, spans}
+	s.highlights <- highlightReq{startIdx, endIdx, spans}
 
 	return spans
 }
@@ -45,14 +44,14 @@ func (s *Syntax) handleHighlight(req highlightReq) {
 		s.text = make([]byte, s.buffer.Count())
 	}
 	copy(
-		s.text[req.start.Idx:req.end.Idx],
-		std.IterToStr(s.buffer.Read(req.start.Idx, req.end.Idx)),
+		s.text[req.startIdx:req.endIdx],
+		std.IterToStr(s.buffer.Read(req.startIdx, req.endIdx)),
 	)
 
 	qc := treeSitter.NewQueryCursor()
 	defer qc.Close()
 
-	qc.SetByteRange(uint(req.start.Idx), uint(req.end.Idx))
+	qc.SetByteRange(uint(req.startIdx), uint(req.endIdx))
 	capts := qc.Captures(s.query, s.tree.RootNode(), s.text)
 
 	var span Span
