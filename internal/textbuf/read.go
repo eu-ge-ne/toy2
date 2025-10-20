@@ -26,14 +26,18 @@ func (buf *TextBuf) Read(start int, end int) iter.Seq[string] {
 }
 
 func (buf *TextBuf) Read2(startLn, startCol, endLn, endCol int) iter.Seq[string] {
-	start, ok := buf.Index(startLn, startCol)
+	start, ok := buf.LnToByte(startLn)
 	if !ok {
 		return empty
+	} else {
+		start += startCol
 	}
 
-	end, ok := buf.Index(endLn, endCol)
+	end, ok := buf.LnToByte(endLn)
 	if !ok {
 		end = math.MaxInt
+	} else {
+		end += endCol
 	}
 
 	return buf.Read(start, end)
