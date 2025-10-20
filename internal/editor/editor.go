@@ -271,10 +271,6 @@ func (ed *Editor) deletePrevChar() {
 func (ed *Editor) insertText(text string) {
 	cur := ed.cursor
 
-	if cur.Selecting {
-		ed.deleteSelection()
-	}
-
 	dLn, dCol := grapheme.Graphemes.MeasureString(text)
 
 	ed.buffer.Insert2(cur.Ln, cur.Col, text)
