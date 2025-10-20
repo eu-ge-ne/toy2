@@ -289,19 +289,16 @@ func (ed *Editor) insertText(text string) {
 }
 
 func (ed *Editor) deleteSelection() {
-	/*
-		cur := ed.cursor
+	cur := ed.cursor
 
-		ed.buffer.Delete2(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol)
-		ed.syntax.Delete(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol)
-		ed.cursor.Set(cur.StartLn, cur.StartCol, false)
+	start, _ := ed.buffer.Pos(cur.StartLn, cur.StartCol)
+	end := ed.buffer.PosNear(cur.EndLn, cur.EndCol)
 
-		ed.history.Push()
-	*/
+	ed.buffer.Delete2(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol)
 
-	/*
-		ed.buffer.Delete2(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol)
-		ed.syntax.Delete(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol)
-		cur.Set(cur.StartLn, cur.StartCol, false)
-	*/
+	ed.syntax.Delete(start, end)
+
+	cur.Set(cur.StartLn, cur.StartCol, false)
+
+	ed.history.Push()
 }
