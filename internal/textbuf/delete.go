@@ -59,14 +59,18 @@ func (buf *TextBuf) Delete(start int, end int) {
 }
 
 func (buf *TextBuf) Delete2(startLn, startCol, endLn, endCol int) {
-	start, ok := buf.Index(startLn, startCol)
+	start, ok := buf.LnToByte(startLn)
 	if !ok {
 		return
+	} else {
+		start += startCol
 	}
 
-	end, ok := buf.Index(endLn, endCol)
+	end, ok := buf.LnToByte(endLn)
 	if !ok {
 		end = math.MaxInt
+	} else {
+		end += endCol
 	}
 
 	buf.Delete(start, end)
