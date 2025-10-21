@@ -295,13 +295,6 @@ func (ed *Editor) deletePrevChar() {
 			}
 			ed.syntax.Delete(start, end)
 		}
-	} else {
-		start, end, ok := ed.buffer.Delete2(cur.Ln, cur.Col-1, cur.Ln, cur.Col)
-		if !ok {
-			panic("assert")
-		}
-		ed.syntax.Delete(start, end)
-		cur.Left(false)
 	}
 
 	ed.history.Push()
