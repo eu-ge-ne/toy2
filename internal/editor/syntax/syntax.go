@@ -20,17 +20,17 @@ var scmJsHighlights string
 var scmTsHighlights string
 
 type Syntax struct {
-	buffer     *textbuf.TextBuf
-	parser     *treeSitter.Parser
-	query      *treeSitter.Query
+	buffer *textbuf.TextBuf
+	parser *treeSitter.Parser
+	query  *treeSitter.Query
+	tree   *treeSitter.Tree
+
 	close      chan struct{}
-	edits      chan editReq
-	edit       treeSitter.InputEdit
 	highlights chan highlightReq
 
-	tree *treeSitter.Tree
-	text []byte
-	log  *os.File
+	dirty bool
+	text  []byte
+	log   *os.File
 }
 
 func New(buffer *textbuf.TextBuf) *Syntax {
@@ -38,7 +38,6 @@ func New(buffer *textbuf.TextBuf) *Syntax {
 		buffer:     buffer,
 		parser:     treeSitter.NewParser(),
 		close:      make(chan struct{}),
-		edits:      make(chan editReq),
 		highlights: make(chan highlightReq),
 	}
 
@@ -88,9 +87,6 @@ func (s *Syntax) run() {
 				s.handleClose()
 				return
 
-			case req := <-s.edits:
-				s.handleEdit(req)
-
 			case req := <-s.highlights:
 				s.handleHighlight(req)
 			}
@@ -122,7 +118,9 @@ func (s *Syntax) updateTree() {
 	}, s.tree, nil)
 
 	s.tree.Close()
+
 	s.tree = t
+	s.dirty = false
 
 	fmt.Fprintf(s.log, "update: elapsed %v\n", time.Since(started))
 }

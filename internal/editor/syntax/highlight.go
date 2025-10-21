@@ -36,7 +36,7 @@ func (s *Syntax) Highlight(startIdx, endIdx int) chan Span {
 func (s *Syntax) handleHighlight(req highlightReq) {
 	started := time.Now()
 
-	if s.tree == nil {
+	if s.tree == nil || s.dirty {
 		s.updateTree()
 	}
 
@@ -70,6 +70,7 @@ func (s *Syntax) handleHighlight(req highlightReq) {
 		capt := match.Captures[captIdx]
 		name := s.query.CaptureNames()[capt.Index]
 
+		/*
 		fmt.Fprintf(s.log,
 			"highlight: %v:%v %s (%s)\n",
 			capt.Node.StartPosition(),
@@ -79,6 +80,7 @@ func (s *Syntax) handleHighlight(req highlightReq) {
 			//match.PatternIndex,
 			//capt.Index,
 		)
+		*/
 
 		startIdx := int(capt.Node.StartByte())
 		endIdx := int(capt.Node.EndByte())

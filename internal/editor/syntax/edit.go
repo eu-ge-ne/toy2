@@ -1,68 +1,49 @@
 package syntax
 
 import (
-	"fmt"
+	treeSitter "github.com/tree-sitter/go-tree-sitter"
 
 	"github.com/eu-ge-ne/toy2/internal/textbuf"
 )
 
-type editReq struct {
-	kind  editKind
-	start textbuf.Pos
-	end   textbuf.Pos
-}
-
-type editKind int
-
-const (
-	editKindDelete editKind = iota
-	editKindInsert
-)
-
 func (s *Syntax) Delete(start, end textbuf.Pos) {
-	if s != nil {
-		s.edits <- editReq{editKindDelete, start, end}
-	}
-}
-
-func (s *Syntax) Insert(start, end textbuf.Pos) {
-	if s != nil {
-		s.edits <- editReq{editKindInsert, start, end}
-	}
-}
-
-func (s *Syntax) handleEdit(req editReq) {
-	if s.tree == nil {
+	if s == nil || s.tree == nil {
 		return
 	}
 
-	switch req.kind {
-	case editKindDelete:
-		s.edit.StartByte = uint(req.start.Idx)
-		s.edit.OldEndByte = uint(req.end.Idx)
-		s.edit.NewEndByte = s.edit.StartByte
+	var e treeSitter.InputEdit
 
-		s.edit.StartPosition.Row = uint(req.start.Ln)
-		s.edit.StartPosition.Column = uint(req.start.Col)
-		s.edit.OldEndPosition.Row = uint(req.end.Ln)
-		s.edit.OldEndPosition.Column = uint(req.end.Col)
-		s.edit.NewEndPosition = s.edit.StartPosition
-	case editKindInsert:
-		s.edit.StartByte = uint(req.start.Idx)
-		s.edit.OldEndByte = s.edit.StartByte
-		s.edit.NewEndByte = uint(req.end.Idx)
+	e.StartByte = uint(start.Idx)
+	e.OldEndByte = uint(end.Idx)
+	e.NewEndByte = e.StartByte
 
-		s.edit.StartPosition.Row = uint(req.start.Ln)
-		s.edit.StartPosition.Column = uint(req.start.Col)
-		s.edit.OldEndPosition = s.edit.StartPosition
-		s.edit.NewEndPosition.Row = uint(req.end.Ln)
-		s.edit.NewEndPosition.Column = uint(req.end.Col)
+	e.StartPosition.Row = uint(start.Ln)
+	e.StartPosition.Column = uint(start.Col)
+	e.OldEndPosition.Row = uint(end.Ln)
+	e.OldEndPosition.Column = uint(end.Col)
+	e.NewEndPosition = e.StartPosition
+
+	s.tree.Edit(&e)
+	s.dirty = true
+}
+
+func (s *Syntax) Insert(start, end textbuf.Pos) {
+	if s == nil || s.tree == nil {
+		return
 	}
 
-	fmt.Fprintf(s.log, "edit: %v\n", req)
-	fmt.Fprintf(s.log, "edit: %+v\n", s.edit)
+	var e treeSitter.InputEdit
 
-	s.tree.Edit(&s.edit)
+	e.StartByte = uint(start.Idx)
+	e.OldEndByte = e.StartByte
+	e.NewEndByte = uint(end.Idx)
 
-	s.updateTree()
+	e.StartPosition.Row = uint(start.Ln)
+	e.StartPosition.Column = uint(start.Col)
+	e.OldEndPosition = e.StartPosition
+	e.NewEndPosition.Row = uint(end.Ln)
+	e.NewEndPosition.Column = uint(end.Col)
+
+	s.tree.Edit(&e)
+	s.dirty = true
 }
