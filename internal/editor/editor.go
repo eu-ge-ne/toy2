@@ -266,7 +266,6 @@ func (ed *Editor) deletePrevChar() {
 		ed.history.Push()
 
 		ed.syntax.Delete(start, end)
-
 		return
 	}
 
