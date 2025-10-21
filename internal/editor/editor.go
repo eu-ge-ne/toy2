@@ -235,7 +235,7 @@ func (ed *Editor) insertText(text string) {
 func (ed *Editor) deleteSelection() {
 	start, end, ok := ed.buffer.Delete2(ed.cursor.StartLn, ed.cursor.StartCol, ed.cursor.EndLn, ed.cursor.EndCol)
 	if !ok {
-		panic("in Editor.deleteSelection")
+		panic("assert")
 	}
 
 	ed.syntax.Delete(start, end)
@@ -247,7 +247,7 @@ func (ed *Editor) deleteSelection() {
 func (ed *Editor) deleteChar() {
 	start, end, ok := ed.buffer.Delete2(ed.cursor.Ln, ed.cursor.Col, ed.cursor.Ln, ed.cursor.Col+1)
 	if !ok {
-		panic("in Editor.deleteChar")
+		panic("assert")
 	}
 
 	ed.syntax.Delete(start, end)
