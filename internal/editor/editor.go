@@ -226,10 +226,10 @@ func (ed *Editor) Save(filePath string) error {
 func (ed *Editor) insertText(text string) {
 	start, end := ed.buffer.Insert2(ed.cursor.Ln, ed.cursor.Col, text)
 
-	ed.syntax.Insert(start, end)
 	ed.cursor.Set(end.Ln, end.Col, false)
-
 	ed.history.Push()
+
+	ed.syntax.Insert(start, end)
 }
 
 func (ed *Editor) deleteSelection() {
@@ -238,10 +238,10 @@ func (ed *Editor) deleteSelection() {
 		panic("assert")
 	}
 
-	ed.syntax.Delete(start, end)
 	ed.cursor.Set(start.Ln, start.Col, false)
-
 	ed.history.Push()
+
+	ed.syntax.Delete(start, end)
 }
 
 func (ed *Editor) deleteChar() {
@@ -250,12 +250,26 @@ func (ed *Editor) deleteChar() {
 		panic("assert")
 	}
 
-	ed.syntax.Delete(start, end)
-
 	ed.history.Push()
+
+	ed.syntax.Delete(start, end)
 }
 
 func (ed *Editor) deletePrevChar() {
+	if ed.cursor.Col > 0 {
+		start, end, ok := ed.buffer.Delete2(ed.cursor.Ln, ed.cursor.Col-1, ed.cursor.Ln, ed.cursor.Col)
+		if !ok {
+			panic("assert")
+		}
+
+		ed.cursor.Set(start.Ln, start.Col, false)
+		ed.history.Push()
+
+		ed.syntax.Delete(start, end)
+
+		return
+	}
+
 	cur := ed.cursor
 
 	if cur.Ln > 0 && cur.Col == 0 {
