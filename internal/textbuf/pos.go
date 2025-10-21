@@ -40,7 +40,20 @@ func (buf *TextBuf) PosNear(ln, col int) Pos {
 	return Pos{lnIdx + colIdx, ln, colIdx}
 }
 
-func (buf TextBuf) lnIdx(ln int) (int, bool) {
+func (buf *TextBuf) MaxNonEolCol(ln int) int {
+	col := 0
+
+	for _, gr := range buf.LineGraphemes(ln) {
+		if gr.IsEol {
+			break
+		}
+		col += 1
+	}
+
+	return col
+}
+
+func (buf *TextBuf) lnIdx(ln int) (int, bool) {
 	if buf.Count() == 0 {
 		return 0, false
 	}

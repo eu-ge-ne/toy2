@@ -8,8 +8,9 @@ import (
 )
 
 type Cursor struct {
-	Ln        int
-	Col       int
+	Ln  int
+	Col int
+
 	Selecting bool
 	StartLn   int
 	StartCol  int
@@ -23,6 +24,17 @@ type Cursor struct {
 
 func New(buffer *textbuf.TextBuf) *Cursor {
 	return &Cursor{buffer: buffer}
+}
+
+func (cur *Cursor) Set(ln, col int, sel bool) bool {
+	oldLn := cur.Ln
+	oldCol := cur.Col
+
+	cur.setLn(ln)
+	cur.setCol(col)
+	cur.setSelection(oldLn, oldCol, sel)
+
+	return cur.Ln != oldLn || cur.Col != oldCol
 }
 
 func (cur *Cursor) Top(sel bool) bool {
@@ -93,38 +105,16 @@ func (cur *Cursor) IsSelected(ln, col int) bool {
 	return true
 }
 
-func (cur *Cursor) Set(ln, col int, sel bool) bool {
-	oldLn := cur.Ln
-	oldCol := cur.Col
-
-	cur.setLn(ln)
-	cur.setCol(col)
-	cur.setSelection(oldLn, oldCol, sel)
-
-	return cur.Ln != oldLn || cur.Col != oldCol
-}
-
 func (cur *Cursor) setLn(ln int) {
-	max := cur.buffer.LineCount() - 1
-
-	if max < 0 {
-		max = 0
-	}
+	max := max(0, cur.buffer.LineCount()-1)
 
 	cur.Ln = std.Clamp(ln, 0, max)
 }
 
 func (cur *Cursor) setCol(col int) {
-	len := 0
+	max := cur.buffer.MaxNonEolCol(cur.Ln)
 
-	for _, gr := range cur.buffer.LineGraphemes(cur.Ln) {
-		if gr.IsEol {
-			break
-		}
-		len += 1
-	}
-
-	cur.Col = std.Clamp(col, 0, len)
+	cur.Col = std.Clamp(col, 0, max)
 }
 
 func (cur *Cursor) setSelection(ln, col int, sel bool) {
