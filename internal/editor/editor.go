@@ -269,6 +269,10 @@ func (ed *Editor) deletePrevChar() {
 		return
 	}
 
+	if ed.cursor.Ln == 0 {
+		return
+	}
+
 	cur := ed.cursor
 
 	if cur.Ln > 0 && cur.Col == 0 {
