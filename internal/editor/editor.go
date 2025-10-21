@@ -256,33 +256,40 @@ func (ed *Editor) deleteChar() {
 }
 
 func (ed *Editor) deletePrevChar() {
-	/*
-		cur := ed.cursor
+	cur := ed.cursor
 
-		if cur.Ln > 0 && cur.Col == 0 {
-			l := 0
-			for range ed.buffer.LineGraphemes(cur.Ln) {
-				l += 1
-				if l == 2 {
-					break
-				}
+	if cur.Ln > 0 && cur.Col == 0 {
+		l := 0
+		for range ed.buffer.LineGraphemes(cur.Ln) {
+			l += 1
+			if l == 2 {
+				break
 			}
-
-			if l == 1 {
-				ed.buffer.Delete2(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
-				ed.syntax.Delete(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
-				cur.Left(false)
-			} else {
-				cur.Left(false)
-				ed.buffer.Delete2(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
-				ed.syntax.Delete(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
-			}
-		} else {
-			ed.buffer.Delete2(cur.Ln, cur.Col-1, cur.Ln, cur.Col)
-			ed.syntax.Delete(cur.Ln, cur.Col-1, cur.Ln, cur.Col)
-			cur.Left(false)
 		}
 
-		ed.history.Push()
-	*/
+		if l == 1 {
+			start, end, ok := ed.buffer.Delete2(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
+			if !ok {
+				panic("assert")
+			}
+			ed.syntax.Delete(start, end)
+			cur.Left(false)
+		} else {
+			cur.Left(false)
+			start, end, ok := ed.buffer.Delete2(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
+			if !ok {
+				panic("assert")
+			}
+			ed.syntax.Delete(start, end)
+		}
+	} else {
+		start, end, ok := ed.buffer.Delete2(cur.Ln, cur.Col-1, cur.Ln, cur.Col)
+		if !ok {
+			panic("assert")
+		}
+		ed.syntax.Delete(start, end)
+		cur.Left(false)
+	}
+
+	ed.history.Push()
 }
