@@ -1,6 +1,7 @@
 package textbuf
 
 import (
+	"github.com/eu-ge-ne/toy2/internal/grapheme"
 	"github.com/eu-ge-ne/toy2/internal/textbuf/node"
 )
 
@@ -69,10 +70,23 @@ func (buf *TextBuf) Insert(idx int, text string) {
 	}
 }
 
-func (buf *TextBuf) Insert2(ln, col int, text string) {
-	pos := buf.PosNear(ln, col)
+func (buf *TextBuf) Insert2(ln, col int, text string) (Pos, Pos) {
+	startPos := buf.PosNear(ln, col)
 
-	buf.Insert(pos.Idx, text)
+	dLn, dCol := grapheme.Graphemes.MeasureString(text)
+	var endLn, endCol int
+	if dLn == 0 {
+		endLn = ln
+		endCol = col + dCol
+	} else {
+		endLn = ln + dLn
+		endCol = dCol
+	}
+	endPos := buf.PosNear(endLn, endCol)
+
+	buf.Insert(startPos.Idx, text)
+
+	return startPos, endPos
 }
 
 func (buf *TextBuf) Append(text string) {

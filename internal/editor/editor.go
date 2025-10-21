@@ -11,7 +11,6 @@ import (
 	"github.com/eu-ge-ne/toy2/internal/editor/history"
 	"github.com/eu-ge-ne/toy2/internal/editor/render"
 	"github.com/eu-ge-ne/toy2/internal/editor/syntax"
-	"github.com/eu-ge-ne/toy2/internal/grapheme"
 	"github.com/eu-ge-ne/toy2/internal/key"
 	"github.com/eu-ge-ne/toy2/internal/std"
 	"github.com/eu-ge-ne/toy2/internal/textbuf"
@@ -225,17 +224,10 @@ func (ed *Editor) Save(filePath string) error {
 }
 
 func (ed *Editor) insertText(text string) {
-	cur := ed.cursor
+	start, end := ed.buffer.Insert2(ed.cursor.Ln, ed.cursor.Col, text)
 
-	dLn, dCol := grapheme.Graphemes.MeasureString(text)
-
-	ed.buffer.Insert2(cur.Ln, cur.Col, text)
-
-	start, _ := ed.buffer.Pos(cur.Ln, cur.Col)
-	end := ed.buffer.PosNear(cur.Ln+dLn, cur.Col+dCol)
 	ed.syntax.Insert(start, end)
-
-	cur.Forward(dLn, dCol)
+	ed.cursor.Set(end.Ln, end.Col, false)
 
 	ed.history.Push()
 }
