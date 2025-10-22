@@ -62,7 +62,7 @@ func (buf *TextBuf) Delete2(startLn, startCol, endLn, endCol int) (Pos, Pos, boo
 		return Pos{}, Pos{}, false
 	}
 
-	endPos := buf.PosNear(endLn, endCol)
+	endPos := buf.PosMax(endLn, endCol)
 
 	buf.Delete(startPos.Idx, endPos.Idx)
 

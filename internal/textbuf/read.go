@@ -26,14 +26,14 @@ func (buf *TextBuf) Read(startIdx int, endIdx int) iter.Seq[string] {
 }
 
 func (buf *TextBuf) Read2(startLn, startCol, endLn, endCol int) iter.Seq[string] {
-	startIdx, ok := buf.Pos(startLn, startCol)
+	startPos, ok := buf.Pos(startLn, startCol)
 	if !ok {
 		return func(yield func(string) bool) {}
 	}
 
-	endIdx := buf.PosNear(endLn, endCol)
+	endPos := buf.PosMax(endLn, endCol)
 
-	return buf.Read(startIdx.Idx, endIdx.Idx)
+	return buf.Read(startPos.Idx, endPos.Idx)
 }
 
 func (buf *TextBuf) ReadLine(ln int) iter.Seq[string] {
