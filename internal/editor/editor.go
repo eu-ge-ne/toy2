@@ -254,19 +254,16 @@ func (ed *Editor) deletePrevChar() {
 		return
 	}
 
-	if ed.cursor.Col > 0 {
-		change := ed.buffer.Delete(ed.cursor.Ln, ed.cursor.Col-1, ed.cursor.Ln, ed.cursor.Col)
+	var change textbuf.Change
 
-		ed.cursor.Set(change.Start.Ln, change.Start.Col, false)
-		ed.history.Push()
+	if ed.cursor.Col == 0 {
+		startLn := ed.cursor.Ln - 1
+		startCol := max(0, ed.buffer.ColumnCount(startLn)-1)
 
-		ed.syntax.Delete(change)
-		return
+		change = ed.buffer.Delete(startLn, startCol, ed.cursor.Ln, ed.cursor.Col)
+	} else {
+		change = ed.buffer.Delete(ed.cursor.Ln, ed.cursor.Col-1, ed.cursor.Ln, ed.cursor.Col)
 	}
-
-	startLn := ed.cursor.Ln - 1
-	startCol := max(0, ed.buffer.ColumnCount(startLn)-1)
-	change := ed.buffer.Delete(startLn, startCol, ed.cursor.Ln, ed.cursor.Col)
 
 	ed.cursor.Set(change.Start.Ln, change.Start.Col, false)
 	ed.history.Push()
