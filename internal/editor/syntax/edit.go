@@ -28,7 +28,8 @@ func (s *Syntax) Delete(change textbuf.Change) {
 	fmt.Fprintf(s.log, "delete: %+v\n", e)
 
 	s.tree.Edit(&e)
-	s.dirty = true
+
+	s.changed = true
 }
 
 func (s *Syntax) Insert(change textbuf.Change) {
@@ -51,5 +52,6 @@ func (s *Syntax) Insert(change textbuf.Change) {
 	fmt.Fprintf(s.log, "insert: %+v\n", e)
 
 	s.tree.Edit(&e)
-	s.dirty = true
+
+	s.changed = true
 }

@@ -34,8 +34,9 @@ func (s *Syntax) Highlight(startIdx, endIdx int) <-chan Span {
 }
 
 func (s *Syntax) handleHighlight(req highlightReq) {
-	if s.tree == nil || s.dirty {
+	if s.tree == nil || s.changed {
 		s.updateTree()
+		s.changed = false
 	}
 
 	started := time.Now()
