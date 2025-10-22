@@ -30,8 +30,14 @@ func (cur *Cursor) Set(ln, col int, sel bool) bool {
 	oldLn := cur.Ln
 	oldCol := cur.Col
 
-	cur.setLn(ln)
-	cur.setCol(col)
+	cur.Ln = std.Clamp(ln, 0, cur.buffer.LineCount()-1)
+
+	if cur.Ln == cur.buffer.LineCount()-1 {
+		cur.Col = std.Clamp(col, 0, cur.buffer.ColumnCount(cur.Ln))
+	} else {
+		cur.Col = std.Clamp(col, 0, cur.buffer.ColumnCount(cur.Ln)-1)
+	}
+
 	cur.setSelection(oldLn, oldCol, sel)
 
 	return cur.Ln != oldLn || cur.Col != oldCol
@@ -103,24 +109,6 @@ func (cur *Cursor) IsSelected(ln, col int) bool {
 	}
 
 	return true
-}
-
-func (cur *Cursor) setLn(ln int) {
-	max := max(0, cur.buffer.LineCount()-1)
-
-	cur.Ln = std.Clamp(ln, 0, max)
-}
-
-func (cur *Cursor) setCol(col int) {
-	var max int
-
-	if cur.Ln == cur.buffer.LineCount()-1 {
-		max = cur.buffer.ColumnCount(cur.Ln)
-	} else {
-		max = cur.buffer.ColumnCount(cur.Ln) - 1
-	}
-
-	cur.Col = std.Clamp(col, 0, max)
 }
 
 func (cur *Cursor) setSelection(ln, col int, sel bool) {
