@@ -26,12 +26,12 @@ func (buf *TextBuf) Slice(startIdx int, endIdx int) iter.Seq[string] {
 }
 
 func (buf *TextBuf) Read(startLn, startCol, endLn, endCol int) iter.Seq[string] {
-	startPos, ok := buf.Pos(startLn, startCol)
+	startPos, ok := buf.StartPos(startLn, startCol)
 	if !ok {
 		return func(yield func(string) bool) {}
 	}
 
-	endPos := buf.PosMax(endLn, endCol)
+	endPos := buf.EndPos(endLn, endCol)
 
 	if endPos.Idx < startPos.Idx {
 		panic("assert")

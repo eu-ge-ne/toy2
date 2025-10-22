@@ -57,12 +57,12 @@ func (buf *TextBuf) delete(startIdx int, endIdx int) {
 }
 
 func (buf *TextBuf) Delete(startLn, startCol, endLn, endCol int) Change {
-	startPos, ok := buf.Pos(startLn, startCol)
+	startPos, ok := buf.StartPos(startLn, startCol)
 	if !ok {
 		panic("assert")
 	}
 
-	endPos := buf.PosMax(endLn, endCol)
+	endPos := buf.EndPos(endLn, endCol)
 	if endPos.Idx <= startPos.Idx {
 		panic("assert")
 	}

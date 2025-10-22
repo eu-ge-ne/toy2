@@ -71,7 +71,7 @@ func (buf *TextBuf) insert(idx int, text string) {
 }
 
 func (buf *TextBuf) Insert(ln, col int, text string) Change {
-	startPos := buf.PosMax(ln, col)
+	startPos := buf.EndPos(ln, col)
 
 	buf.insert(startPos.Idx, text)
 
@@ -86,7 +86,7 @@ func (buf *TextBuf) Insert(ln, col int, text string) Change {
 		endCol = dCol
 	}
 
-	endPos := buf.PosMax(endLn, endCol)
+	endPos := buf.EndPos(endLn, endCol)
 	if endPos.Idx <= startPos.Idx {
 		panic("assert")
 	}

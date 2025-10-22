@@ -7,7 +7,7 @@ type Pos struct {
 	ColIdx int
 }
 
-func (buf *TextBuf) Pos(ln, col int) (Pos, bool) {
+func (buf *TextBuf) StartPos(ln, col int) (Pos, bool) {
 	lnIdx, ok := buf.lnIdx(ln)
 	if !ok {
 		return Pos{}, false
@@ -21,7 +21,7 @@ func (buf *TextBuf) Pos(ln, col int) (Pos, bool) {
 	return Pos{Ln: ln, Col: col, Idx: lnIdx + colIdx, ColIdx: colIdx}, true
 }
 
-func (buf *TextBuf) PosMax(ln, col int) Pos {
+func (buf *TextBuf) EndPos(ln, col int) Pos {
 	maxLn := max(0, buf.LineCount()-1)
 	if ln > maxLn {
 		ln = maxLn
