@@ -71,7 +71,7 @@ func (buf *TextBuf) Insert(idx int, text string) {
 }
 
 func (buf *TextBuf) Insert2(ln, col int, text string) (Pos, Pos) {
-	startPos := buf.PosNear(ln, col)
+	startPos := buf.PosMax(ln, col)
 
 	dLn, dCol := grapheme.Graphemes.MeasureString(text)
 	var endLn, endCol int
@@ -82,7 +82,7 @@ func (buf *TextBuf) Insert2(ln, col int, text string) (Pos, Pos) {
 		endLn = ln + dLn
 		endCol = dCol
 	}
-	endPos := buf.PosNear(endLn, endCol)
+	endPos := buf.PosMax(endLn, endCol)
 
 	buf.Insert(startPos.Idx, text)
 
