@@ -34,11 +34,11 @@ func (s *Syntax) Highlight(startIdx, endIdx int) <-chan Span {
 }
 
 func (s *Syntax) handleHighlight(req highlightReq) {
-	started := time.Now()
-
 	if s.tree == nil || s.dirty {
 		s.updateTree()
 	}
+
+	started := time.Now()
 
 	if s.buffer.Count() > len(s.text) {
 		s.text = make([]byte, s.buffer.Count())
