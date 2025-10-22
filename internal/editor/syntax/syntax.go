@@ -104,22 +104,24 @@ func (s *Syntax) handleClose() {
 	s.tree = nil
 }
 
-const maxChunkLen = 1024 * 64
+const maxChunkLen = 1024 * 4
 
 func (s *Syntax) updateTree() {
 	started := time.Now()
 
-	t := s.parser.ParseWithOptions(func(i int, p treeSitter.Point) []byte {
+	fmt.Fprintln(s.log, "update: started")
+
+	oldTree := s.tree
+
+	s.tree = s.parser.ParseWithOptions(func(i int, p treeSitter.Point) []byte {
 		text := s.buffer.Chunk(i)
 		if len(text) > maxChunkLen {
 			text = text[0:maxChunkLen]
 		}
+		fmt.Fprintf(s.log, "update: chunk %d, %+v, %d\n", i, p, len(text))
 		return []byte(text)
-	}, s.tree, nil)
+	}, oldTree, nil)
 
-	s.tree.Close()
-
-	s.tree = t
 	s.dirty = false
 
 	fmt.Fprintf(s.log, "update: elapsed %v\n", time.Since(started))
