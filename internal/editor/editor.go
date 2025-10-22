@@ -273,33 +273,15 @@ func (ed *Editor) deletePrevChar() {
 		return
 	}
 
-	cur := ed.cursor
-
-	if cur.Ln > 0 && cur.Col == 0 {
-		l := 0
-		for range ed.buffer.LineGraphemes(cur.Ln) {
-			l += 1
-			if l == 2 {
-				break
-			}
-		}
-
-		if l == 1 {
-			start, end, ok := ed.buffer.Delete2(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
-			if !ok {
-				panic("assert")
-			}
-			ed.syntax.Delete(start, end)
-			cur.Left(false)
-		} else {
-			cur.Left(false)
-			start, end, ok := ed.buffer.Delete2(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
-			if !ok {
-				panic("assert")
-			}
-			ed.syntax.Delete(start, end)
-		}
+	startLn := ed.cursor.Ln - 1
+	endCol := ed.buffer.ColMax(startLn)
+	start, end, ok := ed.buffer.Delete2(startLn, endCol-1, startLn, endCol)
+	if !ok {
+		panic("assert")
 	}
 
+	ed.cursor.Set(start.Ln, start.Col, false)
 	ed.history.Push()
+
+	ed.syntax.Delete(start, end)
 }
