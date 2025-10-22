@@ -233,10 +233,7 @@ func (ed *Editor) insertText(text string) {
 }
 
 func (ed *Editor) deleteSelection() {
-	start, end, ok := ed.buffer.Delete(ed.cursor.StartLn, ed.cursor.StartCol, ed.cursor.EndLn, ed.cursor.EndCol)
-	if !ok {
-		panic("assert")
-	}
+	start, end := ed.buffer.Delete(ed.cursor.StartLn, ed.cursor.StartCol, ed.cursor.EndLn, ed.cursor.EndCol)
 
 	ed.cursor.Set(start.Ln, start.Col, false)
 	ed.history.Push()
@@ -245,10 +242,7 @@ func (ed *Editor) deleteSelection() {
 }
 
 func (ed *Editor) deleteChar() {
-	start, end, ok := ed.buffer.Delete(ed.cursor.Ln, ed.cursor.Col, ed.cursor.Ln, ed.cursor.Col+1)
-	if !ok {
-		panic("assert")
-	}
+	start, end := ed.buffer.Delete(ed.cursor.Ln, ed.cursor.Col, ed.cursor.Ln, ed.cursor.Col+1)
 
 	ed.history.Push()
 
@@ -261,10 +255,7 @@ func (ed *Editor) deletePrevChar() {
 	}
 
 	if ed.cursor.Col > 0 {
-		start, end, ok := ed.buffer.Delete(ed.cursor.Ln, ed.cursor.Col-1, ed.cursor.Ln, ed.cursor.Col)
-		if !ok {
-			panic("assert")
-		}
+		start, end := ed.buffer.Delete(ed.cursor.Ln, ed.cursor.Col-1, ed.cursor.Ln, ed.cursor.Col)
 
 		ed.cursor.Set(start.Ln, start.Col, false)
 		ed.history.Push()
@@ -275,10 +266,7 @@ func (ed *Editor) deletePrevChar() {
 
 	startLn := ed.cursor.Ln - 1
 	endCol := ed.buffer.ColMax(startLn)
-	start, end, ok := ed.buffer.Delete(startLn, endCol-1, startLn, endCol)
-	if !ok {
-		panic("assert")
-	}
+	start, end := ed.buffer.Delete(startLn, endCol-1, startLn, endCol)
 
 	ed.cursor.Set(start.Ln, start.Col, false)
 	ed.history.Push()
