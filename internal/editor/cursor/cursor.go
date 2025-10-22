@@ -112,7 +112,13 @@ func (cur *Cursor) setLn(ln int) {
 }
 
 func (cur *Cursor) setCol(col int) {
-	max := cur.buffer.LastNonEolColumn(cur.Ln) + 1
+	var max int
+
+	if cur.Ln == cur.buffer.LineCount()-1 {
+		max = cur.buffer.ColumnCount(cur.Ln)
+	} else {
+		max = cur.buffer.ColumnCount(cur.Ln) - 1
+	}
 
 	cur.Col = std.Clamp(col, 0, max)
 }
