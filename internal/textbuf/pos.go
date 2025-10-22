@@ -24,7 +24,7 @@ func (buf *TextBuf) Pos(ln, col int) (Pos, bool) {
 	return Pos{lnIdx + colIdx, ln, colIdx}, true
 }
 
-func (buf *TextBuf) PosNear(ln, col int) Pos {
+func (buf *TextBuf) PosMax(ln, col int) Pos {
 	maxLn := max(0, buf.LineCount()-1)
 	if ln > maxLn {
 		ln = maxLn
@@ -34,13 +34,23 @@ func (buf *TextBuf) PosNear(ln, col int) Pos {
 
 	colIdx, ok := buf.colIdx(ln, col)
 	if !ok {
-		colIdx = buf.colMaxIdx(ln)
+		colIdx = buf.colIdxMax(ln)
 	}
 
 	return Pos{lnIdx + colIdx, ln, colIdx}
 }
 
-func (buf *TextBuf) MaxNonEolCol(ln int) int {
+func (buf *TextBuf) ColMax(ln int) int {
+	col := 0
+
+	for range buf.LineGraphemes(ln) {
+		col += 1
+	}
+
+	return col
+}
+
+func (buf *TextBuf) ColMaxNonEol(ln int) int {
 	col := 0
 
 	for _, gr := range buf.LineGraphemes(ln) {
@@ -89,16 +99,6 @@ func (buf *TextBuf) lnIdx(ln int) (int, bool) {
 	return 0, false
 }
 
-func (buf *TextBuf) colMaxIdx(ln int) int {
-	idx := 0
-
-	for _, gr := range buf.LineGraphemes(ln) {
-		idx += len(gr.Str)
-	}
-
-	return idx
-}
-
 func (buf *TextBuf) colIdx(ln, col int) (int, bool) {
 	if col == 0 {
 		return 0, true
@@ -115,4 +115,14 @@ func (buf *TextBuf) colIdx(ln, col int) (int, bool) {
 	}
 
 	return 0, false
+}
+
+func (buf *TextBuf) colIdxMax(ln int) int {
+	idx := 0
+
+	for _, gr := range buf.LineGraphemes(ln) {
+		idx += len(gr.Str)
+	}
+
+	return idx
 }
