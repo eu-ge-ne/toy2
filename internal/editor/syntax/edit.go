@@ -1,6 +1,8 @@
 package syntax
 
 import (
+	"fmt"
+
 	treeSitter "github.com/tree-sitter/go-tree-sitter"
 
 	"github.com/eu-ge-ne/toy2/internal/textbuf"
@@ -23,6 +25,8 @@ func (s *Syntax) Delete(change textbuf.Change) {
 	e.OldEndPosition.Column = uint(change.End.ColIdx)
 	e.NewEndPosition = e.StartPosition
 
+	fmt.Fprintf(s.log, "delete: %+v\n", e)
+
 	s.tree.Edit(&e)
 	s.dirty = true
 }
@@ -43,6 +47,8 @@ func (s *Syntax) Insert(change textbuf.Change) {
 	e.OldEndPosition = e.StartPosition
 	e.NewEndPosition.Row = uint(change.End.Ln)
 	e.NewEndPosition.Column = uint(change.End.ColIdx)
+
+	fmt.Fprintf(s.log, "insert: %+v\n", e)
 
 	s.tree.Edit(&e)
 	s.dirty = true
