@@ -2,6 +2,14 @@ package textbuf
 
 import "github.com/eu-ge-ne/toy2/internal/textbuf/node"
 
+func (buf *TextBuf) LineCount() int {
+	if buf.Count() == 0 {
+		return 0
+	}
+
+	return buf.tree.Root.TotalEolsLen + 1
+}
+
 func (buf *TextBuf) lnIdx(ln int) (int, bool) {
 	if buf.Count() == 0 {
 		return 0, false

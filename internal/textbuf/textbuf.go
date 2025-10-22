@@ -28,14 +28,6 @@ func (buf *TextBuf) Count() int {
 	return buf.tree.Root.TotalLen
 }
 
-func (buf *TextBuf) LineCount() int {
-	if buf.Count() == 0 {
-		return 0
-	}
-
-	return buf.tree.Root.TotalEolsLen + 1
-}
-
 func (buf *TextBuf) Save() Snapshot {
 	return Snapshot{
 		node: buf.tree.Root.Clone(node.NIL),
