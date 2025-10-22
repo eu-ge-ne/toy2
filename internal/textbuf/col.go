@@ -8,8 +8,8 @@ func (buf *TextBuf) ColumnCount(ln int) int {
 	return grapheme.Graphemes.CountString(buf.ReadLine(ln))
 }
 
-func (buf *TextBuf) EndColNonEol(ln int) int {
-	col := 0
+func (buf *TextBuf) LastNonEolColumn(ln int) int {
+	col := -1
 
 	for _, gr := range buf.LineGraphemes(ln) {
 		if gr.IsEol {
