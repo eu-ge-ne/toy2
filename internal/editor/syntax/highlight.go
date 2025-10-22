@@ -71,15 +71,15 @@ func (s *Syntax) handleHighlight(req highlightReq) {
 		name := s.query.CaptureNames()[capt.Index]
 
 		/*
-		fmt.Fprintf(s.log,
-			"highlight: %v:%v %s (%s)\n",
-			capt.Node.StartPosition(),
-			capt.Node.EndPosition(),
-			capt.Node.Utf8Text(s.text),
-			name,
-			//match.PatternIndex,
-			//capt.Index,
-		)
+			fmt.Fprintf(s.log,
+				"highlight: %v:%v %s (%s)\n",
+				capt.Node.StartPosition(),
+				capt.Node.EndPosition(),
+				capt.Node.Utf8Text(s.text),
+				name,
+				//match.PatternIndex,
+				//capt.Index,
+			)
 		*/
 
 		startIdx := int(capt.Node.StartByte())
