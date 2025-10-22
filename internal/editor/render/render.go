@@ -130,7 +130,7 @@ func (r *Render) Render() {
 
 func (r *Render) initHighlight() {
 	start, _ := r.buffer.Pos(r.ScrollLn, 0)
-	end := r.buffer.PosNear(r.ScrollLn+r.area.H-1, math.MaxInt)
+	end := r.buffer.PosMax(r.ScrollLn+r.area.H-1, math.MaxInt)
 	r.hlSpans = r.syntax.Highlight(start.Idx, end.Idx)
 
 	r.hlSpan = syntax.Span{StartIdx: -1, EndIdx: -1}
