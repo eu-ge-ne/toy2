@@ -1,5 +1,7 @@
 package textbuf
 
+import "github.com/eu-ge-ne/toy2/internal/std"
+
 type Pos struct {
 	Ln     int
 	Col    int
@@ -22,10 +24,7 @@ func (buf *TextBuf) Pos(ln, col int) (Pos, bool) {
 }
 
 func (buf *TextBuf) EndPos(ln, col int) Pos {
-	maxLn := max(0, buf.LineCount()-1)
-	if ln > maxLn {
-		ln = maxLn
-	}
+	ln = std.Clamp(ln, 0, buf.LineCount()-1)
 
 	lnIdx, _ := buf.lnIdx(ln)
 
