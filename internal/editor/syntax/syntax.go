@@ -104,7 +104,7 @@ func (s *Syntax) handleClose() {
 	s.tree = nil
 }
 
-const maxChunkLen = 1024 * 4
+const maxChunkLen = 1024 * 64
 
 func (s *Syntax) updateTree() {
 	started := time.Now()
