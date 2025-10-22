@@ -14,7 +14,7 @@ const (
 	insCaseSplit
 )
 
-func (buf *TextBuf) Insert(idx int, text string) {
+func (buf *TextBuf) insert(idx int, text string) {
 	if idx > buf.Count() {
 		return
 	}
@@ -70,7 +70,7 @@ func (buf *TextBuf) Insert(idx int, text string) {
 	}
 }
 
-func (buf *TextBuf) Insert2(ln, col int, text string) (Pos, Pos) {
+func (buf *TextBuf) Insert(ln, col int, text string) (Pos, Pos) {
 	startPos := buf.PosMax(ln, col)
 
 	dLn, dCol := grapheme.Graphemes.MeasureString(text)
@@ -84,11 +84,11 @@ func (buf *TextBuf) Insert2(ln, col int, text string) (Pos, Pos) {
 	}
 	endPos := buf.PosMax(endLn, endCol)
 
-	buf.Insert(startPos.Idx, text)
+	buf.insert(startPos.Idx, text)
 
 	return startPos, endPos
 }
 
 func (buf *TextBuf) Append(text string) {
-	buf.Insert(buf.Count(), text)
+	buf.insert(buf.Count(), text)
 }

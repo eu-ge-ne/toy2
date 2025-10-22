@@ -224,7 +224,7 @@ func (ed *Editor) Save(filePath string) error {
 }
 
 func (ed *Editor) insertText(text string) {
-	start, end := ed.buffer.Insert2(ed.cursor.Ln, ed.cursor.Col, text)
+	start, end := ed.buffer.Insert(ed.cursor.Ln, ed.cursor.Col, text)
 
 	ed.cursor.Set(end.Ln, end.Col, false)
 	ed.history.Push()
