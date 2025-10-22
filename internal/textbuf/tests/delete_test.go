@@ -18,28 +18,28 @@ func TestDeleteLine(t *testing.T) {
 
 	buf.Delete(4, 0, 4, math.MaxInt)
 
-	assert.Equal(t, "Lorem \nipsum \ndolor \nsit \n", std.IterToStr(buf.Read(0, math.MaxInt)))
+	assert.Equal(t, "Lorem \nipsum \ndolor \nsit \n", std.IterToStr(buf.Slice(0, math.MaxInt)))
 	assert.Equal(t, 26, buf.Count())
 	assert.Equal(t, 5, buf.LineCount())
 	buf.Validate()
 
 	buf.Delete(3, 0, 4, 0)
 
-	assert.Equal(t, "Lorem \nipsum \ndolor \n", std.IterToStr(buf.Read(0, math.MaxInt)))
+	assert.Equal(t, "Lorem \nipsum \ndolor \n", std.IterToStr(buf.Slice(0, math.MaxInt)))
 	assert.Equal(t, 21, buf.Count())
 	assert.Equal(t, 4, buf.LineCount())
 	buf.Validate()
 
 	buf.Delete(2, 0, 3, 0)
 
-	assert.Equal(t, "Lorem \nipsum \n", std.IterToStr(buf.Read(0, math.MaxInt)))
+	assert.Equal(t, "Lorem \nipsum \n", std.IterToStr(buf.Slice(0, math.MaxInt)))
 	assert.Equal(t, 14, buf.Count())
 	assert.Equal(t, 3, buf.LineCount())
 	buf.Validate()
 
 	buf.Delete(1, 0, 2, 0)
 
-	assert.Equal(t, "Lorem \n", std.IterToStr(buf.Read(0, math.MaxInt)))
+	assert.Equal(t, "Lorem \n", std.IterToStr(buf.Slice(0, math.MaxInt)))
 	assert.Equal(t, 7, buf.Count())
 	assert.Equal(t, 2, buf.LineCount())
 	buf.Validate()
@@ -53,7 +53,7 @@ func TestDeleteLine2(t *testing.T) {
 
 	buf.Delete(0, 0, 0, 1)
 
-	assert.Equal(t, "", std.IterToStr(buf.Read(0, math.MaxInt)))
+	assert.Equal(t, "", std.IterToStr(buf.Slice(0, math.MaxInt)))
 	assert.Equal(t, 0, buf.Count())
 	assert.Equal(t, 0, buf.LineCount())
 	buf.Validate()
@@ -67,14 +67,14 @@ func TestDeleteFromLine(t *testing.T) {
 
 	buf.Delete(3, 0, math.MaxInt, math.MaxInt)
 
-	assert.Equal(t, "Lorem \nipsum \ndolor \n", std.IterToStr(buf.Read(0, math.MaxInt)))
+	assert.Equal(t, "Lorem \nipsum \ndolor \n", std.IterToStr(buf.Slice(0, math.MaxInt)))
 	assert.Equal(t, 21, buf.Count())
 	assert.Equal(t, 4, buf.LineCount())
 	buf.Validate()
 
 	buf.Delete(1, 0, math.MaxInt, math.MaxInt)
 
-	assert.Equal(t, "Lorem \n", std.IterToStr(buf.Read(0, math.MaxInt)))
+	assert.Equal(t, "Lorem \n", std.IterToStr(buf.Slice(0, math.MaxInt)))
 	assert.Equal(t, 7, buf.Count())
 	assert.Equal(t, 2, buf.LineCount())
 	buf.Validate()

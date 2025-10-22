@@ -16,7 +16,7 @@ func (buf *TextBuf) Chunk(idx int) string {
 	return buf.content.Chunk(x, offset)
 }
 
-func (buf *TextBuf) Read(startIdx int, endIdx int) iter.Seq[string] {
+func (buf *TextBuf) Slice(startIdx int, endIdx int) iter.Seq[string] {
 	x, offset := buf.tree.Root.Find(startIdx)
 	if x == nil {
 		return func(yield func(string) bool) {}
@@ -25,7 +25,7 @@ func (buf *TextBuf) Read(startIdx int, endIdx int) iter.Seq[string] {
 	return buf.content.Read(x, offset, endIdx-startIdx)
 }
 
-func (buf *TextBuf) Read2(startLn, startCol, endLn, endCol int) iter.Seq[string] {
+func (buf *TextBuf) Read(startLn, startCol, endLn, endCol int) iter.Seq[string] {
 	startPos, ok := buf.Pos(startLn, startCol)
 	if !ok {
 		return func(yield func(string) bool) {}
@@ -33,7 +33,7 @@ func (buf *TextBuf) Read2(startLn, startCol, endLn, endCol int) iter.Seq[string]
 
 	endPos := buf.PosMax(endLn, endCol)
 
-	return buf.Read(startPos.Idx, endPos.Idx)
+	return buf.Slice(startPos.Idx, endPos.Idx)
 }
 
 func (buf *TextBuf) ReadLine(ln int) iter.Seq[string] {
@@ -47,7 +47,7 @@ func (buf *TextBuf) ReadLine(ln int) iter.Seq[string] {
 		endIdx = math.MaxInt
 	}
 
-	return buf.Read(startIdx, endIdx)
+	return buf.Slice(startIdx, endIdx)
 }
 
 func (buf *TextBuf) LineGraphemes(ln int) iter.Seq2[int, *grapheme.Grapheme] {

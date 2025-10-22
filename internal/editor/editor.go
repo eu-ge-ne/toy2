@@ -169,7 +169,7 @@ func (ed *Editor) SetText(text string) {
 }
 
 func (ed *Editor) GetText() string {
-	return std.IterToStr(ed.buffer.Read(0, math.MaxInt))
+	return std.IterToStr(ed.buffer.Slice(0, math.MaxInt))
 }
 
 func (ed *Editor) Load(filePath string) error {
@@ -213,7 +213,7 @@ func (ed *Editor) Save(filePath string) error {
 
 	defer f.Close()
 
-	for text := range ed.buffer.Read(0, math.MaxInt) {
+	for text := range ed.buffer.Slice(0, math.MaxInt) {
 		_, err := f.WriteString(text)
 		if err != nil {
 			return err

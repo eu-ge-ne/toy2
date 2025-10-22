@@ -103,7 +103,7 @@ func testDeleteHead(t *testing.T, buf *TextBuf, n int) {
 	expected := text
 
 	for len(expected) > 0 {
-		assert.Equal(t, expected, std.IterToStr(buf.Read(0, math.MaxInt)))
+		assert.Equal(t, expected, std.IterToStr(buf.Slice(0, math.MaxInt)))
 		assert.Equal(t, len(expected), buf.Count())
 		buf.Validate()
 
@@ -112,7 +112,7 @@ func testDeleteHead(t *testing.T, buf *TextBuf, n int) {
 		expected = expected[i:]
 	}
 
-	assert.Equal(t, expected, std.IterToStr(buf.Read(0, math.MaxInt)))
+	assert.Equal(t, expected, std.IterToStr(buf.Slice(0, math.MaxInt)))
 	assert.Equal(t, len(expected), buf.Count())
 	buf.Validate()
 }
@@ -121,7 +121,7 @@ func testDeleteTail(t *testing.T, buf *TextBuf, n int) {
 	expected := text
 
 	for len(expected) > 0 {
-		assert.Equal(t, expected, std.IterToStr(buf.Read(0, math.MaxInt)))
+		assert.Equal(t, expected, std.IterToStr(buf.Slice(0, math.MaxInt)))
 		assert.Equal(t, len(expected), buf.Count())
 		buf.Validate()
 
@@ -130,7 +130,7 @@ func testDeleteTail(t *testing.T, buf *TextBuf, n int) {
 		expected = expected[0:i]
 	}
 
-	assert.Equal(t, expected, std.IterToStr(buf.Read(0, math.MaxInt)))
+	assert.Equal(t, expected, std.IterToStr(buf.Slice(0, math.MaxInt)))
 	assert.Equal(t, len(expected), buf.Count())
 	buf.Validate()
 }
@@ -139,7 +139,7 @@ func testDeleteMiddle(t *testing.T, buf *TextBuf, n int) {
 	expected := text
 
 	for len(expected) > 0 {
-		assert.Equal(t, expected, std.IterToStr(buf.Read(0, math.MaxInt)))
+		assert.Equal(t, expected, std.IterToStr(buf.Slice(0, math.MaxInt)))
 		assert.Equal(t, len(expected), buf.Count())
 		buf.Validate()
 
@@ -149,7 +149,7 @@ func testDeleteMiddle(t *testing.T, buf *TextBuf, n int) {
 		expected = expected[0:pos] + expected[i:]
 	}
 
-	assert.Equal(t, expected, std.IterToStr(buf.Read(0, math.MaxInt)))
+	assert.Equal(t, expected, std.IterToStr(buf.Slice(0, math.MaxInt)))
 	assert.Equal(t, len(expected), buf.Count())
 	buf.Validate()
 }

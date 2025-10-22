@@ -45,7 +45,7 @@ func (s *Syntax) handleHighlight(req highlightReq) {
 	}
 	copy(
 		s.text[req.startIdx:req.endIdx],
-		std.IterToStr(s.buffer.Read(req.startIdx, req.endIdx)),
+		std.IterToStr(s.buffer.Slice(req.startIdx, req.endIdx)),
 	)
 
 	qc := treeSitter.NewQueryCursor()

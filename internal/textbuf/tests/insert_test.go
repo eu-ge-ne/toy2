@@ -15,8 +15,8 @@ func TestInsertInto0Line(t *testing.T) {
 
 	buf.Insert(0, 0, "Lorem ipsum")
 
-	assert.Equal(t, "Lorem ipsum", std.IterToStr(buf.Read(0, math.MaxInt)))
-	assert.Equal(t, "Lorem ipsum", std.IterToStr(buf.Read2(0, 0, 0, 11)))
+	assert.Equal(t, "Lorem ipsum", std.IterToStr(buf.Slice(0, math.MaxInt)))
+	assert.Equal(t, "Lorem ipsum", std.IterToStr(buf.Read(0, 0, 0, 11)))
 
 	buf.Validate()
 }
@@ -27,8 +27,8 @@ func TestInsertIntoALine(t *testing.T) {
 
 	buf.Insert(0, 5, " ipsum")
 
-	assert.Equal(t, "Lorem ipsum", std.IterToStr(buf.Read(0, math.MaxInt)))
-	assert.Equal(t, "Lorem ipsum", std.IterToStr(buf.Read2(0, 0, 0, 11)))
+	assert.Equal(t, "Lorem ipsum", std.IterToStr(buf.Slice(0, math.MaxInt)))
+	assert.Equal(t, "Lorem ipsum", std.IterToStr(buf.Read(0, 0, 0, 11)))
 
 	buf.Validate()
 }
@@ -38,8 +38,8 @@ func TestInsertIntoALineWhichDoesNotExist(t *testing.T) {
 
 	buf.Insert(1, 0, "Lorem ipsum")
 
-	assert.Equal(t, "Lorem ipsum", std.IterToStr(buf.Read(0, math.MaxInt)))
-	assert.Equal(t, "Lorem ipsum", std.IterToStr(buf.Read2(0, 0, 0, 11)))
+	assert.Equal(t, "Lorem ipsum", std.IterToStr(buf.Slice(0, math.MaxInt)))
+	assert.Equal(t, "Lorem ipsum", std.IterToStr(buf.Read(0, 0, 0, 11)))
 
 	buf.Validate()
 }
@@ -49,8 +49,8 @@ func TestInsertIntoAColumnWhichDoesNotExist(t *testing.T) {
 
 	buf.Insert(0, 1, "Lorem ipsum")
 
-	assert.Equal(t, "Lorem ipsum", std.IterToStr(buf.Read(0, math.MaxInt)))
-	assert.Equal(t, "Lorem ipsum", std.IterToStr(buf.Read2(0, 0, 0, 11)))
+	assert.Equal(t, "Lorem ipsum", std.IterToStr(buf.Slice(0, math.MaxInt)))
+	assert.Equal(t, "Lorem ipsum", std.IterToStr(buf.Read(0, 0, 0, 11)))
 
 	buf.Validate()
 }
