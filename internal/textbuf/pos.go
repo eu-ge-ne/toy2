@@ -1,13 +1,10 @@
 package textbuf
 
-import (
-	"github.com/eu-ge-ne/toy2/internal/textbuf/node"
-)
-
 type Pos struct {
-	Idx int
-	Ln  int
-	Col int
+	Ln     int
+	Col    int
+	Idx    int
+	ColIdx int
 }
 
 func (buf *TextBuf) Pos(ln, col int) (Pos, bool) {
@@ -21,7 +18,7 @@ func (buf *TextBuf) Pos(ln, col int) (Pos, bool) {
 		return Pos{}, false
 	}
 
-	return Pos{lnIdx + colIdx, ln, colIdx}, true
+	return Pos{Ln: ln, Col: col, Idx: lnIdx + colIdx, ColIdx: colIdx}, true
 }
 
 func (buf *TextBuf) PosMax(ln, col int) Pos {
@@ -35,94 +32,8 @@ func (buf *TextBuf) PosMax(ln, col int) Pos {
 	colIdx, ok := buf.colIdx(ln, col)
 	if !ok {
 		colIdx = buf.colIdxMax(ln)
+		col = buf.ColMax(ln)
 	}
 
-	return Pos{lnIdx + colIdx, ln, colIdx}
-}
-
-func (buf *TextBuf) ColMax(ln int) int {
-	col := 0
-
-	for range buf.LineGraphemes(ln) {
-		col += 1
-	}
-
-	return col
-}
-
-func (buf *TextBuf) ColMaxNonEol(ln int) int {
-	col := 0
-
-	for _, gr := range buf.LineGraphemes(ln) {
-		if gr.IsEol {
-			break
-		}
-		col += 1
-	}
-
-	return col
-}
-
-func (buf *TextBuf) lnIdx(ln int) (int, bool) {
-	if buf.Count() == 0 {
-		return 0, false
-	}
-
-	if ln == 0 {
-		return 0, true
-	}
-
-	eolIndex := ln - 1
-	x := buf.tree.Root
-	i := 0
-
-	for x != node.NIL {
-		if eolIndex < x.Left.TotalEolsLen {
-			x = x.Left
-			continue
-		}
-
-		eolIndex -= x.Left.TotalEolsLen
-		i += x.Left.TotalLen
-
-		if eolIndex < x.EolsLen {
-			buf := buf.content.Table[x.PieceIndex]
-			eolEnd := buf.Eols[x.EolsStart+eolIndex].End
-			return i + eolEnd - x.Start, true
-		}
-
-		eolIndex -= x.EolsLen
-		i += x.Len
-		x = x.Right
-	}
-
-	return 0, false
-}
-
-func (buf *TextBuf) colIdx(ln, col int) (int, bool) {
-	if col == 0 {
-		return 0, true
-	}
-
-	idx := 0
-
-	for i, gr := range buf.LineGraphemes(ln) {
-		if i == col {
-			return idx, true
-		}
-
-		idx += len(gr.Str)
-	}
-
-	return 0, false
-}
-
-func (buf *TextBuf) colIdxMax(ln int) int {
-	idx := 0
-
-	for _, gr := range buf.LineGraphemes(ln) {
-		idx += len(gr.Str)
-	}
-
-	return idx
+	return Pos{Ln: ln, Col: col, Idx: lnIdx + colIdx, ColIdx: colIdx}
 }

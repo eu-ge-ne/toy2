@@ -33,6 +33,10 @@ func (buf *TextBuf) Read(startLn, startCol, endLn, endCol int) iter.Seq[string] 
 
 	endPos := buf.PosMax(endLn, endCol)
 
+	if endPos.Idx < startPos.Idx {
+		panic("assert")
+	}
+
 	return buf.Slice(startPos.Idx, endPos.Idx)
 }
 

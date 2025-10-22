@@ -70,10 +70,13 @@ func (buf *TextBuf) insert(idx int, text string) {
 	}
 }
 
-func (buf *TextBuf) Insert(ln, col int, text string) (Pos, Pos) {
+func (buf *TextBuf) Insert(ln, col int, text string) Change {
 	startPos := buf.PosMax(ln, col)
 
+	buf.insert(startPos.Idx, text)
+
 	dLn, dCol := grapheme.Graphemes.MeasureString(text)
+
 	var endLn, endCol int
 	if dLn == 0 {
 		endLn = ln
@@ -82,11 +85,13 @@ func (buf *TextBuf) Insert(ln, col int, text string) (Pos, Pos) {
 		endLn = ln + dLn
 		endCol = dCol
 	}
+
 	endPos := buf.PosMax(endLn, endCol)
+	if endPos.Idx <= startPos.Idx {
+		panic("assert")
+	}
 
-	buf.insert(startPos.Idx, text)
-
-	return startPos, endPos
+	return Change{startPos, endPos}
 }
 
 func (buf *TextBuf) Append(text string) {

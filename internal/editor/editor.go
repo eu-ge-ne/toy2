@@ -224,29 +224,29 @@ func (ed *Editor) Save(filePath string) error {
 }
 
 func (ed *Editor) insertText(text string) {
-	start, end := ed.buffer.Insert(ed.cursor.Ln, ed.cursor.Col, text)
+	change := ed.buffer.Insert(ed.cursor.Ln, ed.cursor.Col, text)
 
-	ed.cursor.Set(end.Ln, end.Col, false)
+	ed.cursor.Set(change.End.Ln, change.End.Col, false)
 	ed.history.Push()
 
-	ed.syntax.Insert(start, end)
+	ed.syntax.Insert(change)
 }
 
 func (ed *Editor) deleteSelection() {
-	start, end := ed.buffer.Delete(ed.cursor.StartLn, ed.cursor.StartCol, ed.cursor.EndLn, ed.cursor.EndCol)
+	change := ed.buffer.Delete(ed.cursor.StartLn, ed.cursor.StartCol, ed.cursor.EndLn, ed.cursor.EndCol)
 
-	ed.cursor.Set(start.Ln, start.Col, false)
+	ed.cursor.Set(change.Start.Ln, change.Start.Col, false)
 	ed.history.Push()
 
-	ed.syntax.Delete(start, end)
+	ed.syntax.Delete(change)
 }
 
 func (ed *Editor) deleteChar() {
-	start, end := ed.buffer.Delete(ed.cursor.Ln, ed.cursor.Col, ed.cursor.Ln, ed.cursor.Col+1)
+	change := ed.buffer.Delete(ed.cursor.Ln, ed.cursor.Col, ed.cursor.Ln, ed.cursor.Col+1)
 
 	ed.history.Push()
 
-	ed.syntax.Delete(start, end)
+	ed.syntax.Delete(change)
 }
 
 func (ed *Editor) deletePrevChar() {
@@ -255,21 +255,21 @@ func (ed *Editor) deletePrevChar() {
 	}
 
 	if ed.cursor.Col > 0 {
-		start, end := ed.buffer.Delete(ed.cursor.Ln, ed.cursor.Col-1, ed.cursor.Ln, ed.cursor.Col)
+		change := ed.buffer.Delete(ed.cursor.Ln, ed.cursor.Col-1, ed.cursor.Ln, ed.cursor.Col)
 
-		ed.cursor.Set(start.Ln, start.Col, false)
+		ed.cursor.Set(change.Start.Ln, change.Start.Col, false)
 		ed.history.Push()
 
-		ed.syntax.Delete(start, end)
+		ed.syntax.Delete(change)
 		return
 	}
 
 	startLn := ed.cursor.Ln - 1
 	endCol := ed.buffer.ColMax(startLn)
-	start, end := ed.buffer.Delete(startLn, endCol-1, startLn, endCol)
+	change := ed.buffer.Delete(startLn, endCol-1, startLn, endCol)
 
-	ed.cursor.Set(start.Ln, start.Col, false)
+	ed.cursor.Set(change.Start.Ln, change.Start.Col, false)
 	ed.history.Push()
 
-	ed.syntax.Delete(start, end)
+	ed.syntax.Delete(change)
 }
