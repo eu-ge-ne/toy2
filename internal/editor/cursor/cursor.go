@@ -17,16 +17,16 @@ type Cursor struct {
 	EndLn     int
 	EndCol    int
 
-	buffer *textbuf.TextBuf
-	ln0    int
-	col0   int
+	buffer     *textbuf.TextBuf
+	selFromLn  int
+	selFromCol int
 }
 
 func New(buffer *textbuf.TextBuf) *Cursor {
 	return &Cursor{buffer: buffer}
 }
 
-func (cur *Cursor) Set(ln, col int, sel bool) bool {
+func (cur *Cursor) Set(ln, col int, sel bool) (ok bool) {
 	oldLn := cur.Ln
 	oldCol := cur.Col
 
@@ -38,9 +38,33 @@ func (cur *Cursor) Set(ln, col int, sel bool) bool {
 		cur.Col = std.Clamp(col, 0, cur.buffer.ColumnCount(cur.Ln)-1)
 	}
 
-	cur.setSelection(oldLn, oldCol, sel)
+	ok = cur.Ln != oldLn || cur.Col != oldCol
 
-	return cur.Ln != oldLn || cur.Col != oldCol
+	if !sel {
+		cur.Selecting = false
+		return
+	}
+
+	if !cur.Selecting {
+		cur.selFromLn = oldLn
+		cur.selFromCol = oldCol
+	}
+
+	cur.Selecting = true
+
+	if (cur.selFromLn > cur.Ln) || (cur.selFromLn == cur.Ln && cur.selFromCol > cur.Col) {
+		cur.StartLn = cur.Ln
+		cur.StartCol = cur.Col
+		cur.EndLn = cur.selFromLn
+		cur.EndCol = cur.selFromCol
+	} else {
+		cur.StartLn = cur.selFromLn
+		cur.StartCol = cur.selFromCol
+		cur.EndLn = cur.Ln
+		cur.EndCol = cur.Col
+	}
+
+	return
 }
 
 func (cur *Cursor) Top(sel bool) bool {
@@ -109,30 +133,4 @@ func (cur *Cursor) IsSelected(ln, col int) bool {
 	}
 
 	return true
-}
-
-func (cur *Cursor) setSelection(ln, col int, sel bool) {
-	if !sel {
-		cur.Selecting = false
-		return
-	}
-
-	if !cur.Selecting {
-		cur.ln0 = ln
-		cur.col0 = col
-	}
-
-	cur.Selecting = true
-
-	if (cur.ln0 > cur.Ln) || (cur.ln0 == cur.Ln && cur.col0 > cur.Col) {
-		cur.StartLn = cur.Ln
-		cur.StartCol = cur.Col
-		cur.EndLn = cur.ln0
-		cur.EndCol = cur.col0
-	} else {
-		cur.StartLn = cur.ln0
-		cur.StartCol = cur.col0
-		cur.EndLn = cur.Ln
-		cur.EndCol = cur.Col
-	}
 }
