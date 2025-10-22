@@ -112,7 +112,7 @@ func (cur *Cursor) setLn(ln int) {
 }
 
 func (cur *Cursor) setCol(col int) {
-	max := cur.buffer.MaxNonEolCol(cur.Ln)
+	max := cur.buffer.ColMaxNonEol(cur.Ln)
 
 	cur.Col = std.Clamp(col, 0, max)
 }
