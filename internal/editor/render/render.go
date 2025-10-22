@@ -32,7 +32,7 @@ type Render struct {
 	ScrollLn   int
 	ScrollCol  int
 
-	hlSpans chan syntax.Span
+	hlSpans <-chan syntax.Span
 	hlSpan  syntax.Span
 	hlIdx   int
 

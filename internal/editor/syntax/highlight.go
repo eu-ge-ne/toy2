@@ -21,7 +21,7 @@ type Span struct {
 	Name     string
 }
 
-func (s *Syntax) Highlight(startIdx, endIdx int) chan Span {
+func (s *Syntax) Highlight(startIdx, endIdx int) <-chan Span {
 	if s == nil {
 		return nil
 	}
