@@ -7,7 +7,7 @@ type Pos struct {
 	ColIdx int
 }
 
-func (buf *TextBuf) StartPos(ln, col int) (Pos, bool) {
+func (buf *TextBuf) Pos(ln, col int) (Pos, bool) {
 	lnIdx, ok := buf.lnIdx(ln)
 	if !ok {
 		return Pos{}, false

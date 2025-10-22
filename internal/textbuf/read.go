@@ -26,7 +26,7 @@ func (buf *TextBuf) Slice(startIdx int, endIdx int) iter.Seq[string] {
 }
 
 func (buf *TextBuf) Read(startLn, startCol, endLn, endCol int) iter.Seq[string] {
-	startPos, ok := buf.StartPos(startLn, startCol)
+	startPos, ok := buf.Pos(startLn, startCol)
 	if !ok {
 		return func(yield func(string) bool) {}
 	}
