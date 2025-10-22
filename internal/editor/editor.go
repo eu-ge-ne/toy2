@@ -256,6 +256,10 @@ func (ed *Editor) deleteChar() {
 }
 
 func (ed *Editor) deletePrevChar() {
+	if ed.cursor.Ln == 0 && ed.cursor.Col == 0 {
+		return
+	}
+
 	if ed.cursor.Col > 0 {
 		start, end, ok := ed.buffer.Delete(ed.cursor.Ln, ed.cursor.Col-1, ed.cursor.Ln, ed.cursor.Col)
 		if !ok {
@@ -266,10 +270,6 @@ func (ed *Editor) deletePrevChar() {
 		ed.history.Push()
 
 		ed.syntax.Delete(start, end)
-		return
-	}
-
-	if ed.cursor.Ln == 0 {
 		return
 	}
 
