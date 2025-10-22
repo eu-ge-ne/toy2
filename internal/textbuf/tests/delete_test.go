@@ -10,147 +10,72 @@ import (
 	"github.com/eu-ge-ne/toy2/internal/textbuf"
 )
 
-func TestDeleteCharsFromTheBeginning(t *testing.T) {
-	for n := 1; n <= 10; n += 1 {
-		testDeleteHead(t, createTextBuf(), n)
-	}
-}
-
-func TestDeleteCharsFromTheBeginningReversed(t *testing.T) {
-	for n := 1; n <= 10; n += 1 {
-		testDeleteHead(t, createTextBufReversed(), n)
-	}
-}
-
-func TestDeleteCharsFromTheEnd(t *testing.T) {
-	for n := 1; n <= 10; n += 1 {
-		testDeleteTail(t, createTextBuf(), n)
-	}
-}
-
-func TestDeleteCharsFromTheEndReversed(t *testing.T) {
-	for n := 1; n <= 10; n += 1 {
-		testDeleteTail(t, createTextBufReversed(), n)
-	}
-}
-
-func TestDeleteCharsFromTheMiddle(t *testing.T) {
-	for n := 1; n <= 10; n += 1 {
-		testDeleteMiddle(t, createTextBuf(), n)
-	}
-}
-
-func TestDeleteCharsFromTheMiddleReversed(t *testing.T) {
-	for n := 1; n <= 10; n += 1 {
-		testDeleteMiddle(t, createTextBufReversed(), n)
-	}
-}
-
-func createTextBuf() *textbuf.TextBuf {
+func TestDeleteLine(t *testing.T) {
 	buf := textbuf.New()
+	buf.Append("Lorem \nipsum \ndolor \nsit \namet ")
 
-	buf.Append("Lorem")
-	buf.Append(" ipsum")
-	buf.Append(" dolor")
-	buf.Append(" sit")
-	buf.Append(" amet,")
-	buf.Append(" consectetur")
-	buf.Append(" adipiscing")
-	buf.Append(" elit,")
-	buf.Append(" sed")
-	buf.Append(" do")
-	buf.Append(" eiusmod")
-	buf.Append(" tempor")
-	buf.Append(" incididunt")
-	buf.Append(" ut")
-	buf.Append(" labore")
-	buf.Append(" et")
-	buf.Append(" dolore")
-	buf.Append(" magna")
-	buf.Append(" aliqua.")
+	assert.Equal(t, 5, buf.LineCount())
 
-	return buf
-}
+	buf.Delete(4, 0, 4, math.MaxInt)
 
-func createTextBufReversed() *textbuf.TextBuf {
-	buf := textbuf.New()
+	assert.Equal(t, "Lorem \nipsum \ndolor \nsit \n", std.IterToStr(buf.Read(0, math.MaxInt)))
+	assert.Equal(t, 26, buf.Count())
+	assert.Equal(t, 5, buf.LineCount())
+	buf.Validate()
 
-	buf.Insert(0, 0, " aliqua.")
-	buf.Insert(0, 0, " magna")
-	buf.Insert(0, 0, " dolore")
-	buf.Insert(0, 0, " et")
-	buf.Insert(0, 0, " labore")
-	buf.Insert(0, 0, " ut")
-	buf.Insert(0, 0, " incididunt")
-	buf.Insert(0, 0, " tempor")
-	buf.Insert(0, 0, " eiusmod")
-	buf.Insert(0, 0, " do")
-	buf.Insert(0, 0, " sed")
-	buf.Insert(0, 0, " elit,")
-	buf.Insert(0, 0, " adipiscing")
-	buf.Insert(0, 0, " consectetur")
-	buf.Insert(0, 0, " amet,")
-	buf.Insert(0, 0, " sit")
-	buf.Insert(0, 0, " dolor")
-	buf.Insert(0, 0, " ipsum")
-	buf.Insert(0, 0, "Lorem")
+	buf.Delete(3, 0, 4, 0)
 
-	return buf
-}
+	assert.Equal(t, "Lorem \nipsum \ndolor \n", std.IterToStr(buf.Read(0, math.MaxInt)))
+	assert.Equal(t, 21, buf.Count())
+	assert.Equal(t, 4, buf.LineCount())
+	buf.Validate()
 
-const text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+	buf.Delete(2, 0, 3, 0)
 
-func testDeleteHead(t *testing.T, buf *textbuf.TextBuf, n int) {
-	expected := text
+	assert.Equal(t, "Lorem \nipsum \n", std.IterToStr(buf.Read(0, math.MaxInt)))
+	assert.Equal(t, 14, buf.Count())
+	assert.Equal(t, 3, buf.LineCount())
+	buf.Validate()
 
-	for len(expected) > 0 {
-		assert.Equal(t, expected, std.IterToStr(buf.Read(0, math.MaxInt)))
-		assert.Equal(t, len(expected), buf.Count())
-		buf.Validate()
+	buf.Delete(1, 0, 2, 0)
 
-		i := min(buf.Count(), n)
-		buf.Delete(0, i)
-		expected = expected[i:]
-	}
-
-	assert.Equal(t, expected, std.IterToStr(buf.Read(0, math.MaxInt)))
-	assert.Equal(t, len(expected), buf.Count())
+	assert.Equal(t, "Lorem \n", std.IterToStr(buf.Read(0, math.MaxInt)))
+	assert.Equal(t, 7, buf.Count())
+	assert.Equal(t, 2, buf.LineCount())
 	buf.Validate()
 }
 
-func testDeleteTail(t *testing.T, buf *textbuf.TextBuf, n int) {
-	expected := text
+func TestDeleteLine2(t *testing.T) {
+	buf := textbuf.New()
+	buf.Append("\r\n")
 
-	for len(expected) > 0 {
-		assert.Equal(t, expected, std.IterToStr(buf.Read(0, math.MaxInt)))
-		assert.Equal(t, len(expected), buf.Count())
-		buf.Validate()
+	assert.Equal(t, 2, buf.LineCount())
 
-		i := max(buf.Count()-n, 0)
-		buf.Delete(i, buf.Count())
-		expected = expected[0:i]
-	}
+	buf.Delete(0, 0, 0, 1)
 
-	assert.Equal(t, expected, std.IterToStr(buf.Read(0, math.MaxInt)))
-	assert.Equal(t, len(expected), buf.Count())
+	assert.Equal(t, "", std.IterToStr(buf.Read(0, math.MaxInt)))
+	assert.Equal(t, 0, buf.Count())
+	assert.Equal(t, 0, buf.LineCount())
 	buf.Validate()
 }
 
-func testDeleteMiddle(t *testing.T, buf *textbuf.TextBuf, n int) {
-	expected := text
+func TestDeleteFromLine(t *testing.T) {
+	buf := textbuf.New()
+	buf.Append("Lorem \nipsum \ndolor \nsit \namet")
 
-	for len(expected) > 0 {
-		assert.Equal(t, expected, std.IterToStr(buf.Read(0, math.MaxInt)))
-		assert.Equal(t, len(expected), buf.Count())
-		buf.Validate()
+	assert.Equal(t, 5, buf.LineCount())
 
-		pos := buf.Count() / 2
-		i := min(buf.Count(), pos+n)
-		buf.Delete(pos, i)
-		expected = expected[0:pos] + expected[i:]
-	}
+	buf.Delete(3, 0, math.MaxInt, math.MaxInt)
 
-	assert.Equal(t, expected, std.IterToStr(buf.Read(0, math.MaxInt)))
-	assert.Equal(t, len(expected), buf.Count())
+	assert.Equal(t, "Lorem \nipsum \ndolor \n", std.IterToStr(buf.Read(0, math.MaxInt)))
+	assert.Equal(t, 21, buf.Count())
+	assert.Equal(t, 4, buf.LineCount())
+	buf.Validate()
+
+	buf.Delete(1, 0, math.MaxInt, math.MaxInt)
+
+	assert.Equal(t, "Lorem \n", std.IterToStr(buf.Read(0, math.MaxInt)))
+	assert.Equal(t, 7, buf.Count())
+	assert.Equal(t, 2, buf.LineCount())
 	buf.Validate()
 }
