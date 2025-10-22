@@ -1,13 +1,11 @@
 package textbuf
 
-func (buf *TextBuf) EndCol(ln int) int {
-	col := 0
+import (
+	"github.com/eu-ge-ne/toy2/internal/grapheme"
+)
 
-	for range buf.LineGraphemes(ln) {
-		col += 1
-	}
-
-	return col
+func (buf *TextBuf) ColumnCount(ln int) int {
+	return grapheme.Graphemes.CountString(buf.ReadLine(ln))
 }
 
 func (buf *TextBuf) EndColNonEol(ln int) int {

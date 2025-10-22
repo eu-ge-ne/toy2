@@ -32,7 +32,7 @@ func (buf *TextBuf) PosMax(ln, col int) Pos {
 	colIdx, ok := buf.colIdx(ln, col)
 	if !ok {
 		colIdx = buf.endColIdx(ln)
-		col = buf.EndCol(ln)
+		col = max(0, buf.ColumnCount(ln)-1)
 	}
 
 	return Pos{Ln: ln, Col: col, Idx: lnIdx + colIdx, ColIdx: colIdx}

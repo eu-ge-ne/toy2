@@ -56,6 +56,16 @@ func (p *Pool) FromString(it iter.Seq[string]) iter.Seq2[int, *Grapheme] {
 	}
 }
 
+func (p *Pool) CountString(it iter.Seq[string]) int {
+	n := 0
+
+	for text := range it {
+		n += uniseg.GraphemeClusterCount(text)
+	}
+
+	return n
+}
+
 func (p *Pool) MeasureString(text string) (ln, col int) {
 	str := ""
 	state := -1
