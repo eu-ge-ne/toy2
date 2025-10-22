@@ -265,8 +265,8 @@ func (ed *Editor) deletePrevChar() {
 	}
 
 	startLn := ed.cursor.Ln - 1
-	endCol := ed.buffer.ColMax(startLn)
-	change := ed.buffer.Delete(startLn, endCol-1, startLn, endCol)
+	endCol := ed.buffer.EndCol(startLn)
+	change := ed.buffer.Delete(startLn, endCol-1, ed.cursor.Ln, ed.cursor.Col)
 
 	ed.cursor.Set(change.Start.Ln, change.Start.Col, false)
 	ed.history.Push()

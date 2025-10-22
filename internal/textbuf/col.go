@@ -1,6 +1,6 @@
 package textbuf
 
-func (buf *TextBuf) ColMax(ln int) int {
+func (buf *TextBuf) EndCol(ln int) int {
 	col := 0
 
 	for range buf.LineGraphemes(ln) {
@@ -10,7 +10,7 @@ func (buf *TextBuf) ColMax(ln int) int {
 	return col
 }
 
-func (buf *TextBuf) ColMaxNonEol(ln int) int {
+func (buf *TextBuf) EndColNonEol(ln int) int {
 	col := 0
 
 	for _, gr := range buf.LineGraphemes(ln) {
@@ -41,7 +41,7 @@ func (buf *TextBuf) colIdx(ln, col int) (int, bool) {
 	return 0, false
 }
 
-func (buf *TextBuf) colIdxMax(ln int) int {
+func (buf *TextBuf) endColIdx(ln int) int {
 	colIdx := 0
 
 	for _, gr := range buf.LineGraphemes(ln) {
