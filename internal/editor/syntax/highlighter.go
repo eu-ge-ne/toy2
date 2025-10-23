@@ -31,7 +31,7 @@ type span struct {
 func NewHighlighter(syntax *Syntax, startLn, endLn int) *Highlighter {
 	startPos, _ := syntax.buffer.Pos(startLn, 0)
 	endPos := syntax.buffer.EndPos(endLn, 0)
-	startPosParse, _ := syntax.buffer.Pos(0, 0)
+	startPosParse, _ := syntax.buffer.Pos(max(0, startLn-1000), 0)
 
 	h := &Highlighter{
 		syntax:        syntax,
