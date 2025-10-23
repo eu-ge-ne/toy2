@@ -54,6 +54,6 @@ func (buf *TextBuf) ReadLine(ln int) iter.Seq[string] {
 	return buf.Slice(startIdx, endIdx)
 }
 
-func (buf *TextBuf) LineGraphemes(ln int) iter.Seq2[int, *grapheme.Grapheme] {
+func (buf *TextBuf) LineGraphemes(ln int) iter.Seq[*grapheme.Grapheme] {
 	return grapheme.Graphemes.FromString(buf.ReadLine(ln))
 }

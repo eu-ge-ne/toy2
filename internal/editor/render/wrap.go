@@ -18,7 +18,7 @@ func (r *Render) wrapLine(ln int, extra bool) iter.Seq[cell] {
 		cell := cell{}
 		w := 0
 
-		for _, gr := range r.buffer.LineGraphemes(ln) {
+		for gr := range r.buffer.LineGraphemes(ln) {
 			cell.Gr = gr
 
 			w += cell.Gr.Width

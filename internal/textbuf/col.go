@@ -13,14 +13,20 @@ func (buf *TextBuf) colIdx(ln, col int) (int, bool) {
 		return 0, true
 	}
 
+	i := 0
 	colIdx := 0
 
-	for i, gr := range buf.LineGraphemes(ln) {
+	for gr := range buf.LineGraphemes(ln) {
 		if i == col {
-			return colIdx, true
+			break
 		}
 
+		i += 1
 		colIdx += len(gr.Str)
+	}
+
+	if i == col {
+		return colIdx, true
 	}
 
 	return 0, false
@@ -29,7 +35,7 @@ func (buf *TextBuf) colIdx(ln, col int) (int, bool) {
 func (buf *TextBuf) maxColIdx(ln int) int {
 	colIdx := 0
 
-	for _, gr := range buf.LineGraphemes(ln) {
+	for gr := range buf.LineGraphemes(ln) {
 		colIdx += len(gr.Str)
 	}
 

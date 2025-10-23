@@ -30,9 +30,8 @@ func (p *Pool) SetWcharPos(y, x int) {
 	p.wCharX = x
 }
 
-func (p *Pool) FromString(it iter.Seq[string]) iter.Seq2[int, *Grapheme] {
-	return func(yield func(int, *Grapheme) bool) {
-		i := 0
+func (p *Pool) FromString(it iter.Seq[string]) iter.Seq[*Grapheme] {
+	return func(yield func(*Grapheme) bool) {
 		str := ""
 
 		for text := range it {
@@ -46,11 +45,9 @@ func (p *Pool) FromString(it iter.Seq[string]) iter.Seq2[int, *Grapheme] {
 					gr.Width = vt.Wchar(p.wCharY, p.wCharX, gr.Bytes)
 				}
 
-				if !yield(i, gr) {
+				if !yield(gr) {
 					return
 				}
-
-				i += 1
 			}
 		}
 	}
