@@ -31,10 +31,6 @@ type Render struct {
 	ScrollLn   int
 	ScrollCol  int
 
-	hlSpans <-chan syntax.Span
-	hlSpan  syntax.Span
-	hlIdx   int
-
 	colorMainBg     []byte
 	colorMainFg     []byte
 	colorSelectedBg []byte
@@ -101,7 +97,8 @@ func (r *Render) SetSyntax(s *syntax.Syntax) {
 
 func (r *Render) Render() {
 	r.scroll()
-	r.initHighlight()
+
+	hl := r.syntax.Highlight(r.ScrollLn, r.ScrollLn+r.area.H)
 
 	vt.Sync.Bsu()
 
@@ -111,7 +108,7 @@ func (r *Render) Render() {
 	vt.ClearArea(vt.Buf, r.area)
 
 	if r.area.W >= r.indexWidth {
-		r.renderLines()
+		r.renderLines(hl)
 	}
 
 	if r.enabled {
@@ -127,19 +124,12 @@ func (r *Render) Render() {
 	vt.Sync.Esu()
 }
 
-func (r *Render) initHighlight() {
-	r.hlSpans = r.syntax.Highlight(r.ScrollLn, r.ScrollLn+r.area.H)
-	r.hlSpan = syntax.Span{StartIdx: -1, EndIdx: -1}
-	start, _ := r.buffer.Pos(r.ScrollLn, 0)
-	r.hlIdx = start.Idx
-}
-
-func (r *Render) renderLines() {
+func (r *Render) renderLines(hl *syntax.Highlighter) {
 	row := r.area.Y
 
 	for ln := r.ScrollLn; ; ln += 1 {
 		if ln < r.buffer.LineCount() {
-			row = r.renderLine(ln, row)
+			row = r.renderLine(hl, ln, row)
 		} else {
 			vt.SetCursor(vt.Buf, row, r.area.X)
 			vt.Buf.Write(r.colorVoidBg)
@@ -153,7 +143,7 @@ func (r *Render) renderLines() {
 	}
 }
 
-func (r *Render) renderLine(ln int, row int) int {
+func (r *Render) renderLine(hl *syntax.Highlighter, ln int, row int) int {
 	currentFg := ""
 	currentBg := false
 	availableW := 0
@@ -183,7 +173,7 @@ func (r *Render) renderLine(ln int, row int) int {
 			availableW = r.area.W - r.indexWidth
 		}
 
-		spanName := r.nextSegSpanName(len(cell.Gr.Str))
+		spanName := hl.Next(len(cell.Gr.Str))
 
 		if (cell.WrapCol < r.ScrollCol) || (cell.Gr.Width > availableW) {
 			continue
@@ -224,22 +214,4 @@ func (r *Render) renderLine(ln int, row int) int {
 	}
 
 	return row
-}
-
-func (r *Render) nextSegSpanName(l int) string {
-	var name string
-
-	if r.hlIdx >= r.hlSpan.EndIdx {
-		if s, ok := <-r.hlSpans; ok {
-			r.hlSpan = s
-		}
-	}
-
-	if r.hlIdx >= r.hlSpan.StartIdx && r.hlIdx < r.hlSpan.EndIdx {
-		name = r.hlSpan.Name
-	}
-
-	r.hlIdx += l
-
-	return name
 }
