@@ -25,9 +25,10 @@ func (s *Syntax) Delete(change textbuf.Change) {
 	e.OldEndPosition.Column = uint(change.End.ColIdx)
 	e.NewEndPosition = e.StartPosition
 
-	fmt.Fprintf(s.log, "delete: %+v\n", e)
-
 	s.tree.Edit(&e)
+
+	fmt.Fprintf(s.log, "delete: change %+v\n", change)
+	fmt.Fprintf(s.log, "delete: e %+v\n", e)
 
 	s.changed = true
 }
@@ -49,9 +50,10 @@ func (s *Syntax) Insert(change textbuf.Change) {
 	e.NewEndPosition.Row = uint(change.End.Ln)
 	e.NewEndPosition.Column = uint(change.End.ColIdx)
 
-	fmt.Fprintf(s.log, "insert: %+v\n", e)
-
 	s.tree.Edit(&e)
+
+	fmt.Fprintf(s.log, "insert: change %+v\n", change)
+	fmt.Fprintf(s.log, "insert: e %+v\n", e)
 
 	s.changed = true
 }
