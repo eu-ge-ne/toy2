@@ -2,7 +2,6 @@ package render
 
 import (
 	"fmt"
-	"math"
 
 	"github.com/eu-ge-ne/toy2/internal/color"
 	"github.com/eu-ge-ne/toy2/internal/editor/cursor"
@@ -130,7 +129,7 @@ func (r *Render) Render() {
 
 func (r *Render) initHighlight() {
 	start, _ := r.buffer.Pos(r.ScrollLn, 0)
-	end := r.buffer.EndPos(r.ScrollLn+r.area.H-1, math.MaxInt)
+	end := r.buffer.EndPos(r.ScrollLn+r.area.H, 0)
 
 	r.hlSpans = r.syntax.Highlight(start.Idx, end.Idx)
 	r.hlSpan = syntax.Span{StartIdx: -1, EndIdx: -1}
