@@ -17,12 +17,13 @@ func (s *Syntax) Delete(change textbuf.Change) {
 
 	e.StartByte = uint(change.Start.Idx)
 	e.OldEndByte = uint(change.End.Idx)
-	e.NewEndByte = e.StartByte
 
 	e.StartPosition.Row = uint(change.Start.Ln)
 	e.StartPosition.Column = uint(change.Start.ColIdx)
 	e.OldEndPosition.Row = uint(change.End.Ln)
 	e.OldEndPosition.Column = uint(change.End.ColIdx)
+
+	e.NewEndByte = e.StartByte
 	e.NewEndPosition = e.StartPosition
 
 	s.tree.Edit(&e)
@@ -41,14 +42,15 @@ func (s *Syntax) Insert(change textbuf.Change) {
 	var e treeSitter.InputEdit
 
 	e.StartByte = uint(change.Start.Idx)
-	e.OldEndByte = e.StartByte
 	e.NewEndByte = uint(change.End.Idx)
 
 	e.StartPosition.Row = uint(change.Start.Ln)
 	e.StartPosition.Column = uint(change.Start.ColIdx)
-	e.OldEndPosition = e.StartPosition
 	e.NewEndPosition.Row = uint(change.End.Ln)
 	e.NewEndPosition.Column = uint(change.End.ColIdx)
+
+	e.OldEndByte = e.StartByte
+	e.OldEndPosition = e.StartPosition
 
 	s.tree.Edit(&e)
 
