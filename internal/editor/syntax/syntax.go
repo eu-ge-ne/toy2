@@ -118,6 +118,8 @@ func (s *Syntax) Highlight(startLn, endLn int) *Highlighter {
 	return NewHighlighter(s, startLn, endLn)
 }
 
+const maxChunkLen = 1024 * 4
+
 func (s *Syntax) parse(startPos, endPos textbuf.Pos) {
 	s.parser.SetIncludedRanges([]treeSitter.Range{{
 		StartByte:  uint(startPos.Idx),

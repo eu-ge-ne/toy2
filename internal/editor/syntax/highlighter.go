@@ -31,7 +31,7 @@ type span struct {
 func NewHighlighter(syntax *Syntax, startLn, endLn int) *Highlighter {
 	startPos, _ := syntax.buffer.Pos(startLn, 0)
 	endPos := syntax.buffer.EndPos(endLn, 0)
-	startPosParse, _ := syntax.buffer.Pos(max(0, startLn-1000), 0)
+	startPosParse, _ := syntax.buffer.Pos(max(0, startLn-2_000), 0)
 
 	h := &Highlighter{
 		syntax:        syntax,
@@ -65,8 +65,6 @@ func (h *Highlighter) Next(l int) string {
 
 	return name
 }
-
-const maxChunkLen = 1024 * 64
 
 func (h *Highlighter) highlight() {
 	started := time.Now()
