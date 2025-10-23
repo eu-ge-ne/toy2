@@ -10,9 +10,9 @@ import (
 )
 
 type highlightReq struct {
-	startIdx int
-	endIdx   int
-	spans    chan Span
+	startLn int
+	endLn   int
+	spans   chan Span
 }
 
 type Span struct {
@@ -21,38 +21,57 @@ type Span struct {
 	Name     string
 }
 
-func (s *Syntax) Highlight(startIdx, endIdx int) <-chan Span {
+const maxChunkLen = 1024 * 64
+
+func (s *Syntax) Highlight(startLn, endLn int) <-chan Span {
 	if s == nil {
 		return nil
 	}
 
 	spans := make(chan Span, 1024)
 
-	s.highlights <- highlightReq{startIdx, endIdx, spans}
+	s.highlights <- highlightReq{startLn, endLn, spans}
 
 	return spans
 }
 
 func (s *Syntax) handleHighlight(req highlightReq) {
-	if s.tree == nil || s.changed {
-		s.updateTree()
-		s.changed = false
-	}
-
 	started := time.Now()
+
+	fmt.Fprintln(s.log, "highlight: started")
+
+	start, _ := s.buffer.Pos(req.startLn, 0)
+	end := s.buffer.EndPos(req.endLn, 0)
+
+	s.parser.SetIncludedRanges([]treeSitter.Range{{
+		StartByte:  uint(start.Idx),
+		EndByte:    uint(end.Idx),
+		StartPoint: treeSitter.NewPoint(uint(start.Ln), uint(start.ColIdx)),
+		EndPoint:   treeSitter.NewPoint(uint(end.Ln), uint(end.ColIdx)),
+	}})
+
+	oldTree := s.tree
+
+	s.tree = s.parser.ParseWithOptions(func(i int, p treeSitter.Point) []byte {
+		text := s.buffer.Chunk(i)
+		if len(text) > maxChunkLen {
+			text = text[0:maxChunkLen]
+		}
+		//fmt.Fprintf(s.log, "highlight: reading chunk %d, %+v, %d\n", i, p, len(text))
+		return []byte(text)
+	}, oldTree, nil)
+
+	fmt.Fprintf(s.log, "highlight: parsed %v\n", time.Since(started))
 
 	if s.buffer.Count() > len(s.text) {
 		s.text = make([]byte, s.buffer.Count())
 	}
-	copy(
-		s.text[req.startIdx:req.endIdx],
-		std.IterToStr(s.buffer.Slice(req.startIdx, req.endIdx)),
-	)
+	copy(s.text[start.Idx:end.Idx], std.IterToStr(s.buffer.Slice(start.Idx, end.Idx)))
 
 	qc := treeSitter.NewQueryCursor()
 	defer qc.Close()
 
-	qc.SetByteRange(uint(req.startIdx), uint(req.endIdx))
+	qc.SetByteRange(uint(start.Idx), uint(end.Idx))
 	capts := qc.Captures(s.query, s.tree.RootNode(), s.text)
 
 	var span Span

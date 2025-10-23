@@ -2,9 +2,7 @@ package syntax
 
 import (
 	_ "embed"
-	"fmt"
 	"os"
-	"time"
 
 	treeSitter "github.com/tree-sitter/go-tree-sitter"
 	_ "github.com/tree-sitter/tree-sitter-javascript/bindings/go"
@@ -20,11 +18,10 @@ var scmJsHighlights string
 var scmTsHighlights string
 
 type Syntax struct {
-	buffer  *textbuf.TextBuf
-	parser  *treeSitter.Parser
-	query   *treeSitter.Query
-	tree    *treeSitter.Tree
-	changed bool
+	buffer *textbuf.TextBuf
+	parser *treeSitter.Parser
+	query  *treeSitter.Query
+	tree   *treeSitter.Tree
 
 	close      chan struct{}
 	highlights chan highlightReq
@@ -102,25 +99,4 @@ func (s *Syntax) handleClose() {
 
 	s.tree.Close()
 	s.tree = nil
-}
-
-const maxChunkLen = 1024 * 64
-
-func (s *Syntax) updateTree() {
-	started := time.Now()
-
-	fmt.Fprintln(s.log, "update: started")
-
-	oldTree := s.tree
-
-	s.tree = s.parser.ParseWithOptions(func(i int, p treeSitter.Point) []byte {
-		text := s.buffer.Chunk(i)
-		if len(text) > maxChunkLen {
-			text = text[0:maxChunkLen]
-		}
-		fmt.Fprintf(s.log, "update: chunk %d, %+v, %d\n", i, p, len(text))
-		return []byte(text)
-	}, oldTree, nil)
-
-	fmt.Fprintf(s.log, "update: elapsed %v\n", time.Since(started))
 }
