@@ -13,6 +13,10 @@ func (h *Insert) Match(k key.Key) bool {
 }
 
 func (h *Insert) Run(k key.Key) bool {
+	if h.editor.cursor.Selecting {
+		h.editor.deleteSelection()
+	}
+
 	h.editor.insertText(k.Text)
 
 	return true

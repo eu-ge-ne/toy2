@@ -21,6 +21,10 @@ func (h *Paste) Run(key.Key) bool {
 		return false
 	}
 
+	if h.editor.cursor.Selecting {
+		h.editor.deleteSelection()
+	}
+
 	h.editor.insertText(h.editor.clipboard)
 
 	return true

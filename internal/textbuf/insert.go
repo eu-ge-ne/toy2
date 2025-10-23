@@ -1,52 +1,53 @@
 package textbuf
 
 import (
+	"github.com/eu-ge-ne/toy2/internal/grapheme"
 	"github.com/eu-ge-ne/toy2/internal/textbuf/node"
 )
 
-type InsertCase int
+type insCase int
 
 const (
-	InsertRoot InsertCase = iota
-	InsertLeft
-	InsertRight
-	InsertSplit
+	insCaseRoot insCase = iota
+	insCaseLeft
+	insCaseRight
+	insCaseSplit
 )
 
-func (buf *TextBuf) Insert(index int, text string) {
-	if index > buf.Count() {
+func (buf *TextBuf) insert(idx int, text string) {
+	if idx > buf.Count() {
 		return
 	}
 
-	insertCase := InsertRoot
+	insertCase := insCaseRoot
 	p := node.NIL
 	x := buf.tree.Root
 
 	for x != node.NIL {
-		if index <= x.Left.TotalLen {
-			insertCase = InsertLeft
+		if idx <= x.Left.TotalLen {
+			insertCase = insCaseLeft
 			p = x
 			x = x.Left
 			continue
 		}
 
-		index -= x.Left.TotalLen
+		idx -= x.Left.TotalLen
 
-		if index < x.Len {
-			insertCase = InsertSplit
+		if idx < x.Len {
+			insertCase = insCaseSplit
 			p = x
 			x = node.NIL
 			continue
 		}
 
-		index -= x.Len
+		idx -= x.Len
 
-		insertCase = InsertRight
+		insertCase = insCaseRight
 		p = x
 		x = x.Right
 	}
 
-	if (insertCase == InsertRight) && buf.content.Growable(p) {
+	if (insertCase == insCaseRight) && buf.content.Growable(p) {
 		buf.content.Grow(p, text)
 		node.Bubble(p)
 		return
@@ -55,24 +56,44 @@ func (buf *TextBuf) Insert(index int, text string) {
 	child := buf.content.Create(text)
 
 	switch insertCase {
-	case InsertRoot:
+	case insCaseRoot:
 		buf.tree.Root = child
 		buf.tree.Root.Red = false
-	case InsertLeft:
+	case insCaseLeft:
 		buf.tree.InsertLeft(p, child)
-	case InsertRight:
+	case insCaseRight:
 		buf.tree.InsertRight(p, child)
-	case InsertSplit:
-		y := buf.content.Split(p, index, 0)
+	case insCaseSplit:
+		y := buf.content.Split(p, idx, 0)
 		buf.tree.InsertAfter(p, y)
 		buf.tree.InsertBefore(y, child)
 	}
 }
 
-func (buf *TextBuf) Insert2(ln, col int, text string) {
-	buf.Insert(buf.posToInsertByte(ln, col), text)
+func (buf *TextBuf) Insert(ln, col int, text string) Change {
+	startPos := buf.EndPos(ln, col)
+
+	buf.insert(startPos.Idx, text)
+
+	dLn, dCol := grapheme.Graphemes.MeasureString(text)
+
+	var endLn, endCol int
+	if dLn == 0 {
+		endLn = ln
+		endCol = col + dCol
+	} else {
+		endLn = ln + dLn
+		endCol = dCol
+	}
+
+	endPos := buf.EndPos(endLn, endCol)
+	if endPos.Idx <= startPos.Idx {
+		panic("assert")
+	}
+
+	return Change{startPos, endPos}
 }
 
 func (buf *TextBuf) Append(text string) {
-	buf.Insert(buf.Count(), text)
+	buf.insert(buf.Count(), text)
 }

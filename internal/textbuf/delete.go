@@ -4,13 +4,13 @@ import (
 	"github.com/eu-ge-ne/toy2/internal/textbuf/node"
 )
 
-func (buf *TextBuf) Delete(start int, end int) {
-	n, offset := buf.tree.Root.Find(start)
+func (buf *TextBuf) delete(startIdx int, endIdx int) {
+	n, offset := buf.tree.Root.Find(startIdx)
 	if n == nil {
 		return
 	}
 
-	count := end - start
+	count := endIdx - startIdx
 	offset2 := offset + count
 
 	if offset2 == n.Len {
@@ -38,7 +38,7 @@ func (buf *TextBuf) Delete(start int, end int) {
 			x = y
 		}
 
-		lastNode, lastOffset := buf.tree.Root.Find(end)
+		lastNode, lastOffset := buf.tree.Root.Find(endIdx)
 		if lastNode != nil && lastOffset != 0 {
 			y := buf.content.Split(lastNode, lastOffset, 0)
 			buf.tree.InsertAfter(lastNode, y)
@@ -56,13 +56,18 @@ func (buf *TextBuf) Delete(start int, end int) {
 	}
 }
 
-func (buf *TextBuf) Delete2(startLn, startCol, endLn, endCol int) {
-	start, _, ok := buf.PosToStartByte(startLn, startCol)
+func (buf *TextBuf) Delete(startLn, startCol, endLn, endCol int) Change {
+	startPos, ok := buf.Pos(startLn, startCol)
 	if !ok {
-		return
+		panic("assert")
 	}
 
-	end, _ := buf.PosToEndByte(endLn, endCol)
+	endPos := buf.EndPos(endLn, endCol)
+	if endPos.Idx <= startPos.Idx {
+		panic("assert")
+	}
 
-	buf.Delete(start, end)
+	buf.delete(startPos.Idx, endPos.Idx)
+
+	return Change{startPos, endPos}
 }

@@ -17,6 +17,10 @@ func (h *Enter) Run(key.Key) bool {
 		return false
 	}
 
+	if h.editor.cursor.Selecting {
+		h.editor.deleteSelection()
+	}
+
 	h.editor.insertText("\n")
 
 	return true

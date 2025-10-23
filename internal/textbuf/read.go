@@ -2,12 +2,13 @@ package textbuf
 
 import (
 	"iter"
+	"math"
+
+	"github.com/eu-ge-ne/toy2/internal/grapheme"
 )
 
-var empty = func(yield func(string) bool) {}
-
-func (buf *TextBuf) Chunk(i int) string {
-	x, offset := buf.tree.Root.Find(i)
+func (buf *TextBuf) Chunk(idx int) string {
+	x, offset := buf.tree.Root.Find(idx)
 	if x == nil {
 		return ""
 	}
@@ -15,22 +16,44 @@ func (buf *TextBuf) Chunk(i int) string {
 	return buf.content.Chunk(x, offset)
 }
 
-func (buf *TextBuf) Read(start int, end int) iter.Seq[string] {
-	x, offset := buf.tree.Root.Find(start)
+func (buf *TextBuf) Slice(startIdx int, endIdx int) iter.Seq[string] {
+	x, offset := buf.tree.Root.Find(startIdx)
 	if x == nil {
-		return empty
+		return func(yield func(string) bool) {}
 	}
 
-	return buf.content.Read(x, offset, end-start)
+	return buf.content.Read(x, offset, endIdx-startIdx)
 }
 
-func (buf *TextBuf) Read2(startLn, startCol, endLn, endCol int) iter.Seq[string] {
-	start, _, ok := buf.PosToStartByte(startLn, startCol)
+func (buf *TextBuf) Read(startLn, startCol, endLn, endCol int) iter.Seq[string] {
+	startPos, ok := buf.Pos(startLn, startCol)
 	if !ok {
-		return empty
+		return func(yield func(string) bool) {}
 	}
 
-	end, _ := buf.PosToEndByte(endLn, endCol)
+	endPos := buf.EndPos(endLn, endCol)
 
-	return buf.Read(start, end)
+	if endPos.Idx < startPos.Idx {
+		panic("assert")
+	}
+
+	return buf.Slice(startPos.Idx, endPos.Idx)
+}
+
+func (buf *TextBuf) ReadLine(ln int) iter.Seq[string] {
+	startIdx, ok := buf.lnIdx(ln)
+	if !ok {
+		return func(yield func(string) bool) {}
+	}
+
+	endIdx, ok := buf.lnIdx(ln + 1)
+	if !ok {
+		endIdx = math.MaxInt
+	}
+
+	return buf.Slice(startIdx, endIdx)
+}
+
+func (buf *TextBuf) LineGraphemes(ln int) iter.Seq[*grapheme.Grapheme] {
+	return grapheme.Graphemes.FromString(buf.ReadLine(ln))
 }

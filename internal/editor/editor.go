@@ -11,7 +11,6 @@ import (
 	"github.com/eu-ge-ne/toy2/internal/editor/history"
 	"github.com/eu-ge-ne/toy2/internal/editor/render"
 	"github.com/eu-ge-ne/toy2/internal/editor/syntax"
-	"github.com/eu-ge-ne/toy2/internal/grapheme"
 	"github.com/eu-ge-ne/toy2/internal/key"
 	"github.com/eu-ge-ne/toy2/internal/std"
 	"github.com/eu-ge-ne/toy2/internal/textbuf"
@@ -170,7 +169,7 @@ func (ed *Editor) SetText(text string) {
 }
 
 func (ed *Editor) GetText() string {
-	return std.IterToStr(ed.buffer.Read(0, math.MaxInt))
+	return std.IterToStr(ed.buffer.Slice(0, math.MaxInt))
 }
 
 func (ed *Editor) Load(filePath string) error {
@@ -214,7 +213,7 @@ func (ed *Editor) Save(filePath string) error {
 
 	defer f.Close()
 
-	for text := range ed.buffer.Read(0, math.MaxInt) {
+	for text := range ed.buffer.Slice(0, math.MaxInt) {
 		_, err := f.WriteString(text)
 		if err != nil {
 			return err
@@ -224,76 +223,50 @@ func (ed *Editor) Save(filePath string) error {
 	return nil
 }
 
-func (ed *Editor) deleteChar() {
-	cur := ed.cursor
+func (ed *Editor) insertText(text string) {
+	change := ed.buffer.Insert(ed.cursor.Ln, ed.cursor.Col, text)
 
-	ed.buffer.Delete2(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
-	ed.syntax.Delete(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
-
+	ed.cursor.Set(change.End.Ln, change.End.Col, false)
 	ed.history.Push()
-}
 
-func (ed *Editor) deletePrevChar() {
-	cur := ed.cursor
-
-	if cur.Ln > 0 && cur.Col == 0 {
-		l := 0
-		for range ed.buffer.LineGraphemes(cur.Ln) {
-			l += 1
-			if l == 2 {
-				break
-			}
-		}
-
-		if l == 1 {
-			ed.buffer.Delete2(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
-			ed.syntax.Delete(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
-			cur.Left(false)
-		} else {
-			cur.Left(false)
-			ed.buffer.Delete2(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
-			ed.syntax.Delete(cur.Ln, cur.Col, cur.Ln, cur.Col+1)
-		}
-	} else {
-		ed.buffer.Delete2(cur.Ln, cur.Col-1, cur.Ln, cur.Col)
-		ed.syntax.Delete(cur.Ln, cur.Col-1, cur.Ln, cur.Col)
-		cur.Left(false)
-	}
-
-	ed.history.Push()
+	ed.syntax.Insert(change)
 }
 
 func (ed *Editor) deleteSelection() {
-	cur := ed.cursor
+	change := ed.buffer.Delete(ed.cursor.StartLn, ed.cursor.StartCol, ed.cursor.EndLn, ed.cursor.EndCol)
 
-	ed.buffer.Delete2(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol)
-	ed.syntax.Delete(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol)
-	ed.cursor.Set(cur.StartLn, cur.StartCol, false)
-
+	ed.cursor.Set(change.Start.Ln, change.Start.Col, false)
 	ed.history.Push()
+
+	ed.syntax.Delete(change)
 }
 
-func (ed *Editor) insertText(text string) {
-	cur := ed.cursor
-
-	if cur.Selecting {
-		ed.buffer.Delete2(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol)
-		ed.syntax.Delete(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol)
-		cur.Set(cur.StartLn, cur.StartCol, false)
-	}
-
-	ed.buffer.Insert2(cur.Ln, cur.Col, text)
-
-	startLn := cur.Ln
-	startCol := cur.Col
-
-	dLn, dCol := grapheme.Graphemes.MeasureString(text)
-	cur.Forward(dLn, dCol)
-
-	endLn := cur.Ln
-	endCol := cur.Col
-
-	ed.syntax.Insert(startLn, startCol, endLn, endCol)
+func (ed *Editor) deleteChar() {
+	change := ed.buffer.Delete(ed.cursor.Ln, ed.cursor.Col, ed.cursor.Ln, ed.cursor.Col+1)
 
 	ed.history.Push()
+
+	ed.syntax.Delete(change)
+}
+
+func (ed *Editor) deletePrevChar() {
+	if ed.cursor.Ln == 0 && ed.cursor.Col == 0 {
+		return
+	}
+
+	var change textbuf.Change
+
+	if ed.cursor.Col == 0 {
+		startLn := ed.cursor.Ln - 1
+		startCol := max(0, ed.buffer.ColumnCount(startLn)-1)
+
+		change = ed.buffer.Delete(startLn, startCol, ed.cursor.Ln, ed.cursor.Col)
+	} else {
+		change = ed.buffer.Delete(ed.cursor.Ln, ed.cursor.Col-1, ed.cursor.Ln, ed.cursor.Col)
+	}
+
+	ed.cursor.Set(change.Start.Ln, change.Start.Col, false)
+	ed.history.Push()
+
+	ed.syntax.Delete(change)
 }

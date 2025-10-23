@@ -1,50 +1,38 @@
 package textbuf
 
-func (buf *TextBuf) PosToStartByte(ln, col int) (int, int, bool) {
-	lnByte, ok := buf.LnByte(ln)
-	if !ok {
-		return 0, 0, false
-	}
+import "github.com/eu-ge-ne/toy2/internal/std"
 
-	colByte, ok := buf.ColByte(ln, col)
-	if !ok {
-		return 0, 0, false
-	}
-
-	return lnByte + colByte, colByte, true
+type Pos struct {
+	Ln     int
+	Col    int
+	Idx    int
+	ColIdx int
 }
 
-func (buf *TextBuf) PosToEndByte(ln, col int) (int, int) {
-	maxLn := max(0, buf.LineCount()-1)
-	if ln > maxLn {
-		ln = maxLn
-	}
-
-	lnByte, ok := buf.LnByte(ln)
+func (buf *TextBuf) Pos(ln, col int) (Pos, bool) {
+	lnIdx, ok := buf.lnIdx(ln)
 	if !ok {
-		panic("in TextBuf.posToByte2")
+		return Pos{}, false
 	}
 
-	colByte, ok := buf.ColByte(ln, col)
+	colIdx, ok := buf.colIdx(ln, col)
 	if !ok {
-		colByte = buf.ColMaxByte(ln)
+		return Pos{}, false
 	}
 
-	return lnByte + colByte, colByte
+	return Pos{Ln: ln, Col: col, Idx: lnIdx + colIdx, ColIdx: colIdx}, true
 }
 
-func (buf *TextBuf) posToInsertByte(ln, col int) int {
-	maxLn := max(0, buf.LineCount()-1)
-	if ln > maxLn {
-		ln = maxLn
-	}
+func (buf *TextBuf) EndPos(ln, col int) Pos {
+	ln = std.Clamp(ln, 0, buf.LineCount()-1)
 
-	lnByte, _ := buf.LnByte(ln)
+	lnIdx, _ := buf.lnIdx(ln)
 
-	colByte, ok := buf.ColByte(ln, col)
+	colIdx, ok := buf.colIdx(ln, col)
 	if !ok {
-		colByte = buf.ColMaxByte(ln)
+		colIdx = buf.endColIdx(ln)
+		col = max(0, buf.ColumnCount(ln)-1)
 	}
 
-	return lnByte + colByte
+	return Pos{Ln: ln, Col: col, Idx: lnIdx + colIdx, ColIdx: colIdx}
 }

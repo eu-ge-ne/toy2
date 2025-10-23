@@ -8,21 +8,63 @@ import (
 )
 
 type Cursor struct {
-	Ln        int
-	Col       int
+	Ln  int
+	Col int
+
 	Selecting bool
 	StartLn   int
 	StartCol  int
 	EndLn     int
 	EndCol    int
 
-	buffer *textbuf.TextBuf
-	ln0    int
-	col0   int
+	buffer     *textbuf.TextBuf
+	selFromLn  int
+	selFromCol int
 }
 
 func New(buffer *textbuf.TextBuf) *Cursor {
 	return &Cursor{buffer: buffer}
+}
+
+func (cur *Cursor) Set(ln, col int, sel bool) (ok bool) {
+	oldLn := cur.Ln
+	oldCol := cur.Col
+
+	cur.Ln = std.Clamp(ln, 0, cur.buffer.LineCount()-1)
+
+	if cur.Ln == cur.buffer.LineCount()-1 {
+		cur.Col = std.Clamp(col, 0, cur.buffer.ColumnCount(cur.Ln))
+	} else {
+		cur.Col = std.Clamp(col, 0, cur.buffer.ColumnCount(cur.Ln)-1)
+	}
+
+	ok = cur.Ln != oldLn || cur.Col != oldCol
+
+	if !sel {
+		cur.Selecting = false
+		return
+	}
+
+	if !cur.Selecting {
+		cur.selFromLn = oldLn
+		cur.selFromCol = oldCol
+	}
+
+	cur.Selecting = true
+
+	if (cur.selFromLn > cur.Ln) || (cur.selFromLn == cur.Ln && cur.selFromCol > cur.Col) {
+		cur.StartLn = cur.Ln
+		cur.StartCol = cur.Col
+		cur.EndLn = cur.selFromLn
+		cur.EndCol = cur.selFromCol
+	} else {
+		cur.StartLn = cur.selFromLn
+		cur.StartCol = cur.selFromCol
+		cur.EndLn = cur.Ln
+		cur.EndCol = cur.Col
+	}
+
+	return
 }
 
 func (cur *Cursor) Top(sel bool) bool {
@@ -73,14 +115,6 @@ func (cur *Cursor) Right(sel bool) bool {
 	return false
 }
 
-func (cur *Cursor) Forward(dLn, dCol int) bool {
-	if dLn == 0 {
-		return cur.Set(cur.Ln, cur.Col+dCol, false)
-	} else {
-		return cur.Set(cur.Ln+dLn, dCol, false)
-	}
-}
-
 func (cur *Cursor) IsSelected(ln, col int) bool {
 	if !cur.Selecting {
 		return false
@@ -99,64 +133,4 @@ func (cur *Cursor) IsSelected(ln, col int) bool {
 	}
 
 	return true
-}
-
-func (cur *Cursor) Set(ln, col int, sel bool) bool {
-	oldLn := cur.Ln
-	oldCol := cur.Col
-
-	cur.setLn(ln)
-	cur.setCol(col)
-	cur.setSelection(oldLn, oldCol, sel)
-
-	return cur.Ln != oldLn || cur.Col != oldCol
-}
-
-func (cur *Cursor) setLn(ln int) {
-	max := cur.buffer.LineCount() - 1
-
-	if max < 0 {
-		max = 0
-	}
-
-	cur.Ln = std.Clamp(ln, 0, max)
-}
-
-func (cur *Cursor) setCol(col int) {
-	len := 0
-
-	for _, gr := range cur.buffer.LineGraphemes(cur.Ln) {
-		if gr.IsEol {
-			break
-		}
-		len += 1
-	}
-
-	cur.Col = std.Clamp(col, 0, len)
-}
-
-func (cur *Cursor) setSelection(ln, col int, sel bool) {
-	if !sel {
-		cur.Selecting = false
-		return
-	}
-
-	if !cur.Selecting {
-		cur.ln0 = ln
-		cur.col0 = col
-	}
-
-	cur.Selecting = true
-
-	if (cur.ln0 > cur.Ln) || (cur.ln0 == cur.Ln && cur.col0 > cur.Col) {
-		cur.StartLn = cur.Ln
-		cur.StartCol = cur.Col
-		cur.EndLn = cur.ln0
-		cur.EndCol = cur.col0
-	} else {
-		cur.StartLn = cur.ln0
-		cur.StartCol = cur.col0
-		cur.EndLn = cur.Ln
-		cur.EndCol = cur.Col
-	}
 }

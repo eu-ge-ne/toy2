@@ -13,7 +13,7 @@ import (
 func TestCreateEmpty(t *testing.T) {
 	buf := textbuf.New()
 
-	assert.Equal(t, "", std.IterToStr(buf.Read(0, math.MaxInt)))
+	assert.Equal(t, "", std.IterToStr(buf.Slice(0, math.MaxInt)))
 	assert.Equal(t, 0, buf.Count())
 	assert.Equal(t, 0, buf.LineCount())
 
