@@ -165,7 +165,6 @@ func (ed *Editor) HasChanges() bool {
 
 func (ed *Editor) SetText(text string) {
 	ed.buffer.Reset(text)
-	ed.syntax.Restart()
 }
 
 func (ed *Editor) GetText() string {
@@ -199,8 +198,6 @@ func (ed *Editor) Load(filePath string) error {
 
 		ed.buffer.Append(string(chunk))
 	}
-
-	ed.syntax.Restart()
 
 	return nil
 }
