@@ -30,7 +30,7 @@ func (s *Syntax) Highlight(startLn, endLn int) <-chan Span {
 
 	spans := make(chan Span, 1024)
 
-	s.highlights <- highlightReq{startLn, endLn, spans}
+	s.highlight <- highlightReq{startLn, endLn, spans}
 
 	return spans
 }
@@ -57,7 +57,7 @@ func (s *Syntax) handleHighlight(req highlightReq) {
 		if len(text) > maxChunkLen {
 			text = text[0:maxChunkLen]
 		}
-		//fmt.Fprintf(s.log, "highlight: reading chunk %d, %+v, %d\n", i, p, len(text))
+		fmt.Fprintf(s.log, "highlight: reading chunk %d, %+v, %d\n", i, p, len(text))
 		return []byte(text)
 	}, oldTree, nil)
 
