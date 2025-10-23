@@ -23,8 +23,8 @@ type Syntax struct {
 	query  *treeSitter.Query
 	tree   *treeSitter.Tree
 
-	close      chan struct{}
-	highlights chan highlightReq
+	close     chan struct{}
+	highlight chan highlightReq
 
 	text []byte
 	log  *os.File
@@ -32,10 +32,10 @@ type Syntax struct {
 
 func New(buffer *textbuf.TextBuf) *Syntax {
 	s := Syntax{
-		buffer:     buffer,
-		parser:     treeSitter.NewParser(),
-		close:      make(chan struct{}),
-		highlights: make(chan highlightReq),
+		buffer:    buffer,
+		parser:    treeSitter.NewParser(),
+		close:     make(chan struct{}),
+		highlight: make(chan highlightReq),
 	}
 
 	//Log(s.parser)
@@ -84,7 +84,7 @@ func (s *Syntax) run() {
 				s.handleClose()
 				return
 
-			case req := <-s.highlights:
+			case req := <-s.highlight:
 				s.handleHighlight(req)
 			}
 		}
