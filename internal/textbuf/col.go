@@ -32,7 +32,7 @@ func (buf *TextBuf) colIdx(ln, col int) (int, bool) {
 	return 0, false
 }
 
-func (buf *TextBuf) maxColIdx(ln int) int {
+func (buf *TextBuf) endColIdx(ln int) int {
 	colIdx := 0
 
 	for gr := range buf.LineGraphemes(ln) {

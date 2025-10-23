@@ -30,7 +30,7 @@ func (buf *TextBuf) EndPos(ln, col int) Pos {
 
 	colIdx, ok := buf.colIdx(ln, col)
 	if !ok {
-		colIdx = buf.maxColIdx(ln)
+		colIdx = buf.endColIdx(ln)
 		col = max(0, buf.ColumnCount(ln)-1)
 	}
 
