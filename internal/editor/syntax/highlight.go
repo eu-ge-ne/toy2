@@ -7,6 +7,7 @@ import (
 	treeSitter "github.com/tree-sitter/go-tree-sitter"
 
 	"github.com/eu-ge-ne/toy2/internal/std"
+	"github.com/eu-ge-ne/toy2/internal/textbuf"
 )
 
 type highlightReq struct {
@@ -40,41 +41,23 @@ func (s *Syntax) handleHighlight(req highlightReq) {
 
 	fmt.Fprintln(s.log, "highlight: started")
 
-	start, _ := s.buffer.Pos(req.startLn, 0)
-	end := s.buffer.EndPos(req.endLn, 0)
+	startPos, _ := s.buffer.Pos(req.startLn, 0)
+	endPos := s.buffer.EndPos(req.endLn, 0)
 
-	s.parser.SetIncludedRanges([]treeSitter.Range{{
-		StartByte:  uint(start.Idx),
-		EndByte:    uint(end.Idx),
-		StartPoint: treeSitter.NewPoint(uint(start.Ln), uint(start.ColIdx)),
-		EndPoint:   treeSitter.NewPoint(uint(end.Ln), uint(end.ColIdx)),
-	}})
-
-	oldTree := s.tree
-
-	s.tree = s.parser.ParseWithOptions(func(i int, p treeSitter.Point) []byte {
-		text := s.buffer.Chunk(i)
-		if len(text) > maxChunkLen {
-			text = text[0:maxChunkLen]
-		}
-		fmt.Fprintf(s.log, "highlight: reading chunk %d, %+v, %d\n", i, p, len(text))
-		return []byte(text)
-	}, oldTree, nil)
+	s.parse(startPos, endPos)
 
 	fmt.Fprintf(s.log, "highlight: parsed %v\n", time.Since(started))
 
-	if s.buffer.Count() > len(s.text) {
-		s.text = make([]byte, s.buffer.Count())
-	}
-	copy(s.text[start.Idx:end.Idx], std.IterToStr(s.buffer.Slice(start.Idx, end.Idx)))
+	s.prepareText(startPos, endPos)
 
 	qc := treeSitter.NewQueryCursor()
 	defer qc.Close()
 
-	qc.SetByteRange(uint(start.Idx), uint(end.Idx))
-	capts := qc.Captures(s.query, s.tree.RootNode(), s.text)
+	qc.SetByteRange(uint(startPos.Idx), uint(endPos.Idx))
 
 	var span Span
+
+	capts := qc.Captures(s.query, s.tree.RootNode(), s.text)
 
 	match, captIdx := capts.Next()
 	if match != nil {
@@ -117,4 +100,35 @@ func (s *Syntax) handleHighlight(req highlightReq) {
 	close(req.spans)
 
 	fmt.Fprintf(s.log, "highlight: elapsed %v\n", time.Since(started))
+}
+
+func (s *Syntax) parse(startPos, endPos textbuf.Pos) {
+	s.parser.SetIncludedRanges([]treeSitter.Range{{
+		StartByte:  uint(startPos.Idx),
+		EndByte:    uint(endPos.Idx),
+		StartPoint: treeSitter.NewPoint(uint(startPos.Ln), uint(startPos.ColIdx)),
+		EndPoint:   treeSitter.NewPoint(uint(endPos.Ln), uint(endPos.ColIdx)),
+	}})
+
+	oldTree := s.tree
+
+	s.tree = s.parser.ParseWithOptions(func(i int, p treeSitter.Point) []byte {
+		text := s.buffer.Chunk(i)
+
+		if len(text) > maxChunkLen {
+			text = text[0:maxChunkLen]
+		}
+
+		fmt.Fprintf(s.log, "parse: reading chunk %d, %+v, %d\n", i, p, len(text))
+
+		return []byte(text)
+	}, oldTree, nil)
+}
+
+func (s *Syntax) prepareText(startPos, endPos textbuf.Pos) {
+	if s.buffer.Count() > len(s.text) {
+		s.text = make([]byte, s.buffer.Count())
+	}
+
+	copy(s.text[startPos.Idx:endPos.Idx], std.IterToStr(s.buffer.Slice(startPos.Idx, endPos.Idx)))
 }
