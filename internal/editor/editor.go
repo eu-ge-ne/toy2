@@ -241,8 +241,6 @@ func (ed *Editor) deleteSelection() {
 	ed.syntax.Delete(change)
 }
 
-// TODO
-
 func (ed *Editor) deleteChar() {
 	change := ed.buffer.Delete(ed.cursor.Ln, ed.cursor.Col, ed.cursor.Ln, ed.cursor.Col+1)
 
