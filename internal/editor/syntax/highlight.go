@@ -44,7 +44,8 @@ func (s *Syntax) handleHighlight(req highlightReq) {
 	startPos, _ := s.buffer.Pos(req.startLn, 0)
 	endPos := s.buffer.EndPos(req.endLn, 0)
 
-	s.parse(startPos, endPos)
+	startPosParse, _ := s.buffer.Pos(0, 0)
+	s.parse(startPosParse, endPos)
 
 	fmt.Fprintf(s.log, "highlight: parsed %v\n", time.Since(started))
 
