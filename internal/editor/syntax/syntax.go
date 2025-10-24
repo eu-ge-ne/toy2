@@ -158,7 +158,6 @@ func (s *Syntax) highlight(startPos textbuf.Pos, endPos textbuf.Pos, startPosPar
 	s.started = time.Now()
 
 	s.parse(startPosParse, endPos)
-
 	s.prepareText(startPos, endPos)
 
 	qc := treeSitter.NewQueryCursor()
