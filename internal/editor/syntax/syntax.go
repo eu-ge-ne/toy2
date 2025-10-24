@@ -4,11 +4,13 @@ import (
 	_ "embed"
 	"fmt"
 	"os"
+	"time"
 
 	treeSitter "github.com/tree-sitter/go-tree-sitter"
 	_ "github.com/tree-sitter/tree-sitter-javascript/bindings/go"
 	treeSitterTs "github.com/tree-sitter/tree-sitter-typescript/bindings/go"
 
+	"github.com/eu-ge-ne/toy2/internal/std"
 	"github.com/eu-ge-ne/toy2/internal/textbuf"
 )
 
@@ -25,7 +27,8 @@ type Syntax struct {
 
 	query *treeSitter.Query
 
-	log *os.File
+	log  *os.File
+	text []byte
 }
 
 func New(buffer *textbuf.TextBuf) *Syntax {
@@ -115,8 +118,111 @@ func (s *Syntax) Insert(change textbuf.Change) {
 	fmt.Fprintf(s.log, "insert: e %+v\n", e)
 }
 
-func (s *Syntax) Highlight(startLn, endLn int) *Highlighter {
-	return NewHighlighter(s, startLn, endLn)
+type span struct {
+	startIdx int
+	endIdx   int
+	name     string
+}
+
+func (s *Syntax) Highlight(startLn, endLn int) func(int) string {
+	startPos, _ := s.buffer.Pos(startLn, 0)
+	endPos := s.buffer.EndPos(endLn, 0)
+	startPosParse, _ := s.buffer.Pos(max(0, startLn-2_000), 0)
+
+	spans := make(chan span, 1024)
+
+	go func() {
+		started := time.Now()
+
+		fmt.Fprintln(s.log, "highlight: started")
+
+		s.parse(startPosParse, endPos)
+
+		fmt.Fprintf(s.log, "highlight: parsed %v\n", time.Since(started))
+
+		if s.buffer.Count() > len(s.text) {
+			s.text = make([]byte, s.buffer.Count())
+		}
+
+		copy(
+			s.text[startPos.Idx:endPos.Idx],
+			std.IterToStr(s.buffer.Slice(startPos.Idx, endPos.Idx)),
+		)
+
+		qc := treeSitter.NewQueryCursor()
+		defer qc.Close()
+
+		qc.SetByteRange(uint(startPos.Idx), uint(endPos.Idx))
+
+		var spn span
+
+		capts := qc.Captures(s.query, s.tree.RootNode(), s.text)
+
+		match, captIdx := capts.Next()
+		if match != nil {
+			capt := match.Captures[captIdx]
+			spn = span{
+				int(capt.Node.StartByte()),
+				int(capt.Node.EndByte()),
+				s.query.CaptureNames()[capt.Index],
+			}
+		}
+
+		for ; match != nil; match, captIdx = capts.Next() {
+			capt := match.Captures[captIdx]
+			name := s.query.CaptureNames()[capt.Index]
+
+			/*
+				fmt.Fprintf(s.log,
+					"highlight: %v:%v %s (%s)\n",
+					capt.Node.StartPosition(),
+					capt.Node.EndPosition(),
+					capt.Node.Utf8Text(s.text),
+					name,
+					//match.PatternIndex,
+					//capt.Index,
+				)
+			*/
+
+			startIdx := int(capt.Node.StartByte())
+			endIdx := int(capt.Node.EndByte())
+
+			if spn.startIdx != startIdx || spn.endIdx != endIdx {
+				spans <- spn
+				spn = span{startIdx, endIdx, name}
+			} else {
+				spn.name = name
+			}
+		}
+
+		spans <- spn
+
+		close(spans)
+
+		fmt.Fprintf(s.log, "highlight: elapsed %v\n", time.Since(started))
+
+	}()
+
+	lastSpan := span{-1, -1, ""}
+	lastIdx := startPos.Idx
+
+	return func(l int) string {
+		var name string
+
+		if lastIdx >= lastSpan.endIdx {
+			if spn, ok := <-spans; ok {
+				lastSpan = spn
+			}
+		}
+
+		if lastIdx >= lastSpan.startIdx && lastIdx < lastSpan.endIdx {
+			name = lastSpan.name
+		}
+
+		lastIdx += l
+
+		return name
+	}
 }
 
 const maxChunkLen = 1024 * 4

@@ -124,7 +124,7 @@ func (r *Render) Render() {
 	vt.Sync.Esu()
 }
 
-func (r *Render) renderLines(hl *syntax.Highlighter) {
+func (r *Render) renderLines(hl func(int) string) {
 	row := r.area.Y
 
 	for ln := r.ScrollLn; ; ln += 1 {
@@ -143,7 +143,7 @@ func (r *Render) renderLines(hl *syntax.Highlighter) {
 	}
 }
 
-func (r *Render) renderLine(hl *syntax.Highlighter, ln int, row int) int {
+func (r *Render) renderLine(hl func(int) string, ln int, row int) int {
 	currentFg := ""
 	currentBg := false
 	availableW := 0
@@ -173,7 +173,7 @@ func (r *Render) renderLine(hl *syntax.Highlighter, ln int, row int) int {
 			availableW = r.area.W - r.indexWidth
 		}
 
-		spanName := hl.Next(len(cell.Gr.Str))
+		spanName := hl(len(cell.Gr.Str))
 
 		if (cell.WrapCol < r.ScrollCol) || (cell.Gr.Width > availableW) {
 			continue
