@@ -22,6 +22,7 @@ var scmTsHighlights string
 
 type Syntax struct {
 	buffer *textbuf.TextBuf
+
 	parser *treeSitter.Parser
 	tree   *treeSitter.Tree
 
@@ -46,13 +47,7 @@ func New(buffer *textbuf.TextBuf) *Syntax {
 		parser: treeSitter.NewParser(),
 	}
 
-	//Log(s.parser)
-
-	f, err := os.OpenFile("tmp/syntax.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
-	if err != nil {
-		panic(err)
-	}
-	s.log = f
+	s.initLogger()
 
 	return &s
 }
@@ -132,7 +127,7 @@ func (s *Syntax) Highlight(startLn, endLn int) {
 	startPosParse, _ := s.buffer.Pos(max(0, startLn-2_000), 0)
 
 	s.spans = make(chan span, 1024)
-	s.span = span{-1, -1, ""}
+	s.span = span{startIdx: -1, endIdx: -1}
 	s.idx = startPos.Idx
 
 	go s.highlight(startPos, endPos, startPosParse)
@@ -250,4 +245,32 @@ func (s *Syntax) parse(startPos, endPos textbuf.Pos) {
 
 		return []byte(text)
 	}, oldTree, nil)
+}
+
+func (s *Syntax) initLogger() {
+	/*
+		log, err := os.OpenFile("tmp/syntax.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+		if err != nil {
+			panic(err)
+		}
+
+			i := 0
+
+			s.parser.SetLogger(func(t treeSitter.LogType, msg string) {
+				var tp string
+
+				switch t {
+				case treeSitter.LogTypeParse:
+					tp = "parse"
+				case treeSitter.LogTypeLex:
+					tp = "lex"
+				}
+
+				fmt.Fprintf(log, "%d: %s: %s\n", i, tp, msg)
+
+				i += 1
+			})
+
+		s.log = log
+	*/
 }
