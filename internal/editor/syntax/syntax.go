@@ -31,8 +31,9 @@ type Syntax struct {
 	span  span
 	idx   int
 
-	log  *os.File
-	text []byte
+	log     *os.File
+	text    []byte
+	started time.Time
 }
 
 type span struct {
@@ -152,20 +153,17 @@ func (s *Syntax) NextSpan(l int) string {
 }
 
 func (s *Syntax) highlight(startPos textbuf.Pos, endPos textbuf.Pos, startPosParse textbuf.Pos) {
-	started := time.Now()
-
 	fmt.Fprintln(s.log, "highlight: started")
 
-	s.parse(startPosParse, endPos)
+	s.started = time.Now()
 
-	fmt.Fprintf(s.log, "highlight: parsed %v\n", time.Since(started))
+	s.parse(startPosParse, endPos)
 
 	s.prepareText(startPos, endPos)
 
 	qc := treeSitter.NewQueryCursor()
-	defer qc.Close()
-
 	qc.SetByteRange(uint(startPos.Idx), uint(endPos.Idx))
+	defer qc.Close()
 
 	var spn span
 
@@ -212,7 +210,7 @@ func (s *Syntax) highlight(startPos textbuf.Pos, endPos textbuf.Pos, startPosPar
 
 	close(s.spans)
 
-	fmt.Fprintf(s.log, "highlight: elapsed %v\n", time.Since(started))
+	fmt.Fprintf(s.log, "highlight: [%v] completed\n", time.Since(s.started))
 }
 
 const maxChunkLen = 1024 * 4
@@ -234,10 +232,12 @@ func (s *Syntax) parse(startPos, endPos textbuf.Pos) {
 			text = text[0:maxChunkLen]
 		}
 
-		fmt.Fprintf(s.log, "parse: reading chunk %d, %+v, %d\n", i, p, len(text))
+		fmt.Fprintf(s.log, "parse: [%v] reading chunk %d, %+v, %d\n", time.Since(s.started), i, p, len(text))
 
 		return []byte(text)
 	}, oldTree, nil)
+
+	fmt.Fprintf(s.log, "parse: [%v] completed\n", time.Since(s.started))
 }
 
 func (s *Syntax) prepareText(startPos, endPos textbuf.Pos) {
@@ -252,29 +252,29 @@ func (s *Syntax) prepareText(startPos, endPos textbuf.Pos) {
 }
 
 func (s *Syntax) initLogger() {
+	log, err := os.OpenFile("tmp/syntax.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+	if err != nil {
+		panic(err)
+	}
+
 	/*
-		log, err := os.OpenFile("tmp/syntax.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
-		if err != nil {
-			panic(err)
+	i := 0
+
+	s.parser.SetLogger(func(t treeSitter.LogType, msg string) {
+		var tp string
+
+		switch t {
+		case treeSitter.LogTypeParse:
+			tp = "parse"
+		case treeSitter.LogTypeLex:
+			tp = "lex"
 		}
 
-			i := 0
+		fmt.Fprintf(log, "%d: %s: %s\n", i, tp, msg)
 
-			s.parser.SetLogger(func(t treeSitter.LogType, msg string) {
-				var tp string
-
-				switch t {
-				case treeSitter.LogTypeParse:
-					tp = "parse"
-				case treeSitter.LogTypeLex:
-					tp = "lex"
-				}
-
-				fmt.Fprintf(log, "%d: %s: %s\n", i, tp, msg)
-
-				i += 1
-			})
-
-		s.log = log
+		i += 1
+	})
 	*/
+
+	s.log = log
 }
