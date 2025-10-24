@@ -171,31 +171,16 @@ func (s *Syntax) highlight(startPos textbuf.Pos, endPos textbuf.Pos, startPosPar
 	match, captIdx := capts.Next()
 	if match != nil {
 		capt := match.Captures[captIdx]
-		spn = span{
-			int(capt.Node.StartByte()),
-			int(capt.Node.EndByte()),
-			s.query.CaptureNames()[capt.Index],
-		}
+		spn = span{int(capt.Node.StartByte()), int(capt.Node.EndByte()), s.query.CaptureNames()[capt.Index]}
 	}
 
 	for ; match != nil; match, captIdx = capts.Next() {
 		capt := match.Captures[captIdx]
 		name := s.query.CaptureNames()[capt.Index]
-
-		/*
-			fmt.Fprintf(s.log,
-				"highlight: %v:%v %s (%s)\n",
-				capt.Node.StartPosition(),
-				capt.Node.EndPosition(),
-				capt.Node.Utf8Text(s.text),
-				name,
-				//match.PatternIndex,
-				//capt.Index,
-			)
-		*/
-
 		startIdx := int(capt.Node.StartByte())
 		endIdx := int(capt.Node.EndByte())
+
+		//fmt.Fprintf(s.log, "highlight: %v:%v %s (%s)\n", capt.Node.StartPosition(), capt.Node.EndPosition(), capt.Node.Utf8Text(s.text), name /*match.PatternIndex,*/ /*capt.Index,*/)
 
 		if spn.startIdx != startIdx || spn.endIdx != endIdx {
 			s.spans <- spn
@@ -257,22 +242,22 @@ func (s *Syntax) initLogger() {
 	}
 
 	/*
-	i := 0
+		i := 0
 
-	s.parser.SetLogger(func(t treeSitter.LogType, msg string) {
-		var tp string
+		s.parser.SetLogger(func(t treeSitter.LogType, msg string) {
+			var tp string
 
-		switch t {
-		case treeSitter.LogTypeParse:
-			tp = "parse"
-		case treeSitter.LogTypeLex:
-			tp = "lex"
-		}
+			switch t {
+			case treeSitter.LogTypeParse:
+				tp = "parse"
+			case treeSitter.LogTypeLex:
+				tp = "lex"
+			}
 
-		fmt.Fprintf(log, "%d: %s: %s\n", i, tp, msg)
+			fmt.Fprintf(log, "%d: %s: %s\n", i, tp, msg)
 
-		i += 1
-	})
+			i += 1
+		})
 	*/
 
 	s.log = log
