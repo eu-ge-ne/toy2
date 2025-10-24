@@ -25,10 +25,22 @@ type Syntax struct {
 	parser *treeSitter.Parser
 	tree   *treeSitter.Tree
 
-	query *treeSitter.Query
+	query         *treeSitter.Query
+	startPos      textbuf.Pos
+	endPos        textbuf.Pos
+	startPosParse textbuf.Pos
+	spans         chan span
+	span          span
+	idx           int
 
 	log  *os.File
 	text []byte
+}
+
+type span struct {
+	startIdx int
+	endIdx   int
+	name     string
 }
 
 func New(buffer *textbuf.TextBuf) *Syntax {
@@ -118,111 +130,15 @@ func (s *Syntax) Insert(change textbuf.Change) {
 	fmt.Fprintf(s.log, "insert: e %+v\n", e)
 }
 
-type span struct {
-	startIdx int
-	endIdx   int
-	name     string
-}
+func (s *Syntax) Highlight(startLn, endLn int) {
+	s.startPos, _ = s.buffer.Pos(startLn, 0)
+	s.endPos = s.buffer.EndPos(endLn, 0)
+	s.startPosParse, _ = s.buffer.Pos(max(0, startLn-2_000), 0)
+	s.spans = make(chan span, 1024)
+	s.span = span{-1, -1, ""}
+	s.idx = s.startPos.Idx
 
-func (s *Syntax) Highlight(startLn, endLn int) func(int) string {
-	startPos, _ := s.buffer.Pos(startLn, 0)
-	endPos := s.buffer.EndPos(endLn, 0)
-	startPosParse, _ := s.buffer.Pos(max(0, startLn-2_000), 0)
-
-	spans := make(chan span, 1024)
-
-	go func() {
-		started := time.Now()
-
-		fmt.Fprintln(s.log, "highlight: started")
-
-		s.parse(startPosParse, endPos)
-
-		fmt.Fprintf(s.log, "highlight: parsed %v\n", time.Since(started))
-
-		if s.buffer.Count() > len(s.text) {
-			s.text = make([]byte, s.buffer.Count())
-		}
-
-		copy(
-			s.text[startPos.Idx:endPos.Idx],
-			std.IterToStr(s.buffer.Slice(startPos.Idx, endPos.Idx)),
-		)
-
-		qc := treeSitter.NewQueryCursor()
-		defer qc.Close()
-
-		qc.SetByteRange(uint(startPos.Idx), uint(endPos.Idx))
-
-		var spn span
-
-		capts := qc.Captures(s.query, s.tree.RootNode(), s.text)
-
-		match, captIdx := capts.Next()
-		if match != nil {
-			capt := match.Captures[captIdx]
-			spn = span{
-				int(capt.Node.StartByte()),
-				int(capt.Node.EndByte()),
-				s.query.CaptureNames()[capt.Index],
-			}
-		}
-
-		for ; match != nil; match, captIdx = capts.Next() {
-			capt := match.Captures[captIdx]
-			name := s.query.CaptureNames()[capt.Index]
-
-			/*
-				fmt.Fprintf(s.log,
-					"highlight: %v:%v %s (%s)\n",
-					capt.Node.StartPosition(),
-					capt.Node.EndPosition(),
-					capt.Node.Utf8Text(s.text),
-					name,
-					//match.PatternIndex,
-					//capt.Index,
-				)
-			*/
-
-			startIdx := int(capt.Node.StartByte())
-			endIdx := int(capt.Node.EndByte())
-
-			if spn.startIdx != startIdx || spn.endIdx != endIdx {
-				spans <- spn
-				spn = span{startIdx, endIdx, name}
-			} else {
-				spn.name = name
-			}
-		}
-
-		spans <- spn
-
-		close(spans)
-
-		fmt.Fprintf(s.log, "highlight: elapsed %v\n", time.Since(started))
-
-	}()
-
-	lastSpan := span{-1, -1, ""}
-	lastIdx := startPos.Idx
-
-	return func(l int) string {
-		var name string
-
-		if lastIdx >= lastSpan.endIdx {
-			if spn, ok := <-spans; ok {
-				lastSpan = spn
-			}
-		}
-
-		if lastIdx >= lastSpan.startIdx && lastIdx < lastSpan.endIdx {
-			name = lastSpan.name
-		}
-
-		lastIdx += l
-
-		return name
-	}
+	go s.highlight()
 }
 
 const maxChunkLen = 1024 * 4
@@ -248,4 +164,93 @@ func (s *Syntax) parse(startPos, endPos textbuf.Pos) {
 
 		return []byte(text)
 	}, oldTree, nil)
+}
+
+func (s *Syntax) highlight() {
+	started := time.Now()
+
+	fmt.Fprintln(s.log, "highlight: started")
+
+	s.parse(s.startPosParse, s.endPos)
+
+	fmt.Fprintf(s.log, "highlight: parsed %v\n", time.Since(started))
+
+	if s.buffer.Count() > len(s.text) {
+		s.text = make([]byte, s.buffer.Count())
+	}
+
+	copy(
+		s.text[s.startPos.Idx:s.endPos.Idx],
+		std.IterToStr(s.buffer.Slice(s.startPos.Idx, s.endPos.Idx)),
+	)
+
+	qc := treeSitter.NewQueryCursor()
+	defer qc.Close()
+
+	qc.SetByteRange(uint(s.startPos.Idx), uint(s.endPos.Idx))
+
+	var spn span
+
+	capts := qc.Captures(s.query, s.tree.RootNode(), s.text)
+
+	match, captIdx := capts.Next()
+	if match != nil {
+		capt := match.Captures[captIdx]
+		spn = span{
+			int(capt.Node.StartByte()),
+			int(capt.Node.EndByte()),
+			s.query.CaptureNames()[capt.Index],
+		}
+	}
+
+	for ; match != nil; match, captIdx = capts.Next() {
+		capt := match.Captures[captIdx]
+		name := s.query.CaptureNames()[capt.Index]
+
+		/*
+			fmt.Fprintf(s.log,
+				"highlight: %v:%v %s (%s)\n",
+				capt.Node.StartPosition(),
+				capt.Node.EndPosition(),
+				capt.Node.Utf8Text(s.text),
+				name,
+				//match.PatternIndex,
+				//capt.Index,
+			)
+		*/
+
+		startIdx := int(capt.Node.StartByte())
+		endIdx := int(capt.Node.EndByte())
+
+		if spn.startIdx != startIdx || spn.endIdx != endIdx {
+			s.spans <- spn
+			spn = span{startIdx, endIdx, name}
+		} else {
+			spn.name = name
+		}
+	}
+
+	s.spans <- spn
+
+	close(s.spans)
+
+	fmt.Fprintf(s.log, "highlight: elapsed %v\n", time.Since(started))
+}
+
+func (s *Syntax) Next(l int) string {
+	var name string
+
+	if s.idx >= s.span.endIdx {
+		if spn, ok := <-s.spans; ok {
+			s.span = spn
+		}
+	}
+
+	if s.idx >= s.span.startIdx && s.idx < s.span.endIdx {
+		name = s.span.name
+	}
+
+	s.idx += l
+
+	return name
 }

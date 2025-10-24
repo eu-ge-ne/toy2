@@ -98,7 +98,7 @@ func (r *Render) SetSyntax(s *syntax.Syntax) {
 func (r *Render) Render() {
 	r.scroll()
 
-	hl := r.syntax.Highlight(r.ScrollLn, r.ScrollLn+r.area.H)
+	r.syntax.Highlight(r.ScrollLn, r.ScrollLn+r.area.H)
 
 	vt.Sync.Bsu()
 
@@ -108,7 +108,7 @@ func (r *Render) Render() {
 	vt.ClearArea(vt.Buf, r.area)
 
 	if r.area.W >= r.indexWidth {
-		r.renderLines(hl)
+		r.renderLines()
 	}
 
 	if r.enabled {
@@ -124,12 +124,12 @@ func (r *Render) Render() {
 	vt.Sync.Esu()
 }
 
-func (r *Render) renderLines(hl func(int) string) {
+func (r *Render) renderLines() {
 	row := r.area.Y
 
 	for ln := r.ScrollLn; ; ln += 1 {
 		if ln < r.buffer.LineCount() {
-			row = r.renderLine(hl, ln, row)
+			row = r.renderLine(ln, row)
 		} else {
 			vt.SetCursor(vt.Buf, row, r.area.X)
 			vt.Buf.Write(r.colorVoidBg)
@@ -143,7 +143,7 @@ func (r *Render) renderLines(hl func(int) string) {
 	}
 }
 
-func (r *Render) renderLine(hl func(int) string, ln int, row int) int {
+func (r *Render) renderLine(ln int, row int) int {
 	currentFg := ""
 	currentBg := false
 	availableW := 0
@@ -173,7 +173,7 @@ func (r *Render) renderLine(hl func(int) string, ln int, row int) int {
 			availableW = r.area.W - r.indexWidth
 		}
 
-		spanName := hl(len(cell.Gr.Str))
+		spanName := r.syntax.Next(len(cell.Gr.Str))
 
 		if (cell.WrapCol < r.ScrollCol) || (cell.Gr.Width > availableW) {
 			continue
