@@ -21,8 +21,9 @@ var scmTsHighlights string
 type Syntax struct {
 	buffer *textbuf.TextBuf
 	parser *treeSitter.Parser
-	query  *treeSitter.Query
 	tree   *treeSitter.Tree
+
+	query *treeSitter.Query
 
 	log *os.File
 }
