@@ -82,6 +82,7 @@ func (ed *Editor) SetSyntax() {
 	}
 
 	s := syntax.New(ed.buffer)
+	s.SetLanguage()
 
 	ed.syntax = s
 	ed.render.SetSyntax(s)

@@ -51,7 +51,18 @@ func New(buffer *textbuf.TextBuf) *Syntax {
 
 	//Log(s.parser)
 
+	f, err := os.OpenFile("tmp/syntax.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+	if err != nil {
+		panic(err)
+	}
+	s.log = f
+
+	return &s
+}
+
+func (s *Syntax) SetLanguage() {
 	lang := treeSitter.NewLanguage(treeSitterTs.LanguageTypescript())
+
 	err := s.parser.SetLanguage(lang)
 	if err != nil {
 		panic(err)
@@ -62,14 +73,6 @@ func New(buffer *textbuf.TextBuf) *Syntax {
 		panic(err0)
 	}
 	s.query = query
-
-	f, err := os.OpenFile("tmp/syntax.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
-	if err != nil {
-		panic(err)
-	}
-	s.log = f
-
-	return &s
 }
 
 func (s *Syntax) Close() {
