@@ -173,7 +173,7 @@ func (r *Render) renderLine(ln int, row int) int {
 			availableW = r.area.W - r.indexWidth
 		}
 
-		spanName := r.syntax.Next(len(cell.Gr.Str))
+		fg := r.syntax.NextSpan(len(cell.Gr.Str))
 
 		if (cell.WrapCol < r.ScrollCol) || (cell.Gr.Width > availableW) {
 			continue
@@ -189,7 +189,6 @@ func (r *Render) renderLine(ln int, row int) int {
 			}
 		}
 
-		fg := spanName
 		if len(fg) == 0 {
 			if cell.Gr.IsVisible {
 				fg = "_text"

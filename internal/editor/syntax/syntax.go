@@ -25,13 +25,10 @@ type Syntax struct {
 	parser *treeSitter.Parser
 	tree   *treeSitter.Tree
 
-	query         *treeSitter.Query
-	startPos      textbuf.Pos
-	endPos        textbuf.Pos
-	startPosParse textbuf.Pos
-	spans         chan span
-	span          span
-	idx           int
+	query *treeSitter.Query
+	spans chan span
+	span  span
+	idx   int
 
 	log  *os.File
 	text []byte
@@ -90,15 +87,13 @@ func (s *Syntax) Delete(change textbuf.Change) {
 		return
 	}
 
-	var e treeSitter.InputEdit
+	e := treeSitter.InputEdit{
+		StartByte:  uint(change.Start.Idx),
+		OldEndByte: uint(change.End.Idx),
 
-	e.StartByte = uint(change.Start.Idx)
-	e.OldEndByte = uint(change.End.Idx)
-
-	e.StartPosition.Row = uint(change.Start.Ln)
-	e.StartPosition.Column = uint(change.Start.ColIdx)
-	e.OldEndPosition.Row = uint(change.End.Ln)
-	e.OldEndPosition.Column = uint(change.End.ColIdx)
+		StartPosition:  treeSitter.NewPoint(uint(change.Start.Ln), uint(change.Start.ColIdx)),
+		OldEndPosition: treeSitter.NewPoint(uint(change.End.Ln), uint(change.End.ColIdx)),
+	}
 
 	e.NewEndByte = e.StartByte
 	e.NewEndPosition = e.StartPosition
@@ -114,15 +109,13 @@ func (s *Syntax) Insert(change textbuf.Change) {
 		return
 	}
 
-	var e treeSitter.InputEdit
+	e := treeSitter.InputEdit{
+		StartByte:  uint(change.Start.Idx),
+		NewEndByte: uint(change.End.Idx),
 
-	e.StartByte = uint(change.Start.Idx)
-	e.NewEndByte = uint(change.End.Idx)
-
-	e.StartPosition.Row = uint(change.Start.Ln)
-	e.StartPosition.Column = uint(change.Start.ColIdx)
-	e.NewEndPosition.Row = uint(change.End.Ln)
-	e.NewEndPosition.Column = uint(change.End.ColIdx)
+		StartPosition:  treeSitter.NewPoint(uint(change.Start.Ln), uint(change.Start.ColIdx)),
+		NewEndPosition: treeSitter.NewPoint(uint(change.End.Ln), uint(change.End.ColIdx)),
+	}
 
 	e.OldEndByte = e.StartByte
 	e.OldEndPosition = e.StartPosition
@@ -134,47 +127,41 @@ func (s *Syntax) Insert(change textbuf.Change) {
 }
 
 func (s *Syntax) Highlight(startLn, endLn int) {
-	s.startPos, _ = s.buffer.Pos(startLn, 0)
-	s.endPos = s.buffer.EndPos(endLn, 0)
-	s.startPosParse, _ = s.buffer.Pos(max(0, startLn-2_000), 0)
+	startPos, _ := s.buffer.Pos(startLn, 0)
+	endPos := s.buffer.EndPos(endLn, 0)
+	startPosParse, _ := s.buffer.Pos(max(0, startLn-2_000), 0)
+
 	s.spans = make(chan span, 1024)
 	s.span = span{-1, -1, ""}
-	s.idx = s.startPos.Idx
+	s.idx = startPos.Idx
 
-	go s.highlight()
+	go s.highlight(startPos, endPos, startPosParse)
 }
 
-const maxChunkLen = 1024 * 4
+func (s *Syntax) NextSpan(l int) string {
+	var name string
 
-func (s *Syntax) parse(startPos, endPos textbuf.Pos) {
-	s.parser.SetIncludedRanges([]treeSitter.Range{{
-		StartByte:  uint(startPos.Idx),
-		EndByte:    uint(endPos.Idx),
-		StartPoint: treeSitter.NewPoint(uint(startPos.Ln), uint(startPos.ColIdx)),
-		EndPoint:   treeSitter.NewPoint(uint(endPos.Ln), uint(endPos.ColIdx)),
-	}})
-
-	oldTree := s.tree
-
-	s.tree = s.parser.ParseWithOptions(func(i int, p treeSitter.Point) []byte {
-		text := s.buffer.Chunk(i)
-
-		if len(text) > maxChunkLen {
-			text = text[0:maxChunkLen]
+	if s.idx >= s.span.endIdx {
+		if spn, ok := <-s.spans; ok {
+			s.span = spn
 		}
+	}
 
-		fmt.Fprintf(s.log, "parse: reading chunk %d, %+v, %d\n", i, p, len(text))
+	if s.idx >= s.span.startIdx && s.idx < s.span.endIdx {
+		name = s.span.name
+	}
 
-		return []byte(text)
-	}, oldTree, nil)
+	s.idx += l
+
+	return name
 }
 
-func (s *Syntax) highlight() {
+func (s *Syntax) highlight(startPos textbuf.Pos, endPos textbuf.Pos, startPosParse textbuf.Pos) {
 	started := time.Now()
 
 	fmt.Fprintln(s.log, "highlight: started")
 
-	s.parse(s.startPosParse, s.endPos)
+	s.parse(startPosParse, endPos)
 
 	fmt.Fprintf(s.log, "highlight: parsed %v\n", time.Since(started))
 
@@ -183,14 +170,14 @@ func (s *Syntax) highlight() {
 	}
 
 	copy(
-		s.text[s.startPos.Idx:s.endPos.Idx],
-		std.IterToStr(s.buffer.Slice(s.startPos.Idx, s.endPos.Idx)),
+		s.text[startPos.Idx:endPos.Idx],
+		std.IterToStr(s.buffer.Slice(startPos.Idx, endPos.Idx)),
 	)
 
 	qc := treeSitter.NewQueryCursor()
 	defer qc.Close()
 
-	qc.SetByteRange(uint(s.startPos.Idx), uint(s.endPos.Idx))
+	qc.SetByteRange(uint(startPos.Idx), uint(endPos.Idx))
 
 	var spn span
 
@@ -240,20 +227,27 @@ func (s *Syntax) highlight() {
 	fmt.Fprintf(s.log, "highlight: elapsed %v\n", time.Since(started))
 }
 
-func (s *Syntax) Next(l int) string {
-	var name string
+const maxChunkLen = 1024 * 4
 
-	if s.idx >= s.span.endIdx {
-		if spn, ok := <-s.spans; ok {
-			s.span = spn
+func (s *Syntax) parse(startPos, endPos textbuf.Pos) {
+	s.parser.SetIncludedRanges([]treeSitter.Range{{
+		StartByte:  uint(startPos.Idx),
+		EndByte:    uint(endPos.Idx),
+		StartPoint: treeSitter.NewPoint(uint(startPos.Ln), uint(startPos.ColIdx)),
+		EndPoint:   treeSitter.NewPoint(uint(endPos.Ln), uint(endPos.ColIdx)),
+	}})
+
+	oldTree := s.tree
+
+	s.tree = s.parser.ParseWithOptions(func(i int, p treeSitter.Point) []byte {
+		text := s.buffer.Chunk(i)
+
+		if len(text) > maxChunkLen {
+			text = text[0:maxChunkLen]
 		}
-	}
 
-	if s.idx >= s.span.startIdx && s.idx < s.span.endIdx {
-		name = s.span.name
-	}
+		fmt.Fprintf(s.log, "parse: reading chunk %d, %+v, %d\n", i, p, len(text))
 
-	s.idx += l
-
-	return name
+		return []byte(text)
+	}, oldTree, nil)
 }
