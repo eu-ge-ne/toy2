@@ -7,18 +7,11 @@ import (
 	"time"
 
 	treeSitter "github.com/tree-sitter/go-tree-sitter"
-	_ "github.com/tree-sitter/tree-sitter-javascript/bindings/go"
-	treeSitterTs "github.com/tree-sitter/tree-sitter-typescript/bindings/go"
 
+	"github.com/eu-ge-ne/toy2/internal/grammar"
 	"github.com/eu-ge-ne/toy2/internal/std"
 	"github.com/eu-ge-ne/toy2/internal/textbuf"
 )
-
-//go:embed js/highlights.scm
-var scmJsHighlights string
-
-//go:embed ts/highlights.scm
-var scmTsHighlights string
 
 type Syntax struct {
 	buffer *textbuf.TextBuf
@@ -53,19 +46,13 @@ func New(buffer *textbuf.TextBuf) *Syntax {
 	return &s
 }
 
-func (s *Syntax) SetLanguage() {
-	lang := treeSitter.NewLanguage(treeSitterTs.LanguageTypescript())
-
-	err := s.parser.SetLanguage(lang)
+func (s *Syntax) SetLanguage(grm grammar.Grammar) {
+	err := s.parser.SetLanguage(grm.Lang())
 	if err != nil {
 		panic(err)
 	}
 
-	query, err0 := treeSitter.NewQuery(lang, scmJsHighlights+scmTsHighlights)
-	if err0 != nil {
-		panic(err0)
-	}
-	s.query = query
+	s.query = grm.Query()
 }
 
 func (s *Syntax) Close() {
@@ -123,15 +110,18 @@ func (s *Syntax) Insert(change textbuf.Change) {
 }
 
 func (s *Syntax) Highlight(startLn, endLn int) {
+	s.started = time.Now()
+
+	fmt.Fprintln(s.log, "highlight: started")
+
 	startPos, _ := s.buffer.Pos(startLn, 0)
 	endPos := s.buffer.EndPos(endLn, 0)
-	startPosParse, _ := s.buffer.Pos(max(0, startLn-2_000), 0)
 
 	s.spans = make(chan span, 2024)
 	s.span = span{startIdx: -1, endIdx: -1}
 	s.idx = startPos.Idx
 
-	go s.highlight(startPos, endPos, startPosParse)
+	go s.highlight(startPos, endPos)
 }
 
 func (s *Syntax) NextSpan(l int) string {
@@ -152,12 +142,8 @@ func (s *Syntax) NextSpan(l int) string {
 	return name
 }
 
-func (s *Syntax) highlight(startPos textbuf.Pos, endPos textbuf.Pos, startPosParse textbuf.Pos) {
-	fmt.Fprintln(s.log, "highlight: started")
-
-	s.started = time.Now()
-
-	s.parse(startPosParse, endPos)
+func (s *Syntax) highlight(startPos textbuf.Pos, endPos textbuf.Pos) {
+	s.parse(startPos, endPos)
 	s.prepareText(startPos, endPos)
 
 	qc := treeSitter.NewQueryCursor()
@@ -199,7 +185,9 @@ func (s *Syntax) highlight(startPos textbuf.Pos, endPos textbuf.Pos, startPosPar
 
 const maxChunkLen = 1024 * 4
 
-func (s *Syntax) parse(startPos, endPos textbuf.Pos) {
+func (s *Syntax) parse(start, endPos textbuf.Pos) {
+	startPos, _ := s.buffer.Pos(max(0, start.Ln-1_000), 0)
+
 	s.parser.SetIncludedRanges([]treeSitter.Range{{
 		StartByte:  uint(startPos.Idx),
 		EndByte:    uint(endPos.Idx),

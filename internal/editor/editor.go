@@ -11,6 +11,7 @@ import (
 	"github.com/eu-ge-ne/toy2/internal/editor/history"
 	"github.com/eu-ge-ne/toy2/internal/editor/render"
 	"github.com/eu-ge-ne/toy2/internal/editor/syntax"
+	"github.com/eu-ge-ne/toy2/internal/grammar/ts"
 	"github.com/eu-ge-ne/toy2/internal/key"
 	"github.com/eu-ge-ne/toy2/internal/std"
 	"github.com/eu-ge-ne/toy2/internal/textbuf"
@@ -82,7 +83,7 @@ func (ed *Editor) SetSyntax() {
 	}
 
 	s := syntax.New(ed.buffer)
-	s.SetLanguage()
+	s.SetLanguage(ts.TS)
 
 	ed.syntax = s
 	ed.render.SetSyntax(s)
