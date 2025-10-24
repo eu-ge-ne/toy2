@@ -126,7 +126,7 @@ func (s *Syntax) Highlight(startLn, endLn int) {
 	endPos := s.buffer.EndPos(endLn, 0)
 	startPosParse, _ := s.buffer.Pos(max(0, startLn-2_000), 0)
 
-	s.spans = make(chan span, 1024)
+	s.spans = make(chan span, 2024)
 	s.span = span{startIdx: -1, endIdx: -1}
 	s.idx = startPos.Idx
 
@@ -160,14 +160,7 @@ func (s *Syntax) highlight(startPos textbuf.Pos, endPos textbuf.Pos, startPosPar
 
 	fmt.Fprintf(s.log, "highlight: parsed %v\n", time.Since(started))
 
-	if s.buffer.Count() > len(s.text) {
-		s.text = make([]byte, s.buffer.Count())
-	}
-
-	copy(
-		s.text[startPos.Idx:endPos.Idx],
-		std.IterToStr(s.buffer.Slice(startPos.Idx, endPos.Idx)),
-	)
+	s.prepareText(startPos, endPos)
 
 	qc := treeSitter.NewQueryCursor()
 	defer qc.Close()
@@ -245,6 +238,17 @@ func (s *Syntax) parse(startPos, endPos textbuf.Pos) {
 
 		return []byte(text)
 	}, oldTree, nil)
+}
+
+func (s *Syntax) prepareText(startPos, endPos textbuf.Pos) {
+	if s.buffer.Count() > len(s.text) {
+		s.text = make([]byte, s.buffer.Count())
+	}
+
+	copy(
+		s.text[startPos.Idx:endPos.Idx],
+		std.IterToStr(s.buffer.Slice(startPos.Idx, endPos.Idx)),
+	)
 }
 
 func (s *Syntax) initLogger() {
