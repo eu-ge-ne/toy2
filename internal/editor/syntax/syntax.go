@@ -47,22 +47,24 @@ func New(buffer *textbuf.TextBuf) *Syntax {
 }
 
 func (s *Syntax) SetLanguage(grm grammar.Grammar) {
+	if s.tree != nil {
+		s.tree.Close()
+	}
+
+	if s.parser != nil {
+		s.parser.Reset()
+	}
+
+	if s.query != nil {
+		s.query.Close()
+	}
+
 	err := s.parser.SetLanguage(grm.Lang())
 	if err != nil {
 		panic(err)
 	}
 
 	s.query = grm.Query()
-}
-
-func (s *Syntax) Close() {
-	if s.log != nil {
-		s.log.Close()
-		s.log = nil
-	}
-
-	s.tree.Close()
-	s.tree = nil
 }
 
 func (s *Syntax) Delete(change textbuf.Change) {
