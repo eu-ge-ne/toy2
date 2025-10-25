@@ -11,7 +11,7 @@ import (
 	"github.com/eu-ge-ne/toy2/internal/editor/history"
 	"github.com/eu-ge-ne/toy2/internal/editor/render"
 	"github.com/eu-ge-ne/toy2/internal/editor/syntax"
-	"github.com/eu-ge-ne/toy2/internal/grammar/ts"
+	"github.com/eu-ge-ne/toy2/internal/grammar"
 	"github.com/eu-ge-ne/toy2/internal/key"
 	"github.com/eu-ge-ne/toy2/internal/std"
 	"github.com/eu-ge-ne/toy2/internal/textbuf"
@@ -78,8 +78,8 @@ func New(multiLine bool) *Editor {
 	return ed
 }
 
-func (ed *Editor) SetSyntax() {
-	ed.syntax.SetLanguage(ts.TS)
+func (ed *Editor) SetSyntax(grm grammar.Grammar) {
+	ed.syntax.SetLanguage(grm)
 }
 
 func (ed *Editor) SetColors(t theme.Theme) {

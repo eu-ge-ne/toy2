@@ -45,25 +45,27 @@ func New() *App {
 	app := App{}
 
 	app.commands = map[string]Command{
-		"COPY":         NewCopy(&app),
-		"CUT":          NewCut(&app),
-		"DEBUG":        NewDebug(&app),
-		"EXIT":         NewExit(&app),
-		"PALETTE":      NewPalette(&app),
-		"PASTE":        NewPaste(&app),
-		"REDO":         NewRedo(&app),
-		"SAVE":         NewSave(&app),
-		"SELECTALL":    NewSelectAll(&app),
-		"THEMEBASE16":  NewThemeBase16(&app),
-		"THEMEGRAY":    NewThemeGray(&app),
-		"THEMENEUTRAL": NewThemeNeutral(&app),
-		"THEMESLATE":   NewThemeSlate(&app),
-		"THEMESTONE":   NewThemeStone(&app),
-		"THEMEZINC":    NewThemeZinc(&app),
-		"UNDO":         NewUndo(&app),
-		"WHITESPACE":   NewWhitespace(&app),
-		"WRAP":         NewWrap(&app),
-		"ZEN":          NewZen(&app),
+		"COPY":          NewCopy(&app),
+		"CUT":           NewCut(&app),
+		"DEBUG":         NewDebug(&app),
+		"EXIT":          NewExit(&app),
+		"PALETTE":       NewPalette(&app),
+		"PASTE":         NewPaste(&app),
+		"REDO":          NewRedo(&app),
+		"SAVE":          NewSave(&app),
+		"SELECTALL":     NewSelectAll(&app),
+		"SYNTAX_OFF":    NewSyntaxOff(&app),
+		"SYNTAX_TS":     NewSyntaxTS(&app),
+		"THEME_BASE16":  NewThemeBase16(&app),
+		"THEME_GRAY":    NewThemeGray(&app),
+		"THEME_NEUTRAL": NewThemeNeutral(&app),
+		"THEME_SLATE":   NewThemeSlate(&app),
+		"THEME_STONE":   NewThemeStone(&app),
+		"THEME_ZINC":    NewThemeZinc(&app),
+		"UNDO":          NewUndo(&app),
+		"WHITESPACE":    NewWhitespace(&app),
+		"WRAP":          NewWrap(&app),
+		"ZEN":           NewZen(&app),
 	}
 
 	options := []*palette.Option{}
@@ -116,7 +118,7 @@ func (app *App) Run() {
 	app.editor.SetEnabled(true)
 	app.editor.EnableWhitespace(true)
 	app.editor.SetWrapEnabled(true)
-	app.editor.SetSyntax()
+	app.editor.SetSyntax(nil)
 
 	app.debug.Enable(true)
 

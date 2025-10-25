@@ -16,10 +16,10 @@ import (
 type Syntax struct {
 	buffer *textbuf.TextBuf
 
-	parser  *treeSitter.Parser
 	grammar grammar.Grammar
+	parser  *treeSitter.Parser
+	tree    *treeSitter.Tree
 
-	tree  *treeSitter.Tree
 	spans chan span
 	span  span
 	idx   int
@@ -38,7 +38,6 @@ type span struct {
 func New(buffer *textbuf.TextBuf) *Syntax {
 	s := Syntax{
 		buffer: buffer,
-		parser: treeSitter.NewParser(),
 	}
 
 	s.initLogger()
@@ -47,17 +46,24 @@ func New(buffer *textbuf.TextBuf) *Syntax {
 }
 
 func (s *Syntax) SetLanguage(grm grammar.Grammar) {
-	s.grammar = grm
+	if s.tree != nil {
+		s.tree.Close()
+	}
 
-	s.parser.Reset()
+	if s.parser != nil {
+		s.parser.Close()
+	}
+
+	s.grammar = grm
+	if grm == nil {
+		return
+	}
+
+	s.parser = treeSitter.NewParser()
 
 	err := s.parser.SetLanguage(grm.Lang())
 	if err != nil {
 		panic(err)
-	}
-
-	if s.tree != nil {
-		s.tree.Close()
 	}
 }
 
