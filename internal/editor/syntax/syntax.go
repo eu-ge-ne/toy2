@@ -16,10 +16,10 @@ import (
 type Syntax struct {
 	buffer *textbuf.TextBuf
 
-	parser *treeSitter.Parser
-	tree   *treeSitter.Tree
+	parser  *treeSitter.Parser
+	grammar grammar.Grammar
 
-	query *treeSitter.Query
+	tree  *treeSitter.Tree
 	spans chan span
 	span  span
 	idx   int
@@ -47,28 +47,22 @@ func New(buffer *textbuf.TextBuf) *Syntax {
 }
 
 func (s *Syntax) SetLanguage(grm grammar.Grammar) {
-	if s.tree != nil {
-		s.tree.Close()
-	}
+	s.grammar = grm
 
-	if s.parser != nil {
-		s.parser.Reset()
-	}
-
-	if s.query != nil {
-		s.query.Close()
-	}
+	s.parser.Reset()
 
 	err := s.parser.SetLanguage(grm.Lang())
 	if err != nil {
 		panic(err)
 	}
 
-	s.query = grm.Query()
+	if s.tree != nil {
+		s.tree.Close()
+	}
 }
 
 func (s *Syntax) Delete(change textbuf.Change) {
-	if s == nil || s.tree == nil {
+	if s.tree == nil {
 		return
 	}
 
@@ -90,7 +84,7 @@ func (s *Syntax) Delete(change textbuf.Change) {
 }
 
 func (s *Syntax) Insert(change textbuf.Change) {
-	if s == nil || s.tree == nil {
+	if s.tree == nil {
 		return
 	}
 
@@ -112,6 +106,10 @@ func (s *Syntax) Insert(change textbuf.Change) {
 }
 
 func (s *Syntax) Highlight(startLn, endLn int) {
+	if s.grammar == nil {
+		return
+	}
+
 	s.started = time.Now()
 
 	fmt.Fprintln(s.log, "highlight: started")
@@ -127,6 +125,10 @@ func (s *Syntax) Highlight(startLn, endLn int) {
 }
 
 func (s *Syntax) NextSpan(l int) string {
+	if s.grammar == nil {
+		return ""
+	}
+
 	var name string
 
 	if s.idx >= s.span.endIdx {
@@ -145,6 +147,8 @@ func (s *Syntax) NextSpan(l int) string {
 }
 
 func (s *Syntax) highlight(startPos textbuf.Pos, endPos textbuf.Pos) {
+	query := s.grammar.Query()
+
 	s.parse(startPos, endPos)
 	s.prepareText(startPos, endPos)
 
@@ -154,17 +158,17 @@ func (s *Syntax) highlight(startPos textbuf.Pos, endPos textbuf.Pos) {
 
 	var spn span
 
-	capts := qc.Captures(s.query, s.tree.RootNode(), s.text)
+	capts := qc.Captures(query, s.tree.RootNode(), s.text)
 
 	match, captIdx := capts.Next()
 	if match != nil {
 		capt := match.Captures[captIdx]
-		spn = span{int(capt.Node.StartByte()), int(capt.Node.EndByte()), s.query.CaptureNames()[capt.Index]}
+		spn = span{int(capt.Node.StartByte()), int(capt.Node.EndByte()), query.CaptureNames()[capt.Index]}
 	}
 
 	for ; match != nil; match, captIdx = capts.Next() {
 		capt := match.Captures[captIdx]
-		name := s.query.CaptureNames()[capt.Index]
+		name := query.CaptureNames()[capt.Index]
 		startIdx := int(capt.Node.StartByte())
 		endIdx := int(capt.Node.EndByte())
 
