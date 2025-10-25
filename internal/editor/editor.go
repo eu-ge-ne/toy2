@@ -49,7 +49,8 @@ func New(multiLine bool) *Editor {
 	ed.history = history.New(ed.buffer, ed.cursor)
 	ed.history.OnChanged = ed.OnChanged
 
-	ed.render = render.New(ed.buffer, ed.cursor)
+	ed.syntax = syntax.New(ed.buffer)
+	ed.render = render.New(ed.buffer, ed.cursor, ed.syntax)
 
 	ed.Handlers = map[string]Handler{
 		"INSERT":    &Insert{ed},
@@ -78,15 +79,7 @@ func New(multiLine bool) *Editor {
 }
 
 func (ed *Editor) SetSyntax() {
-	if ed.syntax != nil {
-		ed.syntax.Close()
-	}
-
-	s := syntax.New(ed.buffer)
-	s.SetLanguage(ts.TS)
-
-	ed.syntax = s
-	ed.render.SetSyntax(s)
+	ed.syntax.SetLanguage(ts.TS)
 }
 
 func (ed *Editor) SetColors(t theme.Theme) {
