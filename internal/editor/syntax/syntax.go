@@ -135,8 +135,6 @@ func (s *Syntax) NextSpan(l int) string {
 		return ""
 	}
 
-	var name string
-
 	if s.idx >= s.span.endIdx {
 		if spn, ok := <-s.spans; ok {
 			s.span = spn
@@ -144,12 +142,12 @@ func (s *Syntax) NextSpan(l int) string {
 	}
 
 	if s.idx >= s.span.startIdx && s.idx < s.span.endIdx {
-		name = s.span.name
+		return s.span.name
 	}
 
 	s.idx += l
 
-	return name
+	return ""
 }
 
 func (s *Syntax) highlight(startPos textbuf.Pos, endPos textbuf.Pos) {
