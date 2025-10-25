@@ -39,10 +39,11 @@ type Render struct {
 	colorCharFg     map[string][]byte
 }
 
-func New(buffer *textbuf.TextBuf, cursor *cursor.Cursor) *Render {
+func New(buffer *textbuf.TextBuf, cursor *cursor.Cursor, syntax *syntax.Syntax) *Render {
 	return &Render{
 		buffer: buffer,
 		cursor: cursor,
+		syntax: syntax,
 	}
 }
 
@@ -89,10 +90,6 @@ func (r *Render) SetWrapEnabled(enabled bool) {
 
 func (r *Render) ToggleWrapEnabled() {
 	r.wrapEnabled = !r.wrapEnabled
-}
-
-func (r *Render) SetSyntax(s *syntax.Syntax) {
-	r.syntax = s
 }
 
 func (r *Render) Render() {
