@@ -11,6 +11,7 @@ import (
 	"github.com/eu-ge-ne/toy2/internal/editor/history"
 	"github.com/eu-ge-ne/toy2/internal/editor/render"
 	"github.com/eu-ge-ne/toy2/internal/editor/syntax"
+	"github.com/eu-ge-ne/toy2/internal/grammar/ts"
 	"github.com/eu-ge-ne/toy2/internal/key"
 	"github.com/eu-ge-ne/toy2/internal/std"
 	"github.com/eu-ge-ne/toy2/internal/textbuf"
@@ -82,6 +83,7 @@ func (ed *Editor) SetSyntax() {
 	}
 
 	s := syntax.New(ed.buffer)
+	s.SetLanguage(ts.TS)
 
 	ed.syntax = s
 	ed.render.SetSyntax(s)
@@ -165,7 +167,6 @@ func (ed *Editor) HasChanges() bool {
 
 func (ed *Editor) SetText(text string) {
 	ed.buffer.Reset(text)
-	ed.syntax.Restart()
 }
 
 func (ed *Editor) GetText() string {
@@ -199,8 +200,6 @@ func (ed *Editor) Load(filePath string) error {
 
 		ed.buffer.Append(string(chunk))
 	}
-
-	ed.syntax.Restart()
 
 	return nil
 }
