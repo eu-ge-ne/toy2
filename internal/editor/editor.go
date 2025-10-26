@@ -11,6 +11,7 @@ import (
 	"github.com/eu-ge-ne/toy2/internal/editor/history"
 	"github.com/eu-ge-ne/toy2/internal/editor/render"
 	"github.com/eu-ge-ne/toy2/internal/editor/syntax"
+	"github.com/eu-ge-ne/toy2/internal/grammar"
 	"github.com/eu-ge-ne/toy2/internal/key"
 	"github.com/eu-ge-ne/toy2/internal/std"
 	"github.com/eu-ge-ne/toy2/internal/textbuf"
@@ -48,7 +49,8 @@ func New(multiLine bool) *Editor {
 	ed.history = history.New(ed.buffer, ed.cursor)
 	ed.history.OnChanged = ed.OnChanged
 
-	ed.render = render.New(ed.buffer, ed.cursor)
+	ed.syntax = syntax.New(ed.buffer)
+	ed.render = render.New(ed.buffer, ed.cursor, ed.syntax)
 
 	ed.Handlers = map[string]Handler{
 		"INSERT":    &Insert{ed},
@@ -76,15 +78,8 @@ func New(multiLine bool) *Editor {
 	return ed
 }
 
-func (ed *Editor) SetSyntax() {
-	if ed.syntax != nil {
-		ed.syntax.Close()
-	}
-
-	s := syntax.New(ed.buffer)
-
-	ed.syntax = s
-	ed.render.SetSyntax(s)
+func (ed *Editor) SetSyntax(grm grammar.Grammar) {
+	ed.syntax.SetLanguage(grm)
 }
 
 func (ed *Editor) SetColors(t theme.Theme) {
@@ -165,7 +160,6 @@ func (ed *Editor) HasChanges() bool {
 
 func (ed *Editor) SetText(text string) {
 	ed.buffer.Reset(text)
-	ed.syntax.Restart()
 }
 
 func (ed *Editor) GetText() string {
@@ -199,8 +193,6 @@ func (ed *Editor) Load(filePath string) error {
 
 		ed.buffer.Append(string(chunk))
 	}
-
-	ed.syntax.Restart()
 
 	return nil
 }

@@ -2,7 +2,6 @@ package render
 
 import (
 	"fmt"
-	"math"
 
 	"github.com/eu-ge-ne/toy2/internal/color"
 	"github.com/eu-ge-ne/toy2/internal/editor/cursor"
@@ -32,10 +31,6 @@ type Render struct {
 	ScrollLn   int
 	ScrollCol  int
 
-	hlSpans <-chan syntax.Span
-	hlSpan  syntax.Span
-	hlIdx   int
-
 	colorMainBg     []byte
 	colorMainFg     []byte
 	colorSelectedBg []byte
@@ -44,10 +39,11 @@ type Render struct {
 	colorCharFg     map[string][]byte
 }
 
-func New(buffer *textbuf.TextBuf, cursor *cursor.Cursor) *Render {
+func New(buffer *textbuf.TextBuf, cursor *cursor.Cursor, syntax *syntax.Syntax) *Render {
 	return &Render{
 		buffer: buffer,
 		cursor: cursor,
+		syntax: syntax,
 	}
 }
 
@@ -96,13 +92,10 @@ func (r *Render) ToggleWrapEnabled() {
 	r.wrapEnabled = !r.wrapEnabled
 }
 
-func (r *Render) SetSyntax(s *syntax.Syntax) {
-	r.syntax = s
-}
-
 func (r *Render) Render() {
 	r.scroll()
-	r.initHighlight()
+
+	r.syntax.Highlight(r.ScrollLn, r.ScrollLn+r.area.H)
 
 	vt.Sync.Bsu()
 
@@ -126,15 +119,6 @@ func (r *Render) Render() {
 	vt.Buf.Flush()
 
 	vt.Sync.Esu()
-}
-
-func (r *Render) initHighlight() {
-	start, _ := r.buffer.Pos(r.ScrollLn, 0)
-	end := r.buffer.EndPos(r.ScrollLn+r.area.H-1, math.MaxInt)
-
-	r.hlSpans = r.syntax.Highlight(start.Idx, end.Idx)
-	r.hlSpan = syntax.Span{StartIdx: -1, EndIdx: -1}
-	r.hlIdx = start.Idx
 }
 
 func (r *Render) renderLines() {
@@ -186,7 +170,7 @@ func (r *Render) renderLine(ln int, row int) int {
 			availableW = r.area.W - r.indexWidth
 		}
 
-		spanName := r.nextSegSpanName(len(cell.Gr.Str))
+		fg := r.syntax.NextSpan(len(cell.Gr.Str))
 
 		if (cell.WrapCol < r.ScrollCol) || (cell.Gr.Width > availableW) {
 			continue
@@ -202,7 +186,6 @@ func (r *Render) renderLine(ln int, row int) int {
 			}
 		}
 
-		fg := spanName
 		if len(fg) == 0 {
 			if cell.Gr.IsVisible {
 				fg = "_text"
@@ -227,22 +210,4 @@ func (r *Render) renderLine(ln int, row int) int {
 	}
 
 	return row
-}
-
-func (r *Render) nextSegSpanName(l int) string {
-	var name string
-
-	if r.hlIdx >= r.hlSpan.EndIdx {
-		if s, ok := <-r.hlSpans; ok {
-			r.hlSpan = s
-		}
-	}
-
-	if r.hlIdx >= r.hlSpan.StartIdx && r.hlIdx < r.hlSpan.EndIdx {
-		name = r.hlSpan.Name
-	}
-
-	r.hlIdx += l
-
-	return name
 }
