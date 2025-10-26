@@ -36,9 +36,7 @@ type span struct {
 }
 
 func New(buffer *textbuf.TextBuf) *Syntax {
-	s := Syntax{
-		buffer: buffer,
-	}
+	s := Syntax{buffer: buffer}
 
 	s.initLogger()
 
@@ -48,10 +46,12 @@ func New(buffer *textbuf.TextBuf) *Syntax {
 func (s *Syntax) SetLanguage(grm grammar.Grammar) {
 	if s.tree != nil {
 		s.tree.Close()
+		s.tree = nil
 	}
 
 	if s.parser != nil {
 		s.parser.Close()
+		s.parser = nil
 	}
 
 	s.grammar = grm
@@ -123,7 +123,7 @@ func (s *Syntax) Highlight(startLn, endLn int) {
 	startPos, _ := s.buffer.Pos(startLn, 0)
 	endPos := s.buffer.EndPos(endLn, 0)
 
-	s.spans = make(chan span, 2024)
+	s.spans = make(chan span, 1024*2)
 	s.span = span{startIdx: -1, endIdx: -1}
 	s.idx = startPos.Idx
 
@@ -131,6 +131,8 @@ func (s *Syntax) Highlight(startLn, endLn int) {
 }
 
 func (s *Syntax) NextSpan(l int) string {
+	defer func() { s.idx += l }()
+
 	if s.grammar == nil {
 		return ""
 	}
@@ -144,8 +146,6 @@ func (s *Syntax) NextSpan(l int) string {
 	if s.idx >= s.span.startIdx && s.idx < s.span.endIdx {
 		return s.span.name
 	}
-
-	s.idx += l
 
 	return ""
 }
