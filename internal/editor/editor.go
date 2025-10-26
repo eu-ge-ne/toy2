@@ -78,8 +78,8 @@ func New(multiLine bool) *Editor {
 	return ed
 }
 
-func (ed *Editor) SetSyntax(grm grammar.Grammar) {
-	ed.syntax.SetLanguage(grm)
+func (ed *Editor) SetGrammar(grm grammar.Grammar) {
+	ed.syntax.SetGrammar(grm)
 }
 
 func (ed *Editor) SetColors(t theme.Theme) {

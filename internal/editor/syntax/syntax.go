@@ -43,7 +43,7 @@ func New(buffer *textbuf.TextBuf) *Syntax {
 	return &s
 }
 
-func (s *Syntax) SetLanguage(grm grammar.Grammar) {
+func (s *Syntax) SetGrammar(grm grammar.Grammar) {
 	if s.tree != nil {
 		s.tree.Close()
 		s.tree = nil
@@ -65,6 +65,45 @@ func (s *Syntax) SetLanguage(grm grammar.Grammar) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func (s *Syntax) Reset(startLn, endLn int) {
+	if s.grammar == nil {
+		return
+	}
+
+	s.started = time.Now()
+
+	startPos, _ := s.buffer.Pos(startLn, 0)
+	endPos := s.buffer.EndPos(endLn, 0)
+
+	fmt.Fprintf(s.log, "[%v] reset %v:%v\n", time.Since(s.started), startPos, endPos)
+
+	s.spans = make(chan span, 1024*2)
+	s.span = span{startIdx: -1, endIdx: -1}
+	s.idx = startPos.Idx
+
+	go s.highlight(startPos, endPos)
+}
+
+func (s *Syntax) Next(l int) string {
+	defer func() { s.idx += l }()
+
+	if s.grammar == nil {
+		return ""
+	}
+
+	if s.idx >= s.span.endIdx {
+		if spn, ok := <-s.spans; ok {
+			s.span = spn
+		}
+	}
+
+	if s.idx >= s.span.startIdx && s.idx < s.span.endIdx {
+		return s.span.name
+	}
+
+	return ""
 }
 
 func (s *Syntax) Delete(change textbuf.Change) {
@@ -111,45 +150,6 @@ func (s *Syntax) Insert(change textbuf.Change) {
 	fmt.Fprintf(s.log, "insert: e %+v\n", e)
 }
 
-func (s *Syntax) Highlight(startLn, endLn int) {
-	if s.grammar == nil {
-		return
-	}
-
-	s.started = time.Now()
-
-	fmt.Fprintln(s.log, "highlight: started")
-
-	startPos, _ := s.buffer.Pos(startLn, 0)
-	endPos := s.buffer.EndPos(endLn, 0)
-
-	s.spans = make(chan span, 1024*2)
-	s.span = span{startIdx: -1, endIdx: -1}
-	s.idx = startPos.Idx
-
-	go s.highlight(startPos, endPos)
-}
-
-func (s *Syntax) NextSpan(l int) string {
-	defer func() { s.idx += l }()
-
-	if s.grammar == nil {
-		return ""
-	}
-
-	if s.idx >= s.span.endIdx {
-		if spn, ok := <-s.spans; ok {
-			s.span = spn
-		}
-	}
-
-	if s.idx >= s.span.startIdx && s.idx < s.span.endIdx {
-		return s.span.name
-	}
-
-	return ""
-}
-
 func (s *Syntax) highlight(startPos textbuf.Pos, endPos textbuf.Pos) {
 	query := s.grammar.Query()
 
@@ -190,7 +190,7 @@ func (s *Syntax) highlight(startPos textbuf.Pos, endPos textbuf.Pos) {
 
 	close(s.spans)
 
-	fmt.Fprintf(s.log, "highlight: [%v] completed\n", time.Since(s.started))
+	fmt.Fprintf(s.log, "[%v] done\n", time.Since(s.started))
 }
 
 const maxChunkLen = 1024 * 4
@@ -214,12 +214,12 @@ func (s *Syntax) parse(start, endPos textbuf.Pos) {
 			text = text[0:maxChunkLen]
 		}
 
-		fmt.Fprintf(s.log, "parse: [%v] reading chunk %d, %+v, %d\n", time.Since(s.started), i, p, len(text))
+		fmt.Fprintf(s.log, "[%v] reading chunk %d, %+v, %d\n", time.Since(s.started), i, p, len(text))
 
 		return []byte(text)
 	}, oldTree, nil)
 
-	fmt.Fprintf(s.log, "parse: [%v] completed\n", time.Since(s.started))
+	fmt.Fprintf(s.log, "[%v] parsed\n", time.Since(s.started))
 }
 
 func (s *Syntax) prepareText(startPos, endPos textbuf.Pos) {

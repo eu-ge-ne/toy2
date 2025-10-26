@@ -26,7 +26,7 @@ func (c *SyntaxOff) Match(key.Key) bool {
 }
 
 func (c *SyntaxOff) Run() bool {
-	c.app.editor.SetSyntax(nil)
+	c.app.editor.SetGrammar(nil)
 
 	return true
 }

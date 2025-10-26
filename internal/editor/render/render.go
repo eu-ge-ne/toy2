@@ -95,7 +95,7 @@ func (r *Render) ToggleWrapEnabled() {
 func (r *Render) Render() {
 	r.scroll()
 
-	r.syntax.Highlight(r.ScrollLn, r.ScrollLn+r.area.H)
+	r.syntax.Reset(r.ScrollLn, r.ScrollLn+r.area.H)
 
 	vt.Sync.Bsu()
 
@@ -170,7 +170,7 @@ func (r *Render) renderLine(ln int, row int) int {
 			availableW = r.area.W - r.indexWidth
 		}
 
-		fg := r.syntax.NextSpan(len(cell.Gr.Str))
+		fg := r.syntax.Next(len(cell.Gr.Str))
 
 		if (cell.WrapCol < r.ScrollCol) || (cell.Gr.Width > availableW) {
 			continue

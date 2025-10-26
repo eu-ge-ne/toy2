@@ -27,7 +27,7 @@ func (c *SyntaxTS) Match(key.Key) bool {
 }
 
 func (c *SyntaxTS) Run() bool {
-	c.app.editor.SetSyntax(ts.TS)
+	c.app.editor.SetGrammar(ts.TS)
 
 	return true
 }
