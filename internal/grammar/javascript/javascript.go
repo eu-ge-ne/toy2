@@ -1,4 +1,4 @@
-package js
+package javascript
 
 import (
 	_ "embed"
@@ -10,18 +10,18 @@ import (
 //go:embed highlights.scm
 var ScmHighlight string
 
-var JS GrammarJS
+var Grammar JavaScript
 
-type GrammarJS struct {
+type JavaScript struct {
 	lang  *treeSitter.Language
 	query *treeSitter.Query
 }
 
-func (grm GrammarJS) Lang() *treeSitter.Language {
+func (grm JavaScript) Lang() *treeSitter.Language {
 	return grm.lang
 }
 
-func (grm GrammarJS) Query() *treeSitter.Query {
+func (grm JavaScript) Query() *treeSitter.Query {
 	return grm.query
 }
 
@@ -33,5 +33,5 @@ func init() {
 		panic(err0)
 	}
 
-	JS = GrammarJS{lang, query}
+	Grammar = JavaScript{lang, query}
 }

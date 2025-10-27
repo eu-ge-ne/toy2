@@ -1,4 +1,4 @@
-package ts
+package typescript
 
 import (
 	_ "embed"
@@ -6,34 +6,34 @@ import (
 	treeSitter "github.com/tree-sitter/go-tree-sitter"
 	treeSitterTs "github.com/tree-sitter/tree-sitter-typescript/bindings/go"
 
-	"github.com/eu-ge-ne/toy2/internal/grammar/js"
+	"github.com/eu-ge-ne/toy2/internal/grammar/javascript"
 )
 
 //go:embed highlights.scm
 var ScmHighlight string
 
-var TS GrammarTS
+var Grammar TypeScript
 
-type GrammarTS struct {
+type TypeScript struct {
 	lang  *treeSitter.Language
 	query *treeSitter.Query
 }
 
-func (grm GrammarTS) Lang() *treeSitter.Language {
+func (grm TypeScript) Lang() *treeSitter.Language {
 	return grm.lang
 }
 
-func (grm GrammarTS) Query() *treeSitter.Query {
+func (grm TypeScript) Query() *treeSitter.Query {
 	return grm.query
 }
 
 func init() {
 	lang := treeSitter.NewLanguage(treeSitterTs.LanguageTypescript())
 
-	query, err0 := treeSitter.NewQuery(lang, js.ScmHighlight+ScmHighlight)
+	query, err0 := treeSitter.NewQuery(lang, javascript.ScmHighlight+ScmHighlight)
 	if err0 != nil {
 		panic(err0)
 	}
 
-	TS = GrammarTS{lang, query}
+	Grammar = TypeScript{lang, query}
 }
