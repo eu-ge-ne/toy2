@@ -49,7 +49,7 @@ func New(multiLine bool) *Editor {
 	ed.history = history.New(ed.buffer, ed.cursor)
 	ed.history.OnChanged = ed.OnChanged
 
-	ed.syntax = syntax.New(ed.buffer)
+	ed.syntax = syntax.New()
 	ed.render = render.New(ed.buffer, ed.cursor, ed.syntax)
 
 	ed.Handlers = map[string]Handler{

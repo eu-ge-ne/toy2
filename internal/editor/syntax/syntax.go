@@ -1,7 +1,6 @@
 package syntax
 
 import (
-	_ "embed"
 	"fmt"
 	"os"
 	"time"
@@ -14,11 +13,9 @@ import (
 )
 
 type Syntax struct {
-	buffer *textbuf.TextBuf
+	parser
 
 	grammar grammar.Grammar
-	parser  *treeSitter.Parser
-	tree    *treeSitter.Tree
 
 	spans chan span
 	span  span
@@ -35,8 +32,8 @@ type span struct {
 	name     string
 }
 
-func New(buffer *textbuf.TextBuf) *Syntax {
-	s := Syntax{buffer: buffer}
+func New() *Syntax {
+	s := Syntax{}
 
 	s.initLogger()
 
@@ -44,38 +41,24 @@ func New(buffer *textbuf.TextBuf) *Syntax {
 }
 
 func (s *Syntax) SetGrammar(grm grammar.Grammar) {
-	if s.tree != nil {
-		s.tree.Close()
-		s.tree = nil
-	}
-
-	if s.parser != nil {
-		s.parser.Close()
-		s.parser = nil
-	}
-
 	s.grammar = grm
-	if grm == nil {
-		return
-	}
 
-	s.parser = treeSitter.NewParser()
+	s.closeParser()
 
-	err := s.parser.SetLanguage(grm.Lang())
-	if err != nil {
-		panic(err)
+	if grm != nil {
+		s.initParser(grm)
 	}
 }
 
-func (s *Syntax) Reset(startLn, endLn int) {
+func (s *Syntax) Reset(buf *textbuf.TextBuf, startLn, endLn int) {
 	if s.grammar == nil {
 		return
 	}
 
 	s.started = time.Now()
 
-	startPos, _ := s.buffer.Pos(startLn, 0)
-	endPos := s.buffer.EndPos(endLn, 0)
+	startPos, _ := buf.Pos(startLn, 0)
+	endPos := buf.EndPos(endLn, 0)
 
 	fmt.Fprintf(s.log, "[%v] reset %v:%v\n", time.Since(s.started), startPos, endPos)
 
@@ -83,7 +66,7 @@ func (s *Syntax) Reset(startLn, endLn int) {
 	s.span = span{startIdx: -1, endIdx: -1}
 	s.idx = startPos.Idx
 
-	go s.highlight(startPos, endPos)
+	go s.highlight(buf, startPos, endPos)
 }
 
 func (s *Syntax) Next(l int) string {
@@ -106,55 +89,11 @@ func (s *Syntax) Next(l int) string {
 	return ""
 }
 
-func (s *Syntax) Delete(change textbuf.Change) {
-	if s.tree == nil {
-		return
-	}
-
-	e := treeSitter.InputEdit{
-		StartByte:  uint(change.Start.Idx),
-		OldEndByte: uint(change.End.Idx),
-
-		StartPosition:  treeSitter.NewPoint(uint(change.Start.Ln), uint(change.Start.ColIdx)),
-		OldEndPosition: treeSitter.NewPoint(uint(change.End.Ln), uint(change.End.ColIdx)),
-	}
-
-	e.NewEndByte = e.StartByte
-	e.NewEndPosition = e.StartPosition
-
-	s.tree.Edit(&e)
-
-	fmt.Fprintf(s.log, "delete: change %+v\n", change)
-	fmt.Fprintf(s.log, "delete: e %+v\n", e)
-}
-
-func (s *Syntax) Insert(change textbuf.Change) {
-	if s.tree == nil {
-		return
-	}
-
-	e := treeSitter.InputEdit{
-		StartByte:  uint(change.Start.Idx),
-		NewEndByte: uint(change.End.Idx),
-
-		StartPosition:  treeSitter.NewPoint(uint(change.Start.Ln), uint(change.Start.ColIdx)),
-		NewEndPosition: treeSitter.NewPoint(uint(change.End.Ln), uint(change.End.ColIdx)),
-	}
-
-	e.OldEndByte = e.StartByte
-	e.OldEndPosition = e.StartPosition
-
-	s.tree.Edit(&e)
-
-	fmt.Fprintf(s.log, "insert: change %+v\n", change)
-	fmt.Fprintf(s.log, "insert: e %+v\n", e)
-}
-
-func (s *Syntax) highlight(startPos textbuf.Pos, endPos textbuf.Pos) {
+func (s *Syntax) highlight(buf *textbuf.TextBuf, startPos, endPos textbuf.Pos) {
 	query := s.grammar.Query()
 
-	s.parse(startPos, endPos)
-	s.prepareText(startPos, endPos)
+	s.parse(buf, startPos, endPos)
+	s.prepareText(buf, startPos, endPos)
 
 	qc := treeSitter.NewQueryCursor()
 	qc.SetByteRange(uint(startPos.Idx), uint(endPos.Idx))
@@ -193,43 +132,14 @@ func (s *Syntax) highlight(startPos textbuf.Pos, endPos textbuf.Pos) {
 	fmt.Fprintf(s.log, "[%v] done\n", time.Since(s.started))
 }
 
-const maxChunkLen = 1024 * 4
-
-func (s *Syntax) parse(start, endPos textbuf.Pos) {
-	startPos, _ := s.buffer.Pos(max(0, start.Ln-1_000), 0)
-
-	s.parser.SetIncludedRanges([]treeSitter.Range{{
-		StartByte:  uint(startPos.Idx),
-		EndByte:    uint(endPos.Idx),
-		StartPoint: treeSitter.NewPoint(uint(startPos.Ln), uint(startPos.ColIdx)),
-		EndPoint:   treeSitter.NewPoint(uint(endPos.Ln), uint(endPos.ColIdx)),
-	}})
-
-	oldTree := s.tree
-
-	s.tree = s.parser.ParseWithOptions(func(i int, p treeSitter.Point) []byte {
-		text := s.buffer.Chunk(i)
-
-		if len(text) > maxChunkLen {
-			text = text[0:maxChunkLen]
-		}
-
-		fmt.Fprintf(s.log, "[%v] reading chunk %d, %+v, %d\n", time.Since(s.started), i, p, len(text))
-
-		return []byte(text)
-	}, oldTree, nil)
-
-	fmt.Fprintf(s.log, "[%v] parsed\n", time.Since(s.started))
-}
-
-func (s *Syntax) prepareText(startPos, endPos textbuf.Pos) {
-	if s.buffer.Count() > len(s.text) {
-		s.text = make([]byte, s.buffer.Count())
+func (s *Syntax) prepareText(buf *textbuf.TextBuf, startPos, endPos textbuf.Pos) {
+	if buf.Count() > len(s.text) {
+		s.text = make([]byte, buf.Count())
 	}
 
 	copy(
 		s.text[startPos.Idx:endPos.Idx],
-		std.IterToStr(s.buffer.Slice(startPos.Idx, endPos.Idx)),
+		std.IterToStr(buf.Slice(startPos.Idx, endPos.Idx)),
 	)
 }
 
