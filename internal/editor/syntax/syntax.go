@@ -15,6 +15,7 @@ import (
 type Syntax struct {
 	parser *treeSitter.Parser
 	tree   *treeSitter.Tree
+	query  *treeSitter.Query
 
 	grammar grammar.Grammar
 
@@ -48,9 +49,16 @@ func (s *Syntax) init(grm grammar.Grammar) {
 	if err != nil {
 		panic(err)
 	}
+
+	s.query = grm.Query()
 }
 
 func (s *Syntax) close() {
+	if s.query != nil {
+		s.query.Close()
+		s.query = nil
+	}
+
 	if s.tree != nil {
 		s.tree.Close()
 		s.tree = nil
@@ -125,8 +133,6 @@ func (s *Syntax) Highlight(buf *textbuf.TextBuf, startLn, endLn int) *Highlight 
 	}
 
 	go func() {
-		query := s.grammar.Query()
-
 		s.parse(buf, startPos, endPos)
 		s.prepareText(buf, startPos, endPos)
 
@@ -136,17 +142,17 @@ func (s *Syntax) Highlight(buf *textbuf.TextBuf, startLn, endLn int) *Highlight 
 
 		var spn span
 
-		capts := qc.Captures(query, s.tree.RootNode(), s.text)
+		capts := qc.Captures(s.query, s.tree.RootNode(), s.text)
 
 		match, captIdx := capts.Next()
 		if match != nil {
 			capt := match.Captures[captIdx]
-			spn = span{int(capt.Node.StartByte()), int(capt.Node.EndByte()), query.CaptureNames()[capt.Index]}
+			spn = span{int(capt.Node.StartByte()), int(capt.Node.EndByte()), s.query.CaptureNames()[capt.Index]}
 		}
 
 		for ; match != nil; match, captIdx = capts.Next() {
 			capt := match.Captures[captIdx]
-			name := query.CaptureNames()[capt.Index]
+			name := s.query.CaptureNames()[capt.Index]
 			startIdx := int(capt.Node.StartByte())
 			endIdx := int(capt.Node.EndByte())
 
