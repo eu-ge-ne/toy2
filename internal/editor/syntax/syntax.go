@@ -1,9 +1,7 @@
 package syntax
 
 import (
-	"fmt"
 	"os"
-	"time"
 
 	treeSitter "github.com/tree-sitter/go-tree-sitter"
 
@@ -17,19 +15,9 @@ type Syntax struct {
 
 	grammar grammar.Grammar
 
-	spans chan span
-	span  span
-	idx   int
-
-	log     *os.File
-	text    []byte
-	started time.Time
-}
-
-type span struct {
-	startIdx int
-	endIdx   int
-	name     string
+	log  *os.File
+	text []byte
+	//started time.Time
 }
 
 func New() *Syntax {
@@ -50,86 +38,68 @@ func (s *Syntax) SetGrammar(grm grammar.Grammar) {
 	}
 }
 
-func (s *Syntax) Highlight(buf *textbuf.TextBuf, startLn, endLn int) {
+func (s *Syntax) Highlight(buf *textbuf.TextBuf, startLn, endLn int) *Highlight {
 	if s.grammar == nil {
-		return
+		return nil
 	}
 
-	s.started = time.Now()
+	//s.started = time.Now()
 
 	startPos, _ := buf.Pos(startLn, 0)
 	endPos := buf.EndPos(endLn, 0)
 
-	fmt.Fprintf(s.log, "[%v] reset %v:%v\n", time.Since(s.started), startPos, endPos)
+	//fmt.Fprintf(s.log, "[%v] reset %v:%v\n", time.Since(s.started), startPos, endPos)
 
-	s.spans = make(chan span, 1024*2)
-	s.span = span{startIdx: -1, endIdx: -1}
-	s.idx = startPos.Idx
-
-	go s.highlight(buf, startPos, endPos)
-}
-
-func (s *Syntax) Next(l int) string {
-	defer func() { s.idx += l }()
-
-	if s.grammar == nil {
-		return ""
+	hl := &Highlight{
+		spans: make(chan span, 1024*2),
+		span:  span{startIdx: -1, endIdx: -1},
+		idx:   startPos.Idx,
 	}
 
-	if s.idx >= s.span.endIdx {
-		if spn, ok := <-s.spans; ok {
-			s.span = spn
+	go func() {
+		query := s.grammar.Query()
+
+		s.parse(buf, startPos, endPos)
+		s.prepareText(buf, startPos, endPos)
+
+		qc := treeSitter.NewQueryCursor()
+		qc.SetByteRange(uint(startPos.Idx), uint(endPos.Idx))
+		defer qc.Close()
+
+		var spn span
+
+		capts := qc.Captures(query, s.tree.RootNode(), s.text)
+
+		match, captIdx := capts.Next()
+		if match != nil {
+			capt := match.Captures[captIdx]
+			spn = span{int(capt.Node.StartByte()), int(capt.Node.EndByte()), query.CaptureNames()[capt.Index]}
 		}
-	}
 
-	if s.idx >= s.span.startIdx && s.idx < s.span.endIdx {
-		return s.span.name
-	}
+		for ; match != nil; match, captIdx = capts.Next() {
+			capt := match.Captures[captIdx]
+			name := query.CaptureNames()[capt.Index]
+			startIdx := int(capt.Node.StartByte())
+			endIdx := int(capt.Node.EndByte())
 
-	return ""
-}
+			//fmt.Fprintf(s.log, "highlight: %v:%v %s (%s)\n", capt.Node.StartPosition(), capt.Node.EndPosition(), capt.Node.Utf8Text(s.text), name /*match.PatternIndex,*/ /*capt.Index,*/)
 
-func (s *Syntax) highlight(buf *textbuf.TextBuf, startPos, endPos textbuf.Pos) {
-	query := s.grammar.Query()
-
-	s.parse(buf, startPos, endPos)
-	s.prepareText(buf, startPos, endPos)
-
-	qc := treeSitter.NewQueryCursor()
-	qc.SetByteRange(uint(startPos.Idx), uint(endPos.Idx))
-	defer qc.Close()
-
-	var spn span
-
-	capts := qc.Captures(query, s.tree.RootNode(), s.text)
-
-	match, captIdx := capts.Next()
-	if match != nil {
-		capt := match.Captures[captIdx]
-		spn = span{int(capt.Node.StartByte()), int(capt.Node.EndByte()), query.CaptureNames()[capt.Index]}
-	}
-
-	for ; match != nil; match, captIdx = capts.Next() {
-		capt := match.Captures[captIdx]
-		name := query.CaptureNames()[capt.Index]
-		startIdx := int(capt.Node.StartByte())
-		endIdx := int(capt.Node.EndByte())
-
-		//fmt.Fprintf(s.log, "highlight: %v:%v %s (%s)\n", capt.Node.StartPosition(), capt.Node.EndPosition(), capt.Node.Utf8Text(s.text), name /*match.PatternIndex,*/ /*capt.Index,*/)
-
-		if spn.startIdx != startIdx || spn.endIdx != endIdx {
-			s.spans <- spn
-			spn = span{startIdx, endIdx, name}
-		} else {
-			spn.name = name
+			if spn.startIdx != startIdx || spn.endIdx != endIdx {
+				hl.spans <- spn
+				spn = span{startIdx, endIdx, name}
+			} else {
+				spn.name = name
+			}
 		}
-	}
 
-	s.spans <- spn
+		hl.spans <- spn
 
-	close(s.spans)
+		close(hl.spans)
 
-	fmt.Fprintf(s.log, "[%v] done\n", time.Since(s.started))
+		//fmt.Fprintf(s.log, "[%v] done\n", time.Since(s.started))
+	}()
+
+	return hl
 }
 
 func (s *Syntax) prepareText(buf *textbuf.TextBuf, startPos, endPos textbuf.Pos) {
