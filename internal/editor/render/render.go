@@ -95,7 +95,7 @@ func (r *Render) ToggleWrapEnabled() {
 func (r *Render) Render() {
 	r.scroll()
 
-	r.syntax.Reset(r.buffer, r.ScrollLn, r.ScrollLn+r.area.H)
+	r.syntax.Highlight(r.buffer, r.ScrollLn, r.ScrollLn+r.area.H)
 
 	vt.Sync.Bsu()
 

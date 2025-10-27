@@ -50,7 +50,7 @@ func (s *Syntax) SetGrammar(grm grammar.Grammar) {
 	}
 }
 
-func (s *Syntax) Reset(buf *textbuf.TextBuf, startLn, endLn int) {
+func (s *Syntax) Highlight(buf *textbuf.TextBuf, startLn, endLn int) {
 	if s.grammar == nil {
 		return
 	}
