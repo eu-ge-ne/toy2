@@ -73,7 +73,7 @@ func (r *Render) Render() {
 	}
 
 	if r.Enabled {
-		vt.SetCursor(vt.Buf, r.scroll.CursorY, r.scroll.CursorX)
+		vt.SetCursor(vt.Buf, r.scroll.Y, r.scroll.X)
 		vt.Buf.Write(vt.ShowCursor)
 	} else {
 		vt.Buf.Write(vt.RestoreCursor)

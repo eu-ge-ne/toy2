@@ -15,11 +15,11 @@ type Scroll struct {
 	IndexWidth   int
 	TextWidth    int
 	WrapWidth    int
-	Ln           int
-	Col          int
 
-	CursorY int // TODO
-	CursorX int // TODO
+	Ln  int
+	Col int
+	Y   int
+	X   int
 
 	buffer *textbuf.TextBuf
 }
@@ -43,8 +43,8 @@ func (s *Scroll) Scroll(area ui.Area, toLn, toCol int) {
 		s.WrapWidth = math.MaxInt
 	}
 
-	s.CursorY = area.Y
-	s.CursorX = area.X + s.IndexWidth
+	s.Y = area.Y
+	s.X = area.X + s.IndexWidth
 
 	grapheme.Graphemes.SetWcharPos(area.Y, area.X+s.IndexWidth)
 
@@ -87,7 +87,7 @@ func (s *Scroll) scrollV(area ui.Area, toLn int) {
 	}
 
 	for i < len(xs)-1 {
-		s.CursorY += xs[i]
+		s.Y += xs[i]
 		i += 1
 	}
 }
@@ -101,7 +101,7 @@ func (s *Scroll) scrollH(toLn, toCol int) {
 		}
 	}
 	if cell != nil {
-		s.CursorY += cell.WrapLn
+		s.Y += cell.WrapLn
 	}
 
 	col := 0
@@ -140,5 +140,5 @@ func (s *Scroll) scrollH(toLn, toCol int) {
 		width -= w
 	}
 
-	s.CursorX += width
+	s.X += width
 }
