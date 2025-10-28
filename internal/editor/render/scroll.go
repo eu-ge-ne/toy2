@@ -7,7 +7,7 @@ import (
 	"github.com/eu-ge-ne/toy2/internal/std"
 )
 
-func (r *Render) scroll() {
+func (r *Render) scroll(curLn, curCol int) {
 	if r.indexEnabled && r.buffer.LineCount() > 0 {
 		r.indexWidth = int(math.Log10(float64(r.buffer.LineCount()))) + 3
 	} else {
@@ -27,26 +27,26 @@ func (r *Render) scroll() {
 
 	grapheme.Graphemes.SetWcharPos(r.area.Y, r.area.X+r.indexWidth)
 
-	r.scrollV()
-	r.scrollH()
+	r.scrollV(curLn, curCol)
+	r.scrollH(curLn, curCol)
 }
 
-func (r *Render) scrollV() {
-	deltaLn := r.cursor.Ln - r.ScrollLn
+func (r *Render) scrollV(curLn, curCol int) {
+	deltaLn := curLn - r.ScrollLn
 
 	// Above?
 	if deltaLn <= 0 {
-		r.ScrollLn = r.cursor.Ln
+		r.ScrollLn = curLn
 		return
 	}
 
 	// Below?
 
 	if deltaLn > r.area.H {
-		r.ScrollLn = r.cursor.Ln - r.area.H
+		r.ScrollLn = curLn - r.area.H
 	}
 
-	xs := make([]int, r.cursor.Ln+1-r.ScrollLn)
+	xs := make([]int, curLn+1-r.ScrollLn)
 	for i := 0; i < len(xs); i += 1 {
 		xs[i] = 1
 		for cell := range wrap(r.buffer.LineGraphemes(r.ScrollLn+i), r.wrapWidth, false) {
@@ -71,10 +71,10 @@ func (r *Render) scrollV() {
 	}
 }
 
-func (r *Render) scrollH() {
+func (r *Render) scrollH(curLn, curCol int) {
 	var cell *cell = nil
-	for c := range wrap(r.buffer.LineGraphemes(r.cursor.Ln), r.wrapWidth, true) {
-		if c.Col >= r.cursor.Col {
+	for c := range wrap(r.buffer.LineGraphemes(curLn), r.wrapWidth, true) {
+		if c.Col >= curCol {
 			cell = &c
 			break
 		}
@@ -101,8 +101,8 @@ func (r *Render) scrollH() {
 
 	xs := make([]int, deltaCol)
 	xsI := 0
-	for c := range wrap(r.buffer.LineGraphemes(r.cursor.Ln), r.wrapWidth, true) {
-		if c.Col >= r.cursor.Col-deltaCol && c.Col < r.cursor.Col {
+	for c := range wrap(r.buffer.LineGraphemes(curLn), r.wrapWidth, true) {
+		if c.Col >= curCol-deltaCol && c.Col < curCol {
 			xs[xsI] = c.Gr.Width
 			xsI += 1
 		}

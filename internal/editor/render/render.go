@@ -93,7 +93,7 @@ func (r *Render) ToggleWrapEnabled() {
 }
 
 func (r *Render) Render() {
-	r.scroll()
+	r.scroll(r.cursor.Ln, r.cursor.Col)
 
 	hl := r.syntax.Highlight(r.buffer, r.ScrollLn, r.ScrollLn+r.area.H)
 
