@@ -177,7 +177,7 @@ const maxChunkLen = 1024 * 4
 func (s *Syntax) parse(buf *textbuf.TextBuf, start, endPos textbuf.Pos) {
 	log.Printf("[%v] parsing", time.Since(s.started))
 
-	startPos, _ := buf.Pos(max(0, start.Ln-1_000), 0)
+	startPos, _ := buf.Pos(max(0, start.Ln-2_000), 0)
 
 	s.parser.SetIncludedRanges([]treeSitter.Range{{
 		StartByte:  uint(startPos.Idx),
