@@ -1,8 +1,7 @@
 package syntax
 
 import (
-	"fmt"
-	"os"
+	"log"
 	"time"
 
 	treeSitter "github.com/tree-sitter/go-tree-sitter"
@@ -19,7 +18,6 @@ type Syntax struct {
 
 	grammar grammar.Grammar
 
-	log     *os.File
 	text    []byte
 	started time.Time
 }
@@ -27,7 +25,7 @@ type Syntax struct {
 func New() *Syntax {
 	s := Syntax{}
 
-	s.initLogger()
+	//s.parser.SetLogger(func(t treeSitter.LogType, msg string) { log.Printf("%v: %s", t, msg) })
 
 	return &s
 }
@@ -88,8 +86,7 @@ func (s *Syntax) Delete(change textbuf.Change) {
 
 	s.tree.Edit(&e)
 
-	fmt.Fprintf(s.log, "delete: change %+v\n", change)
-	fmt.Fprintf(s.log, "delete: e %+v\n", e)
+	log.Printf("delete: %+v; %+v", change, e)
 }
 
 func (s *Syntax) Insert(change textbuf.Change) {
@@ -110,8 +107,7 @@ func (s *Syntax) Insert(change textbuf.Change) {
 
 	s.tree.Edit(&e)
 
-	fmt.Fprintf(s.log, "insert: change %+v\n", change)
-	fmt.Fprintf(s.log, "insert: e %+v\n", e)
+	log.Printf("insert: %+v; %+v", change, e)
 }
 
 func (s *Syntax) Highlight(buf *textbuf.TextBuf, startLn, endLn int) *Highlight {
@@ -124,7 +120,7 @@ func (s *Syntax) Highlight(buf *textbuf.TextBuf, startLn, endLn int) *Highlight 
 	startPos, _ := buf.Pos(startLn, 0)
 	endPos := buf.EndPos(endLn, 0)
 
-	fmt.Fprintf(s.log, "[%v] highlighting %v:%v\n", time.Since(s.started), startPos, endPos)
+	log.Printf("[%v] highlighting: %v:%v", time.Since(s.started), startPos, endPos)
 
 	hl := &Highlight{
 		spans: make(chan span, 1024*2),
@@ -170,7 +166,7 @@ func (s *Syntax) Highlight(buf *textbuf.TextBuf, startLn, endLn int) *Highlight 
 
 		close(hl.spans)
 
-		fmt.Fprintf(s.log, "[%v] highlighting completed\n", time.Since(s.started))
+		log.Printf("[%v] highlighting completed", time.Since(s.started))
 	}()
 
 	return hl
@@ -179,6 +175,8 @@ func (s *Syntax) Highlight(buf *textbuf.TextBuf, startLn, endLn int) *Highlight 
 const maxChunkLen = 1024 * 4
 
 func (s *Syntax) parse(buf *textbuf.TextBuf, start, endPos textbuf.Pos) {
+	log.Printf("[%v] parsing", time.Since(s.started))
+
 	startPos, _ := buf.Pos(max(0, start.Ln-1_000), 0)
 
 	s.parser.SetIncludedRanges([]treeSitter.Range{{
@@ -197,12 +195,12 @@ func (s *Syntax) parse(buf *textbuf.TextBuf, start, endPos textbuf.Pos) {
 			text = text[0:maxChunkLen]
 		}
 
-		fmt.Fprintf(s.log, "[%v] reading chunk %d, %+v, %d\n", time.Since(s.started), i, p, len(text))
+		log.Printf("[%v] reading chunk: %v;%+v;%v", time.Since(s.started), i, p, len(text))
 
 		return []byte(text)
 	}, oldTree, nil)
 
-	fmt.Fprintf(s.log, "[%v] parsed\n", time.Since(s.started))
+	log.Printf("[%v] parsing completed", time.Since(s.started))
 }
 
 func (s *Syntax) prepareText(buf *textbuf.TextBuf, startPos, endPos textbuf.Pos) {
@@ -214,32 +212,4 @@ func (s *Syntax) prepareText(buf *textbuf.TextBuf, startPos, endPos textbuf.Pos)
 		s.text[startPos.Idx:endPos.Idx],
 		std.IterToStr(buf.Slice(startPos.Idx, endPos.Idx)),
 	)
-}
-
-func (s *Syntax) initLogger() {
-	log, err := os.OpenFile("tmp/syntax.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
-	if err != nil {
-		panic(err)
-	}
-
-	/*
-		i := 0
-
-		s.parser.SetLogger(func(t treeSitter.LogType, msg string) {
-			var tp string
-
-			switch t {
-			case treeSitter.LogTypeParse:
-				tp = "parse"
-			case treeSitter.LogTypeLex:
-				tp = "lex"
-			}
-
-			fmt.Fprintf(log, "%d: %s: %s\n", i, tp, msg)
-
-			i += 1
-		})
-	*/
-
-	s.log = log
 }

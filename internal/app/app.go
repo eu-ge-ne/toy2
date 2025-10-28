@@ -2,6 +2,7 @@ package app
 
 import (
 	"flag"
+	"log"
 	"os"
 	"os/signal"
 	"runtime"
@@ -24,6 +25,7 @@ import (
 )
 
 type App struct {
+	logFile    *os.File
 	area       ui.Area
 	alert      *alert.Alert
 	ask        *ask.Ask
@@ -110,6 +112,14 @@ func (app *App) Run() {
 		pprof.StartCPUProfile(f)
 		defer pprof.StopCPUProfile()
 	}
+
+	f, err := os.OpenFile("tmp/toy2.log", os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+	if err != nil {
+		panic(err)
+	}
+
+	log.SetOutput(f)
+	log.SetFlags(log.Ltime | log.Lmicroseconds | log.Lshortfile)
 
 	app.restoreVt = vt.Init()
 
@@ -199,6 +209,8 @@ func (app *App) setZenEnabled(enabled bool) {
 }
 
 func (app *App) exit() {
+	app.logFile.Close()
+
 	app.restoreVt()
 
 	os.Exit(0)
