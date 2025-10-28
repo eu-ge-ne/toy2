@@ -23,8 +23,8 @@ type scroll struct {
 	cursorY int
 	cursorX int
 
-	ln  int
-	col int
+	scrollLn  int
+	scrollCol int
 }
 
 func (s *scroll) scroll(area ui.Area, curLn, curCol int) {
@@ -52,24 +52,24 @@ func (s *scroll) scroll(area ui.Area, curLn, curCol int) {
 }
 
 func (s *scroll) scrollV(area ui.Area, curLn int) {
-	deltaLn := curLn - s.ln
+	deltaLn := curLn - s.scrollLn
 
 	// Above?
 	if deltaLn <= 0 {
-		s.ln = curLn
+		s.scrollLn = curLn
 		return
 	}
 
 	// Below?
 
 	if deltaLn > area.H {
-		s.ln = curLn - area.H
+		s.scrollLn = curLn - area.H
 	}
 
-	xs := make([]int, curLn+1-s.ln)
+	xs := make([]int, curLn+1-s.scrollLn)
 	for i := 0; i < len(xs); i += 1 {
 		xs[i] = 1
-		for cell := range wrap(s.buffer.LineGraphemes(s.ln+i), s.wrapWidth, false) {
+		for cell := range wrap(s.buffer.LineGraphemes(s.scrollLn+i), s.wrapWidth, false) {
 			if cell.Col > 0 && cell.WrapCol == 0 {
 				xs[i] += 1
 			}
@@ -81,7 +81,7 @@ func (s *scroll) scrollV(area ui.Area, curLn int) {
 
 	for height > area.H {
 		height -= xs[i]
-		s.ln += 1
+		s.scrollLn += 1
 		i += 1
 	}
 
@@ -108,12 +108,12 @@ func (s *scroll) scrollH(curLn, curCol int) {
 		col = cell.WrapCol
 	}
 
-	deltaCol := col - s.col
+	deltaCol := col - s.scrollCol
 
 	// Before?
 
 	if deltaCol <= 0 {
-		s.col = col
+		s.scrollCol = col
 		return
 	}
 
@@ -135,7 +135,7 @@ func (s *scroll) scrollH(curLn, curCol int) {
 			break
 		}
 
-		s.col += 1
+		s.scrollCol += 1
 		width -= w
 	}
 

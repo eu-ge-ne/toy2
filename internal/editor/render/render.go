@@ -13,9 +13,9 @@ import (
 )
 
 type Render struct {
+	scroll
 	buffer *textbuf.TextBuf
 	cursor *cursor.Cursor
-	scroll scroll
 	syntax *syntax.Syntax
 
 	area    ui.Area
@@ -31,9 +31,9 @@ type Render struct {
 
 func New(buffer *textbuf.TextBuf, cursor *cursor.Cursor, syntax *syntax.Syntax) *Render {
 	return &Render{
+		scroll: scroll{buffer: buffer},
 		buffer: buffer,
 		cursor: cursor,
-		scroll: scroll{buffer: buffer},
 		syntax: syntax,
 	}
 }
@@ -64,29 +64,29 @@ func (r *Render) SetEnabled(enabled bool) {
 }
 
 func (r *Render) SetIndexEnabled(enabled bool) {
-	r.scroll.indexEnabled = enabled
+	r.indexEnabled = enabled
 }
 
 func (r *Render) SetWhitespaceEnabled(enabled bool) {
-	r.scroll.whitespaceEnabled = enabled
+	r.whitespaceEnabled = enabled
 }
 
 func (r *Render) ToggleWhitespaceEnabled() {
-	r.scroll.whitespaceEnabled = !r.scroll.whitespaceEnabled
+	r.whitespaceEnabled = !r.whitespaceEnabled
 }
 
 func (r *Render) SetWrapEnabled(enabled bool) {
-	r.scroll.wrapEnabled = enabled
+	r.wrapEnabled = enabled
 }
 
 func (r *Render) ToggleWrapEnabled() {
-	r.scroll.wrapEnabled = !r.scroll.wrapEnabled
+	r.wrapEnabled = !r.wrapEnabled
 }
 
 func (r *Render) Render() {
 	r.scroll.scroll(r.area, r.cursor.Ln, r.cursor.Col)
 
-	hl := r.syntax.Highlight(r.buffer, r.scroll.ln, r.scroll.ln+r.area.H)
+	hl := r.syntax.Highlight(r.buffer, r.scrollLn, r.scrollLn+r.area.H)
 
 	vt.Sync.Bsu()
 
@@ -95,12 +95,12 @@ func (r *Render) Render() {
 	vt.Buf.Write(r.colorMainBg)
 	vt.ClearArea(vt.Buf, r.area)
 
-	if r.area.W >= r.scroll.indexWidth {
+	if r.area.W >= r.indexWidth {
 		r.renderLines(hl)
 	}
 
 	if r.enabled {
-		vt.SetCursor(vt.Buf, r.scroll.cursorY, r.scroll.cursorX)
+		vt.SetCursor(vt.Buf, r.cursorY, r.cursorX)
 		vt.Buf.Write(vt.ShowCursor)
 	} else {
 		vt.Buf.Write(vt.RestoreCursor)
@@ -115,7 +115,7 @@ func (r *Render) Render() {
 func (r *Render) renderLines(hl *syntax.Highlight) {
 	row := r.area.Y
 
-	for ln := r.scroll.ln; ; ln += 1 {
+	for ln := r.scrollLn; ; ln += 1 {
 		if ln < r.buffer.LineCount() {
 			row = r.renderLine(hl, ln, row)
 		} else {
@@ -136,7 +136,7 @@ func (r *Render) renderLine(hl *syntax.Highlight, ln int, row int) int {
 	currentBg := false
 	availableW := 0
 
-	for cell := range wrap(r.buffer.LineGraphemes(ln), r.scroll.wrapWidth, false) {
+	for cell := range wrap(r.buffer.LineGraphemes(ln), r.wrapWidth, false) {
 		if cell.WrapCol == 0 {
 			if cell.Col > 0 {
 				row += 1
@@ -147,23 +147,23 @@ func (r *Render) renderLine(hl *syntax.Highlight, ln int, row int) int {
 
 			vt.SetCursor(vt.Buf, row, r.area.X)
 
-			if r.scroll.indexWidth > 0 {
+			if r.indexWidth > 0 {
 				if cell.Col == 0 {
 					vt.Buf.Write(r.colorIndex)
-					fmt.Fprintf(vt.Buf, "%*d ", r.scroll.indexWidth-1, ln+1)
+					fmt.Fprintf(vt.Buf, "%*d ", r.indexWidth-1, ln+1)
 					vt.Buf.Write(r.colorMainBg)
 				} else {
 					vt.Buf.Write(r.colorMainBg)
-					vt.WriteSpaces(vt.Buf, r.scroll.indexWidth)
+					vt.WriteSpaces(vt.Buf, r.indexWidth)
 				}
 			}
 
-			availableW = r.area.W - r.scroll.indexWidth
+			availableW = r.area.W - r.indexWidth
 		}
 
 		fg := hl.Next(len(cell.Gr.Str))
 
-		if (cell.WrapCol < r.scroll.col) || (cell.Gr.Width > availableW) {
+		if (cell.WrapCol < r.scrollCol) || (cell.Gr.Width > availableW) {
 			continue
 		}
 
@@ -180,7 +180,7 @@ func (r *Render) renderLine(hl *syntax.Highlight, ln int, row int) int {
 		if len(fg) == 0 {
 			if cell.Gr.IsVisible {
 				fg = "_text"
-			} else if r.scroll.whitespaceEnabled {
+			} else if r.whitespaceEnabled {
 				fg = "_ws_enabled"
 			} else {
 				fg = "_ws_disabled"
