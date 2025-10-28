@@ -27,11 +27,11 @@ func (r *Render) scroll(curLn, curCol int) {
 
 	grapheme.Graphemes.SetWcharPos(r.area.Y, r.area.X+r.indexWidth)
 
-	r.scrollV(curLn, curCol)
+	r.scrollV(curLn)
 	r.scrollH(curLn, curCol)
 }
 
-func (r *Render) scrollV(curLn, curCol int) {
+func (r *Render) scrollV(curLn int) {
 	deltaLn := curLn - r.ScrollLn
 
 	// Above?
