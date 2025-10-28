@@ -39,9 +39,7 @@ type Editor struct {
 }
 
 func New(multiLine bool) *Editor {
-	ed := &Editor{
-		multiLine: multiLine,
-	}
+	ed := &Editor{multiLine: multiLine}
 
 	ed.buffer = textbuf.New()
 	ed.cursor = cursor.New(ed.buffer)

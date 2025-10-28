@@ -19,9 +19,7 @@ type SaveAs struct {
 }
 
 func New() *SaveAs {
-	return &SaveAs{
-		editor: editor.New(false),
-	}
+	return &SaveAs{editor: editor.New(false)}
 }
 
 func (sv *SaveAs) SetColors(t theme.Theme) {
