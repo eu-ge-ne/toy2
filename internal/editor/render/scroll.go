@@ -5,51 +5,71 @@ import (
 
 	"github.com/eu-ge-ne/toy2/internal/grapheme"
 	"github.com/eu-ge-ne/toy2/internal/std"
+	"github.com/eu-ge-ne/toy2/internal/textbuf"
+	"github.com/eu-ge-ne/toy2/internal/ui"
 )
 
-func (r *Render) scroll(curLn, curCol int) {
-	if r.indexEnabled && r.buffer.LineCount() > 0 {
-		r.indexWidth = int(math.Log10(float64(r.buffer.LineCount()))) + 3
-	} else {
-		r.indexWidth = 0
-	}
+type scroll struct {
+	buffer *textbuf.TextBuf
 
-	r.textWidth = r.area.W - r.indexWidth
+	indexEnabled      bool
+	whitespaceEnabled bool
+	wrapEnabled       bool
 
-	if r.wrapEnabled {
-		r.wrapWidth = r.textWidth
-	} else {
-		r.wrapWidth = math.MaxInt
-	}
+	indexWidth int
+	textWidth  int
+	wrapWidth  int
 
-	r.cursorY = r.area.Y
-	r.cursorX = r.area.X + r.indexWidth
+	cursorY int
+	cursorX int
 
-	grapheme.Graphemes.SetWcharPos(r.area.Y, r.area.X+r.indexWidth)
-
-	r.scrollV(curLn)
-	r.scrollH(curLn, curCol)
+	ln  int
+	col int
 }
 
-func (r *Render) scrollV(curLn int) {
-	deltaLn := curLn - r.ScrollLn
+func (s *scroll) scroll(area ui.Area, curLn, curCol int) {
+	if s.indexEnabled && s.buffer.LineCount() > 0 {
+		s.indexWidth = int(math.Log10(float64(s.buffer.LineCount()))) + 3
+	} else {
+		s.indexWidth = 0
+	}
+
+	s.textWidth = area.W - s.indexWidth
+
+	if s.wrapEnabled {
+		s.wrapWidth = s.textWidth
+	} else {
+		s.wrapWidth = math.MaxInt
+	}
+
+	s.cursorY = area.Y
+	s.cursorX = area.X + s.indexWidth
+
+	grapheme.Graphemes.SetWcharPos(area.Y, area.X+s.indexWidth)
+
+	s.scrollV(area, curLn)
+	s.scrollH(curLn, curCol)
+}
+
+func (s *scroll) scrollV(area ui.Area, curLn int) {
+	deltaLn := curLn - s.ln
 
 	// Above?
 	if deltaLn <= 0 {
-		r.ScrollLn = curLn
+		s.ln = curLn
 		return
 	}
 
 	// Below?
 
-	if deltaLn > r.area.H {
-		r.ScrollLn = curLn - r.area.H
+	if deltaLn > area.H {
+		s.ln = curLn - area.H
 	}
 
-	xs := make([]int, curLn+1-r.ScrollLn)
+	xs := make([]int, curLn+1-s.ln)
 	for i := 0; i < len(xs); i += 1 {
 		xs[i] = 1
-		for cell := range wrap(r.buffer.LineGraphemes(r.ScrollLn+i), r.wrapWidth, false) {
+		for cell := range wrap(s.buffer.LineGraphemes(s.ln+i), s.wrapWidth, false) {
 			if cell.Col > 0 && cell.WrapCol == 0 {
 				xs[i] += 1
 			}
@@ -59,28 +79,28 @@ func (r *Render) scrollV(curLn int) {
 	i := 0
 	height := std.Sum(xs)
 
-	for height > r.area.H {
+	for height > area.H {
 		height -= xs[i]
-		r.ScrollLn += 1
+		s.ln += 1
 		i += 1
 	}
 
 	for i < len(xs)-1 {
-		r.cursorY += xs[i]
+		s.cursorY += xs[i]
 		i += 1
 	}
 }
 
-func (r *Render) scrollH(curLn, curCol int) {
+func (s *scroll) scrollH(curLn, curCol int) {
 	var cell *cell = nil
-	for c := range wrap(r.buffer.LineGraphemes(curLn), r.wrapWidth, true) {
+	for c := range wrap(s.buffer.LineGraphemes(curLn), s.wrapWidth, true) {
 		if c.Col >= curCol {
 			cell = &c
 			break
 		}
 	}
 	if cell != nil {
-		r.cursorY += cell.WrapLn
+		s.cursorY += cell.WrapLn
 	}
 
 	col := 0
@@ -88,12 +108,12 @@ func (r *Render) scrollH(curLn, curCol int) {
 		col = cell.WrapCol
 	}
 
-	deltaCol := col - r.ScrollCol
+	deltaCol := col - s.col
 
 	// Before?
 
 	if deltaCol <= 0 {
-		r.ScrollCol = col
+		s.col = col
 		return
 	}
 
@@ -101,7 +121,7 @@ func (r *Render) scrollH(curLn, curCol int) {
 
 	xs := make([]int, deltaCol)
 	xsI := 0
-	for c := range wrap(r.buffer.LineGraphemes(curLn), r.wrapWidth, true) {
+	for c := range wrap(s.buffer.LineGraphemes(curLn), s.wrapWidth, true) {
 		if c.Col >= curCol-deltaCol && c.Col < curCol {
 			xs[xsI] = c.Gr.Width
 			xsI += 1
@@ -111,13 +131,13 @@ func (r *Render) scrollH(curLn, curCol int) {
 	width := std.Sum(xs)
 
 	for _, w := range xs {
-		if width < r.textWidth {
+		if width < s.textWidth {
 			break
 		}
 
-		r.ScrollCol += 1
+		s.col += 1
 		width -= w
 	}
 
-	r.cursorX += width
+	s.cursorX += width
 }
