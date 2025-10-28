@@ -49,7 +49,7 @@ func (r *Render) scrollV() {
 	xs := make([]int, r.cursor.Ln+1-r.ScrollLn)
 	for i := 0; i < len(xs); i += 1 {
 		xs[i] = 1
-		for cell := range r.wrapLine(r.ScrollLn+i, false) {
+		for cell := range wrap(r.buffer.LineGraphemes(r.ScrollLn+i), r.wrapWidth, false) {
 			if cell.Col > 0 && cell.WrapCol == 0 {
 				xs[i] += 1
 			}
@@ -73,7 +73,7 @@ func (r *Render) scrollV() {
 
 func (r *Render) scrollH() {
 	var cell *cell = nil
-	for c := range r.wrapLine(r.cursor.Ln, true) {
+	for c := range wrap(r.buffer.LineGraphemes(r.cursor.Ln), r.wrapWidth, true) {
 		if c.Col >= r.cursor.Col {
 			cell = &c
 			break
@@ -101,7 +101,7 @@ func (r *Render) scrollH() {
 
 	xs := make([]int, deltaCol)
 	xsI := 0
-	for c := range r.wrapLine(r.cursor.Ln, true) {
+	for c := range wrap(r.buffer.LineGraphemes(r.cursor.Ln), r.wrapWidth, true) {
 		if c.Col >= r.cursor.Col-deltaCol && c.Col < r.cursor.Col {
 			xs[xsI] = c.Gr.Width
 			xsI += 1

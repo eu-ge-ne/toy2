@@ -13,16 +13,16 @@ type cell struct {
 	WrapCol int
 }
 
-func (r *Render) wrapLine(ln int, extra bool) iter.Seq[cell] {
+func wrap(line iter.Seq[*grapheme.Grapheme], width int, extra bool) iter.Seq[cell] {
 	return func(yield func(cell) bool) {
 		cell := cell{}
 		w := 0
 
-		for gr := range r.buffer.LineGraphemes(ln) {
+		for gr := range line {
 			cell.Gr = gr
 
 			w += cell.Gr.Width
-			if w > r.wrapWidth {
+			if w > width {
 				w = cell.Gr.Width
 				cell.WrapLn += 1
 				cell.WrapCol = 0
@@ -40,7 +40,7 @@ func (r *Render) wrapLine(ln int, extra bool) iter.Seq[cell] {
 			cell.Gr = grapheme.Graphemes.Get(" ")
 
 			w += cell.Gr.Width
-			if w > r.wrapWidth {
+			if w > width {
 				w = cell.Gr.Width
 				cell.WrapLn += 1
 				cell.WrapCol = 0

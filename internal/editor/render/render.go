@@ -145,7 +145,7 @@ func (r *Render) renderLine(hl *syntax.Highlight, ln int, row int) int {
 	currentBg := false
 	availableW := 0
 
-	for cell := range r.wrapLine(ln, false) {
+	for cell := range wrap(r.buffer.LineGraphemes(ln), r.wrapWidth, false) {
 		if cell.WrapCol == 0 {
 			if cell.Col > 0 {
 				row += 1
