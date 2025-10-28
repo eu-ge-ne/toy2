@@ -1,21 +1,19 @@
-package render
+package grapheme
 
 import (
 	"iter"
-
-	"github.com/eu-ge-ne/toy2/internal/grapheme"
 )
 
-type cell struct {
-	Gr      *grapheme.Grapheme
+type Cell struct {
+	Gr      *Grapheme
 	Col     int
 	WrapLn  int
 	WrapCol int
 }
 
-func wrap(line iter.Seq[*grapheme.Grapheme], width int, extra bool) iter.Seq[cell] {
-	return func(yield func(cell) bool) {
-		cell := cell{}
+func Wrap(line iter.Seq[*Grapheme], width int, extra bool) iter.Seq[Cell] {
+	return func(yield func(Cell) bool) {
+		cell := Cell{}
 		w := 0
 
 		for gr := range line {
@@ -37,7 +35,7 @@ func wrap(line iter.Seq[*grapheme.Grapheme], width int, extra bool) iter.Seq[cel
 		}
 
 		if extra {
-			cell.Gr = grapheme.Graphemes.Get(" ")
+			cell.Gr = Graphemes.Get(" ")
 
 			w += cell.Gr.Width
 			if w > width {

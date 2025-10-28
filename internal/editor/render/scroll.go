@@ -69,7 +69,7 @@ func (s *scroll) scrollV(area ui.Area, curLn int) {
 	xs := make([]int, curLn+1-s.scrollLn)
 	for i := 0; i < len(xs); i += 1 {
 		xs[i] = 1
-		for cell := range wrap(s.buffer.LineGraphemes(s.scrollLn+i), s.wrapWidth, false) {
+		for cell := range grapheme.Wrap(s.buffer.LineGraphemes(s.scrollLn+i), s.wrapWidth, false) {
 			if cell.Col > 0 && cell.WrapCol == 0 {
 				xs[i] += 1
 			}
@@ -92,8 +92,8 @@ func (s *scroll) scrollV(area ui.Area, curLn int) {
 }
 
 func (s *scroll) scrollH(curLn, curCol int) {
-	var cell *cell = nil
-	for c := range wrap(s.buffer.LineGraphemes(curLn), s.wrapWidth, true) {
+	var cell *grapheme.Cell = nil
+	for c := range grapheme.Wrap(s.buffer.LineGraphemes(curLn), s.wrapWidth, true) {
 		if c.Col >= curCol {
 			cell = &c
 			break
@@ -121,7 +121,7 @@ func (s *scroll) scrollH(curLn, curCol int) {
 
 	xs := make([]int, deltaCol)
 	xsI := 0
-	for c := range wrap(s.buffer.LineGraphemes(curLn), s.wrapWidth, true) {
+	for c := range grapheme.Wrap(s.buffer.LineGraphemes(curLn), s.wrapWidth, true) {
 		if c.Col >= curCol-deltaCol && c.Col < curCol {
 			xs[xsI] = c.Gr.Width
 			xsI += 1

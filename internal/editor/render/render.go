@@ -6,6 +6,7 @@ import (
 	"github.com/eu-ge-ne/toy2/internal/color"
 	"github.com/eu-ge-ne/toy2/internal/editor/cursor"
 	"github.com/eu-ge-ne/toy2/internal/editor/syntax"
+	"github.com/eu-ge-ne/toy2/internal/grapheme"
 	"github.com/eu-ge-ne/toy2/internal/textbuf"
 	"github.com/eu-ge-ne/toy2/internal/theme"
 	"github.com/eu-ge-ne/toy2/internal/ui"
@@ -136,7 +137,7 @@ func (r *Render) renderLine(hl *syntax.Highlight, ln int, row int) int {
 	currentBg := false
 	availableW := 0
 
-	for cell := range wrap(r.buffer.LineGraphemes(ln), r.wrapWidth, false) {
+	for cell := range grapheme.Wrap(r.buffer.LineGraphemes(ln), r.wrapWidth, false) {
 		if cell.WrapCol == 0 {
 			if cell.Col > 0 {
 				row += 1
