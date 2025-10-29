@@ -30,5 +30,5 @@ func (c *Cut) Match(key.Key) bool {
 }
 
 func (c *Cut) Run() bool {
-	return c.app.editor.Handlers["CUT"].Run(key.Key{})
+	return c.app.editor.Cut()
 }

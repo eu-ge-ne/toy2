@@ -4,7 +4,6 @@ import (
 	"strings"
 
 	"github.com/eu-ge-ne/toy2/internal/editor"
-	"github.com/eu-ge-ne/toy2/internal/key"
 	"github.com/eu-ge-ne/toy2/internal/theme"
 	"github.com/eu-ge-ne/toy2/internal/ui"
 	"github.com/eu-ge-ne/toy2/internal/vt"
@@ -55,7 +54,7 @@ func (p *Palette) Open() <-chan *Option {
 		p.editor.SetEnabled(true)
 
 		p.editor.SetText("")
-		p.editor.Handlers["END"].Run(key.Key{})
+		p.editor.End()
 
 		p.filter()
 		p.parent.Render()

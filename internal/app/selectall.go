@@ -30,5 +30,5 @@ func (c *SelectAll) Match(key.Key) bool {
 }
 
 func (c *SelectAll) Run() bool {
-	return c.app.editor.Handlers["SELECTALL"].Run(key.Key{})
+	return c.app.editor.SelectAll()
 }

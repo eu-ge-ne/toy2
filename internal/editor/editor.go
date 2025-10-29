@@ -20,7 +20,6 @@ import (
 )
 
 type Editor struct {
-	Handlers     map[string]Handler
 	OnKeyHandled func(time.Duration)
 	OnRender     func(time.Duration)
 	OnCursor     func(int, int, int)
@@ -35,6 +34,7 @@ type Editor struct {
 
 	enabled   bool
 	clipboard string
+	handlers  []Handler
 }
 
 func New(multiLine bool) *Editor {
@@ -52,27 +52,27 @@ func New(multiLine bool) *Editor {
 	ed.history = history.New(buffer, ed.cursor)
 	ed.history.OnChanged = ed.OnChanged
 
-	ed.Handlers = map[string]Handler{
-		"INSERT":    &Insert{ed},
-		"BACKSPACE": &Backspace{ed},
-		"BOTTOM":    &Bottom{ed},
-		"COPY":      &Copy{ed},
-		"CUT":       &Cut{ed},
-		"DELETE":    &Delete{ed},
-		"DOWN":      &Down{ed},
-		"END":       &End{ed},
-		"ENTER":     &Enter{ed},
-		"HOME":      &Home{ed},
-		"LEFT":      &Left{ed},
-		"PAGEDOWN":  &PageDown{ed},
-		"PAGEUP":    &PageUp{ed},
-		"PASTE":     &Paste{ed},
-		"REDO":      &Redo{ed},
-		"RIGHT":     &Right{ed},
-		"SELECTALL": &SelectAll{ed},
-		"TOP":       &Top{ed},
-		"UNDO":      &Undo{ed},
-		"UP":        &Up{ed},
+	ed.handlers = []Handler{
+		&Insert{ed},
+		&Backspace{ed},
+		&Bottom{ed},
+		&Copy{ed},
+		&Cut{ed},
+		&Delete{ed},
+		&Down{ed},
+		&End{ed},
+		&Enter{ed},
+		&Home{ed},
+		&Left{ed},
+		&PageDown{ed},
+		&PageUp{ed},
+		&Paste{ed},
+		&Redo{ed},
+		&Right{ed},
+		&SelectAll{ed},
+		&Top{ed},
+		&Undo{ed},
+		&Up{ed},
 	}
 
 	return ed
@@ -140,7 +140,7 @@ func (ed *Editor) HandleKey(key key.Key) bool {
 
 	t0 := time.Now()
 
-	for _, h := range ed.Handlers {
+	for _, h := range ed.handlers {
 		if h.Match(key) {
 			r := h.Run(key)
 
@@ -214,6 +214,48 @@ func (ed *Editor) Save(filePath string) error {
 	}
 
 	return nil
+}
+
+func (ed *Editor) Copy() bool {
+	c := Copy{ed}
+
+	return c.Run(key.Key{})
+}
+
+func (ed *Editor) Cut() bool {
+	c := Cut{ed}
+
+	return c.Run(key.Key{})
+}
+
+func (ed *Editor) Paste() bool {
+	p := Paste{ed}
+
+	return p.Run(key.Key{})
+}
+
+func (ed *Editor) Undo() bool {
+	u := Undo{ed}
+
+	return u.Run(key.Key{})
+}
+
+func (ed *Editor) Redo() bool {
+	r := Redo{ed}
+
+	return r.Run(key.Key{})
+}
+
+func (ed *Editor) SelectAll() bool {
+	s := SelectAll{ed}
+
+	return s.Run(key.Key{})
+}
+
+func (ed *Editor) End() bool {
+	e := End{ed}
+
+	return e.Run(key.Key{})
 }
 
 func (ed *Editor) insertText(text string) {

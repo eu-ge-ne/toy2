@@ -2,7 +2,6 @@ package saveas
 
 import (
 	"github.com/eu-ge-ne/toy2/internal/editor"
-	"github.com/eu-ge-ne/toy2/internal/key"
 	"github.com/eu-ge-ne/toy2/internal/std"
 	"github.com/eu-ge-ne/toy2/internal/theme"
 	"github.com/eu-ge-ne/toy2/internal/ui"
@@ -81,7 +80,7 @@ func (sv *SaveAs) Open(filePath string) <-chan string {
 		sv.editor.SetEnabled(true)
 
 		sv.editor.SetText(filePath)
-		sv.editor.Handlers["END"].Run(key.Key{})
+		sv.editor.End()
 
 		sv.Render()
 

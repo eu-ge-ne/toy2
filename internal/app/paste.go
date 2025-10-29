@@ -30,5 +30,5 @@ func (c *Paste) Match(key.Key) bool {
 }
 
 func (c *Paste) Run() bool {
-	return c.app.editor.Handlers["PASTE"].Run(key.Key{})
+	return c.app.editor.Paste()
 }

@@ -30,5 +30,5 @@ func (c *Undo) Match(key.Key) bool {
 }
 
 func (c *Undo) Run() bool {
-	return c.app.editor.Handlers["UNDO"].Run(key.Key{})
+	return c.app.editor.Undo()
 }

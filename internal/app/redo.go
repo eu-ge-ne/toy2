@@ -30,5 +30,5 @@ func (c *Redo) Match(key.Key) bool {
 }
 
 func (c *Redo) Run() bool {
-	return c.app.editor.Handlers["REDO"].Run(key.Key{})
+	return c.app.editor.Redo()
 }

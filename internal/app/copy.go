@@ -30,5 +30,5 @@ func (c *Copy) Match(key.Key) bool {
 }
 
 func (c *Copy) Run() bool {
-	return c.app.editor.Handlers["COPY"].Run(key.Key{})
+	return c.app.editor.Copy()
 }
