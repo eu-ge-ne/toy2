@@ -25,7 +25,7 @@ func (al *Alert) SetColors(t theme.Theme) {
 	al.colorText = append(t.DangerBg(), t.Light1Fg()...)
 }
 
-func (al *Alert) Layout(a ui.Area) {
+func (al *Alert) SetArea(a ui.Area) {
 	w := std.Clamp(60, 0, a.W)
 	h := std.Clamp(10, 0, a.H)
 

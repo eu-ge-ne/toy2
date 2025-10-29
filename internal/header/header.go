@@ -32,7 +32,7 @@ func (h *Header) SetColors(t theme.Theme) {
 	h.colorFlag = append(t.Dark0Bg(), t.Light2Fg()...)
 }
 
-func (h *Header) Layout(a ui.Area) {
+func (h *Header) SetArea(a ui.Area) {
 	h.area = ui.Area{
 		Y: a.Y,
 		X: a.X,

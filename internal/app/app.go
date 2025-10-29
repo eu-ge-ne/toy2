@@ -166,8 +166,8 @@ func (app *App) Render() {
 func (app *App) layout(a ui.Area) {
 	app.area = a
 
-	app.header.Layout(app.area)
-	app.footer.Layout(app.area)
+	app.header.SetArea(app.area)
+	app.footer.SetArea(app.area)
 
 	var editorArea ui.Area
 	if app.zenEnabled {
@@ -181,12 +181,12 @@ func (app *App) layout(a ui.Area) {
 		}
 	}
 
-	app.editor.Layout(editorArea)
-	app.debug.Layout(editorArea)
-	app.palette.Layout(editorArea)
-	app.ask.Layout(editorArea)
-	app.alert.Layout(editorArea)
-	app.saveas.Layout(editorArea)
+	app.editor.SetArea(editorArea)
+	app.debug.SetArea(editorArea)
+	app.palette.SetArea(editorArea)
+	app.ask.SetArea(editorArea)
+	app.alert.SetArea(editorArea)
+	app.saveas.SetArea(editorArea)
 }
 
 func (app *App) setColors(t theme.Theme) {

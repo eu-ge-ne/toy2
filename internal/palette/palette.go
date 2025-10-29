@@ -43,7 +43,7 @@ func (p *Palette) SetColors(t theme.Theme) {
 	p.editor.SetColors(t)
 }
 
-func (p *Palette) Layout(a ui.Area) {
+func (p *Palette) SetArea(a ui.Area) {
 	p.area = a
 }
 

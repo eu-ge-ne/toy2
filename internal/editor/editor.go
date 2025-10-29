@@ -86,7 +86,7 @@ func (ed *Editor) SetColors(t theme.Theme) {
 	ed.frame.SetColors(t)
 }
 
-func (ed *Editor) Layout(a ui.Area) {
+func (ed *Editor) SetArea(a ui.Area) {
 	ed.frame.Area = a
 }
 

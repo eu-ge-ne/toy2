@@ -41,7 +41,7 @@ func (d *Debug) SetColors(t theme.Theme) {
 	d.colorText = append(t.Light0Bg(), t.Dark0Fg()...)
 }
 
-func (d *Debug) Layout(a ui.Area) {
+func (d *Debug) SetArea(a ui.Area) {
 	w := std.Clamp(30, 0, a.W)
 	h := std.Clamp(7, 0, a.H)
 

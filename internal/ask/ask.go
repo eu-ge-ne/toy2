@@ -25,7 +25,7 @@ func (ask *Ask) SetColors(t theme.Theme) {
 	ask.colorText = append(t.Light1Bg(), t.Light1Fg()...)
 }
 
-func (ask *Ask) Layout(a ui.Area) {
+func (ask *Ask) SetArea(a ui.Area) {
 	w := std.Clamp(60, 0, a.W)
 	h := std.Clamp(7, 0, a.H)
 

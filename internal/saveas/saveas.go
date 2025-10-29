@@ -29,7 +29,7 @@ func (sv *SaveAs) SetColors(t theme.Theme) {
 	sv.editor.SetColors(t)
 }
 
-func (sv *SaveAs) Layout(a ui.Area) {
+func (sv *SaveAs) SetArea(a ui.Area) {
 	w := std.Clamp(60, 0, a.W)
 	h := std.Clamp(10, 0, a.H)
 
@@ -40,7 +40,7 @@ func (sv *SaveAs) Layout(a ui.Area) {
 		H: h,
 	}
 
-	sv.editor.Layout(ui.Area{
+	sv.editor.SetArea(ui.Area{
 		Y: sv.area.Y + 4,
 		X: sv.area.X + 2,
 		W: sv.area.W - 4,
