@@ -47,7 +47,7 @@ func New(multiLine bool) *Editor {
 
 	ed.cursor = cursor.New(buffer)
 	ed.syntax = syntax.New()
-	ed.frame = frame.New(buffer, ed.cursor, ed.syntax)
+	ed.frame = frame.New(buffer, ed.cursor)
 
 	ed.history = history.New(buffer, ed.cursor)
 	ed.history.OnChanged = ed.OnChanged
@@ -94,7 +94,8 @@ func (ed *Editor) Render() {
 	started := time.Now()
 
 	ed.frame.Scroll()
-	ed.frame.Render()
+	hl := ed.syntax.Highlight(ed.buffer, ed.frame.ScrollLn, ed.frame.ScrollLn+ed.frame.Area.H)
+	ed.frame.Render(hl)
 
 	if ed.OnCursor != nil {
 		ed.OnCursor(ed.cursor.Ln, ed.cursor.Col, ed.buffer.LineCount())

@@ -26,8 +26,8 @@ type Frame struct {
 	textWidth  int
 	wrapWidth  int
 
-	scrollLn  int
-	scrollCol int
+	ScrollLn  int
+	ScrollCol int
 	cursorY   int
 	cursorX   int
 
@@ -40,14 +40,12 @@ type Frame struct {
 
 	buffer *textbuf.TextBuf
 	cursor *cursor.Cursor
-	syntax *syntax.Syntax
 }
 
-func New(buffer *textbuf.TextBuf, cursor *cursor.Cursor, syntax *syntax.Syntax) *Frame {
+func New(buffer *textbuf.TextBuf, cursor *cursor.Cursor) *Frame {
 	return &Frame{
 		buffer: buffer,
 		cursor: cursor,
-		syntax: syntax,
 	}
 }
 
@@ -92,9 +90,7 @@ func (fr *Frame) Scroll() {
 	fr.scrollH()
 }
 
-func (fr *Frame) Render() {
-	hl := fr.syntax.Highlight(fr.buffer, fr.scrollLn, fr.scrollLn+fr.Area.H)
-
+func (fr *Frame) Render(hl *syntax.Highlight) {
 	vt.Sync.Bsu()
 
 	vt.Buf.Write(vt.HideCursor)
@@ -120,24 +116,24 @@ func (fr *Frame) Render() {
 }
 
 func (fr *Frame) scrollV() {
-	deltaLn := fr.cursor.Ln - fr.scrollLn
+	deltaLn := fr.cursor.Ln - fr.ScrollLn
 
 	// Above?
 	if deltaLn <= 0 {
-		fr.scrollLn = fr.cursor.Ln
+		fr.ScrollLn = fr.cursor.Ln
 		return
 	}
 
 	// Below?
 
 	if deltaLn > fr.Area.H {
-		fr.scrollLn = fr.cursor.Ln - fr.Area.H
+		fr.ScrollLn = fr.cursor.Ln - fr.Area.H
 	}
 
-	xs := make([]int, fr.cursor.Ln+1-fr.scrollLn)
+	xs := make([]int, fr.cursor.Ln+1-fr.ScrollLn)
 	for i := 0; i < len(xs); i += 1 {
 		xs[i] = 1
-		for cell := range grapheme.Wrap(fr.buffer.LineGraphemes(fr.scrollLn+i), fr.wrapWidth, false) {
+		for cell := range grapheme.Wrap(fr.buffer.LineGraphemes(fr.ScrollLn+i), fr.wrapWidth, false) {
 			if cell.Col > 0 && cell.WrapCol == 0 {
 				xs[i] += 1
 			}
@@ -149,7 +145,7 @@ func (fr *Frame) scrollV() {
 
 	for height > fr.Area.H {
 		height -= xs[i]
-		fr.scrollLn += 1
+		fr.ScrollLn += 1
 		i += 1
 	}
 
@@ -176,12 +172,12 @@ func (fr *Frame) scrollH() {
 		col = cell.WrapCol
 	}
 
-	deltaCol := col - fr.scrollCol
+	deltaCol := col - fr.ScrollCol
 
 	// Before?
 
 	if deltaCol <= 0 {
-		fr.scrollCol = col
+		fr.ScrollCol = col
 		return
 	}
 
@@ -203,7 +199,7 @@ func (fr *Frame) scrollH() {
 			break
 		}
 
-		fr.scrollCol += 1
+		fr.ScrollCol += 1
 		width -= w
 	}
 
@@ -213,7 +209,7 @@ func (fr *Frame) scrollH() {
 func (fr *Frame) renderLines(hl *syntax.Highlight) {
 	row := fr.Area.Y
 
-	for ln := fr.scrollLn; ; ln += 1 {
+	for ln := fr.ScrollLn; ; ln += 1 {
 		if ln < fr.buffer.LineCount() {
 			row = fr.renderLine(hl, ln, row)
 		} else {
@@ -261,7 +257,7 @@ func (fr *Frame) renderLine(hl *syntax.Highlight, ln int, row int) int {
 
 		fg := hl.Next(len(cell.Gr.Str))
 
-		if (cell.WrapCol < fr.scrollCol) || (cell.Gr.Width > availableW) {
+		if (cell.WrapCol < fr.ScrollCol) || (cell.Gr.Width > availableW) {
 			continue
 		}
 
