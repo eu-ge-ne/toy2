@@ -100,12 +100,12 @@ func (ed *Editor) Layout(a ui.Area) {
 func (ed *Editor) Render() {
 	started := time.Now()
 
+	ed.scroll.Scroll()
+	ed.render.Render()
+
 	if ed.OnCursor != nil {
 		ed.OnCursor(ed.cursor.Ln, ed.cursor.Col, ed.buffer.LineCount())
 	}
-
-	ed.scroll.Scroll()
-	ed.render.Render()
 
 	if ed.OnRender != nil {
 		ed.OnRender(time.Since(started))
