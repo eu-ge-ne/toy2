@@ -17,5 +17,5 @@ func (h *PageUp) Run(k key.Key) bool {
 		return false
 	}
 
-	return h.editor.cursor.Up(h.editor.pageSize, k.Mods&key.Shift != 0)
+	return h.editor.cursor.Up(h.editor.frame.Area.H, k.Mods&key.Shift != 0)
 }
