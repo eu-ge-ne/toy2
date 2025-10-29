@@ -3,6 +3,7 @@ package scroll
 import (
 	"math"
 
+	"github.com/eu-ge-ne/toy2/internal/editor/cursor"
 	"github.com/eu-ge-ne/toy2/internal/grapheme"
 	"github.com/eu-ge-ne/toy2/internal/std"
 	"github.com/eu-ge-ne/toy2/internal/textbuf"
@@ -10,6 +11,7 @@ import (
 )
 
 type Scroll struct {
+	Area         ui.Area
 	IndexEnabled bool
 	WrapEnabled  bool
 	IndexWidth   int
@@ -22,20 +24,21 @@ type Scroll struct {
 	X   int
 
 	buffer *textbuf.TextBuf
+	cursor *cursor.Cursor
 }
 
-func New(buffer *textbuf.TextBuf) *Scroll {
-	return &Scroll{buffer: buffer}
+func New(buffer *textbuf.TextBuf, cursor *cursor.Cursor) *Scroll {
+	return &Scroll{buffer: buffer, cursor: cursor}
 }
 
-func (s *Scroll) Scroll(area ui.Area, toLn, toCol int) {
+func (s *Scroll) Scroll() {
 	if s.IndexEnabled && s.buffer.LineCount() > 0 {
 		s.IndexWidth = int(math.Log10(float64(s.buffer.LineCount()))) + 3
 	} else {
 		s.IndexWidth = 0
 	}
 
-	s.TextWidth = area.W - s.IndexWidth
+	s.TextWidth = s.Area.W - s.IndexWidth
 
 	if s.WrapEnabled {
 		s.WrapWidth = s.TextWidth
@@ -43,31 +46,31 @@ func (s *Scroll) Scroll(area ui.Area, toLn, toCol int) {
 		s.WrapWidth = math.MaxInt
 	}
 
-	s.Y = area.Y
-	s.X = area.X + s.IndexWidth
+	s.Y = s.Area.Y
+	s.X = s.Area.X + s.IndexWidth
 
-	grapheme.Graphemes.SetWcharPos(area.Y, area.X+s.IndexWidth)
+	grapheme.Graphemes.SetWcharPos(s.Area.Y, s.Area.X+s.IndexWidth)
 
-	s.scrollV(area, toLn)
-	s.scrollH(toLn, toCol)
+	s.scrollV()
+	s.scrollH()
 }
 
-func (s *Scroll) scrollV(area ui.Area, toLn int) {
-	deltaLn := toLn - s.Ln
+func (s *Scroll) scrollV() {
+	deltaLn := s.cursor.Ln - s.Ln
 
 	// Above?
 	if deltaLn <= 0 {
-		s.Ln = toLn
+		s.Ln = s.cursor.Ln
 		return
 	}
 
 	// Below?
 
-	if deltaLn > area.H {
-		s.Ln = toLn - area.H
+	if deltaLn > s.Area.H {
+		s.Ln = s.cursor.Ln - s.Area.H
 	}
 
-	xs := make([]int, toLn+1-s.Ln)
+	xs := make([]int, s.cursor.Ln+1-s.Ln)
 	for i := 0; i < len(xs); i += 1 {
 		xs[i] = 1
 		for cell := range grapheme.Wrap(s.buffer.LineGraphemes(s.Ln+i), s.WrapWidth, false) {
@@ -80,7 +83,7 @@ func (s *Scroll) scrollV(area ui.Area, toLn int) {
 	i := 0
 	height := std.Sum(xs)
 
-	for height > area.H {
+	for height > s.Area.H {
 		height -= xs[i]
 		s.Ln += 1
 		i += 1
@@ -92,10 +95,10 @@ func (s *Scroll) scrollV(area ui.Area, toLn int) {
 	}
 }
 
-func (s *Scroll) scrollH(toLn, toCol int) {
+func (s *Scroll) scrollH() {
 	var cell *grapheme.Cell = nil
-	for c := range grapheme.Wrap(s.buffer.LineGraphemes(toLn), s.WrapWidth, true) {
-		if c.Col >= toCol {
+	for c := range grapheme.Wrap(s.buffer.LineGraphemes(s.cursor.Ln), s.WrapWidth, true) {
+		if c.Col >= s.cursor.Col {
 			cell = &c
 			break
 		}
@@ -122,8 +125,8 @@ func (s *Scroll) scrollH(toLn, toCol int) {
 
 	xs := make([]int, deltaCol)
 	xsI := 0
-	for c := range grapheme.Wrap(s.buffer.LineGraphemes(toLn), s.WrapWidth, true) {
-		if c.Col >= toCol-deltaCol && c.Col < toCol {
+	for c := range grapheme.Wrap(s.buffer.LineGraphemes(s.cursor.Ln), s.WrapWidth, true) {
+		if c.Col >= s.cursor.Col-deltaCol && c.Col < s.cursor.Col {
 			xs[xsI] = c.Gr.Width
 			xsI += 1
 		}

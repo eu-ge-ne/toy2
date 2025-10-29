@@ -31,12 +31,12 @@ type Editor struct {
 	buffer    *textbuf.TextBuf
 	cursor    *cursor.Cursor
 	history   *history.History
-	syntax    *syntax.Syntax
 	scroll    *scroll.Scroll
+	syntax    *syntax.Syntax
 	render    *render.Render
 
 	enabled   bool
-	area      ui.Area
+	pageSize  int
 	clipboard string
 }
 
@@ -53,8 +53,8 @@ func New(multiLine bool) *Editor {
 	ed.history = history.New(buffer, ed.cursor)
 	ed.history.OnChanged = ed.OnChanged
 
+	ed.scroll = scroll.New(buffer, ed.cursor)
 	ed.syntax = syntax.New()
-	ed.scroll = scroll.New(buffer)
 	ed.render = render.New(buffer, ed.cursor, ed.scroll, ed.syntax)
 
 	ed.Handlers = map[string]Handler{
@@ -92,7 +92,8 @@ func (ed *Editor) SetColors(t theme.Theme) {
 }
 
 func (ed *Editor) Layout(a ui.Area) {
-	ed.area = a
+	ed.pageSize = a.H
+	ed.scroll.Area = a
 	ed.render.Area = a
 }
 
@@ -103,7 +104,7 @@ func (ed *Editor) Render() {
 		ed.OnCursor(ed.cursor.Ln, ed.cursor.Col, ed.buffer.LineCount())
 	}
 
-	ed.scroll.Scroll(ed.area, ed.cursor.Ln, ed.cursor.Col)
+	ed.scroll.Scroll()
 	ed.render.Render()
 
 	if ed.OnRender != nil {
