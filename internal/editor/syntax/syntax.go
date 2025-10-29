@@ -20,6 +20,16 @@ type Syntax struct {
 
 	text    []byte
 	started time.Time
+
+	spans chan span
+	span  span
+	idx   int
+}
+
+type span struct {
+	startIdx int
+	endIdx   int
+	name     string
 }
 
 func New() *Syntax {
@@ -110,9 +120,9 @@ func (s *Syntax) Insert(change textbuf.Change) {
 	log.Printf("insert: %+v; %+v", change, e)
 }
 
-func (s *Syntax) Highlight(buf *textbuf.TextBuf, startLn, endLn int) *Highlight {
+func (s *Syntax) Highlight(buf *textbuf.TextBuf, startLn, endLn int) {
 	if s.grammar == nil {
-		return nil
+		return
 	}
 
 	s.started = time.Now()
@@ -122,11 +132,9 @@ func (s *Syntax) Highlight(buf *textbuf.TextBuf, startLn, endLn int) *Highlight 
 
 	log.Printf("[%v] highlighting: %v:%v", time.Since(s.started), startPos, endPos)
 
-	hl := &Highlight{
-		spans: make(chan span, 1024*2),
-		span:  span{startIdx: -1, endIdx: -1},
-		idx:   startPos.Idx,
-	}
+	s.spans = make(chan span, 1024*2)
+	s.span = span{startIdx: -1, endIdx: -1}
+	s.idx = startPos.Idx
 
 	go func() {
 		s.parse(buf, startPos, endPos)
@@ -155,21 +163,39 @@ func (s *Syntax) Highlight(buf *textbuf.TextBuf, startLn, endLn int) *Highlight 
 			//fmt.Fprintf(s.log, "highlight: %v:%v %s (%s)\n", capt.Node.StartPosition(), capt.Node.EndPosition(), capt.Node.Utf8Text(s.text), name /*match.PatternIndex,*/ /*capt.Index,*/)
 
 			if spn.startIdx != startIdx || spn.endIdx != endIdx {
-				hl.spans <- spn
+				s.spans <- spn
 				spn = span{startIdx, endIdx, name}
 			} else {
 				spn.name = name
 			}
 		}
 
-		hl.spans <- spn
+		s.spans <- spn
 
-		close(hl.spans)
+		close(s.spans)
 
 		log.Printf("[%v] highlighting completed", time.Since(s.started))
 	}()
+}
 
-	return hl
+func (s *Syntax) Next(l int) string {
+	if s.grammar == nil {
+		return ""
+	}
+
+	defer func() { s.idx += l }()
+
+	if s.idx >= s.span.endIdx {
+		if spn, ok := <-s.spans; ok {
+			s.span = spn
+		}
+	}
+
+	if s.idx >= s.span.startIdx && s.idx < s.span.endIdx {
+		return s.span.name
+	}
+
+	return ""
 }
 
 const maxChunkLen = 1024 * 4

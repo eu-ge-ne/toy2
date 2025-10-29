@@ -40,12 +40,14 @@ type Frame struct {
 
 	buffer *textbuf.TextBuf
 	cursor *cursor.Cursor
+	syntax *syntax.Syntax
 }
 
-func New(buffer *textbuf.TextBuf, cursor *cursor.Cursor) *Frame {
+func New(buffer *textbuf.TextBuf, cursor *cursor.Cursor, syntax *syntax.Syntax) *Frame {
 	return &Frame{
 		buffer: buffer,
 		cursor: cursor,
+		syntax: syntax,
 	}
 }
 
@@ -90,7 +92,7 @@ func (fr *Frame) Scroll() {
 	fr.scrollH()
 }
 
-func (fr *Frame) Render(hl *syntax.Highlight) {
+func (fr *Frame) Render() {
 	vt.Sync.Bsu()
 
 	vt.Buf.Write(vt.HideCursor)
@@ -99,7 +101,7 @@ func (fr *Frame) Render(hl *syntax.Highlight) {
 	vt.ClearArea(vt.Buf, fr.Area)
 
 	if fr.Area.W >= fr.indexWidth {
-		fr.renderLines(hl)
+		fr.renderLines()
 	}
 
 	if fr.Enabled {
@@ -206,12 +208,12 @@ func (fr *Frame) scrollH() {
 	fr.cursorX += width
 }
 
-func (fr *Frame) renderLines(hl *syntax.Highlight) {
+func (fr *Frame) renderLines() {
 	row := fr.Area.Y
 
 	for ln := fr.ScrollLn; ; ln += 1 {
 		if ln < fr.buffer.LineCount() {
-			row = fr.renderLine(hl, ln, row)
+			row = fr.renderLine(ln, row)
 		} else {
 			vt.SetCursor(vt.Buf, row, fr.Area.X)
 			vt.Buf.Write(fr.colorVoidBg)
@@ -225,7 +227,7 @@ func (fr *Frame) renderLines(hl *syntax.Highlight) {
 	}
 }
 
-func (fr *Frame) renderLine(hl *syntax.Highlight, ln int, row int) int {
+func (fr *Frame) renderLine(ln int, row int) int {
 	currentFg := ""
 	currentBg := false
 	availableW := 0
@@ -255,7 +257,7 @@ func (fr *Frame) renderLine(hl *syntax.Highlight, ln int, row int) int {
 			availableW = fr.Area.W - fr.indexWidth
 		}
 
-		fg := hl.Next(len(cell.Gr.Str))
+		fg := fr.syntax.Next(len(cell.Gr.Str))
 
 		if (cell.WrapCol < fr.ScrollCol) || (cell.Gr.Width > availableW) {
 			continue
