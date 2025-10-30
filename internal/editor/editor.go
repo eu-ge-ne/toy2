@@ -135,28 +135,6 @@ func (ed *Editor) ToggleWrapEnabled() {
 	ed.cursor.Home(false)
 }
 
-func (ed *Editor) HandleKey(key key.Key) bool {
-	if !ed.enabled {
-		return false
-	}
-
-	started := time.Now()
-
-	for _, h := range ed.handlers {
-		if h.Match(key) {
-			r := h.Run(key)
-
-			if ed.OnKeyHandled != nil {
-				ed.OnKeyHandled(time.Since(started))
-			}
-
-			return r
-		}
-	}
-
-	return false
-}
-
 func (ed *Editor) HasChanges() bool {
 	return !ed.history.IsEmpty()
 }
@@ -216,6 +194,28 @@ func (ed *Editor) Save(filePath string) error {
 	}
 
 	return nil
+}
+
+func (ed *Editor) HandleKey(key key.Key) bool {
+	if !ed.enabled {
+		return false
+	}
+
+	started := time.Now()
+
+	for _, h := range ed.handlers {
+		if h.Match(key) {
+			r := h.Run(key)
+
+			if ed.OnKeyHandled != nil {
+				ed.OnKeyHandled(time.Since(started))
+			}
+
+			return r
+		}
+	}
+
+	return false
 }
 
 func (ed *Editor) Backspace() bool {
