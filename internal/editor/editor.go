@@ -87,12 +87,6 @@ func (ed *Editor) SetArea(a ui.Area) {
 	ed.frame.Area = a
 }
 
-func (ed *Editor) Render() {
-	ed.frame.Scroll()
-	ed.syntax.Highlight(ed.buffer, ed.frame.ScrollLn, ed.frame.ScrollLn+ed.frame.Area.H)
-	ed.frame.Render()
-}
-
 func (ed *Editor) SetEnabled(enabled bool) {
 	ed.enabled = enabled
 	ed.frame.Enabled = enabled
@@ -118,6 +112,10 @@ func (ed *Editor) SetWrapEnabled(enabled bool) {
 func (ed *Editor) ToggleWrapEnabled() {
 	ed.frame.WrapEnabled = !ed.frame.WrapEnabled
 	ed.cursor.Home(false)
+}
+
+func (ed *Editor) CursorStatus() (int, int, int) {
+	return ed.cursor.Ln, ed.cursor.Col, ed.buffer.LineCount()
 }
 
 func (ed *Editor) HasChanges() bool {
@@ -179,6 +177,12 @@ func (ed *Editor) Save(filePath string) error {
 	}
 
 	return nil
+}
+
+func (ed *Editor) Render() {
+	ed.frame.Scroll()
+	ed.syntax.Highlight(ed.buffer, ed.frame.ScrollLn, ed.frame.ScrollLn+ed.frame.Area.H)
+	ed.frame.Render()
 }
 
 func (ed *Editor) HandleKey(key key.Key) bool {

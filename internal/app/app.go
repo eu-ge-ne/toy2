@@ -259,7 +259,7 @@ outer:
 			app.editor.Render()
 			app.debug.SetRenderTime(time.Since(tr))
 
-			//app.footer.SetCursorStatus.OnCursor(app.editor.cursor.Ln, app.editor.cursor.Col, app.editor.buffer.LineCount())
+			app.footer.SetCursorStatus(app.editor.CursorStatus())
 		}
 	}
 }
