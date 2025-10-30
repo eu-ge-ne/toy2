@@ -95,6 +95,7 @@ func (ed *Editor) Render() {
 
 	ed.frame.Scroll()
 	ed.syntax.Highlight(ed.buffer, ed.frame.ScrollLn, ed.frame.ScrollLn+ed.frame.Area.H)
+
 	ed.frame.Render()
 
 	if ed.OnCursor != nil {
