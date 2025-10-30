@@ -13,19 +13,5 @@ func (h *Paste) Match(k key.Key) bool {
 }
 
 func (h *Paste) Run(key.Key) bool {
-	if !h.editor.enabled {
-		return false
-	}
-
-	if len(h.editor.clipboard) == 0 {
-		return false
-	}
-
-	if h.editor.cursor.Selecting {
-		h.editor.deleteSelection()
-	}
-
-	h.editor.insertText(h.editor.clipboard)
-
-	return true
+	return h.editor.Paste()
 }

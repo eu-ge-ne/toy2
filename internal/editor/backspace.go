@@ -13,11 +13,5 @@ func (h *Backspace) Match(k key.Key) bool {
 }
 
 func (h *Backspace) Run(key.Key) bool {
-	if h.editor.cursor.Selecting {
-		h.editor.deleteSelection()
-	} else {
-		h.editor.deletePrevChar()
-	}
-
-	return true
+	return h.editor.Backspace()
 }

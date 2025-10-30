@@ -17,6 +17,7 @@ import (
 	"github.com/eu-ge-ne/toy2/internal/textbuf"
 	"github.com/eu-ge-ne/toy2/internal/theme"
 	"github.com/eu-ge-ne/toy2/internal/ui"
+	"github.com/eu-ge-ne/toy2/internal/vt"
 )
 
 type Editor struct {
@@ -217,22 +218,79 @@ func (ed *Editor) Save(filePath string) error {
 	return nil
 }
 
-func (ed *Editor) Copy() bool {
-	c := Copy{ed}
+func (ed *Editor) Backspace() bool {
+	if ed.cursor.Selecting {
+		ed.deleteSelection()
+	} else {
+		ed.deletePrevChar()
+	}
 
-	return c.Run(key.Key{})
+	return true
+}
+
+func (ed *Editor) Bottom(sel bool) bool {
+	if !ed.multiLine {
+		return false
+	}
+
+	return ed.cursor.Bottom(sel)
+}
+
+func (ed *Editor) Copy() bool {
+	if !ed.enabled {
+		return false
+	}
+
+	cur := ed.cursor
+
+	if cur.Selecting {
+		ed.clipboard = std.IterToStr(ed.buffer.Read(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol))
+		cur.Set(cur.Ln, cur.Col, false)
+	} else {
+		ed.clipboard = std.IterToStr(ed.buffer.Read(cur.Ln, cur.Col, cur.Ln, cur.Col+1))
+	}
+
+	vt.CopyToClipboard(vt.Sync, ed.clipboard)
+
+	return false
 }
 
 func (ed *Editor) Cut() bool {
-	c := Cut{ed}
+	if !ed.enabled {
+		return false
+	}
 
-	return c.Run(key.Key{})
+	cur := ed.cursor
+
+	if cur.Selecting {
+		ed.clipboard = std.IterToStr(ed.buffer.Read(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol))
+		ed.deleteSelection()
+	} else {
+		ed.clipboard = std.IterToStr(ed.buffer.Read(cur.Ln, cur.Col, cur.Ln, cur.Col+1))
+		ed.deleteChar()
+	}
+
+	vt.CopyToClipboard(vt.Sync, ed.clipboard)
+
+	return true
 }
 
 func (ed *Editor) Paste() bool {
-	p := Paste{ed}
+	if !ed.enabled {
+		return false
+	}
 
-	return p.Run(key.Key{})
+	if len(ed.clipboard) == 0 {
+		return false
+	}
+
+	if ed.cursor.Selecting {
+		ed.deleteSelection()
+	}
+
+	ed.insertText(ed.clipboard)
+
+	return true
 }
 
 func (ed *Editor) Undo() bool {
