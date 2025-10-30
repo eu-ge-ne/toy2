@@ -4,7 +4,6 @@ import (
 	"io"
 	"math"
 	"os"
-	"time"
 	"unicode/utf8"
 
 	"github.com/eu-ge-ne/toy2/internal/editor/cursor"
@@ -21,8 +20,6 @@ import (
 )
 
 type Editor struct {
-	OnRender  func(time.Duration)
-	OnCursor  func(int, int, int)
 	OnChanged func()
 
 	multiLine bool
@@ -91,20 +88,9 @@ func (ed *Editor) SetArea(a ui.Area) {
 }
 
 func (ed *Editor) Render() {
-	started := time.Now()
-
 	ed.frame.Scroll()
 	ed.syntax.Highlight(ed.buffer, ed.frame.ScrollLn, ed.frame.ScrollLn+ed.frame.Area.H)
-
 	ed.frame.Render()
-
-	if ed.OnCursor != nil {
-		ed.OnCursor(ed.cursor.Ln, ed.cursor.Col, ed.buffer.LineCount())
-	}
-
-	if ed.OnRender != nil {
-		ed.OnRender(time.Since(started))
-	}
 }
 
 func (ed *Editor) SetEnabled(enabled bool) {

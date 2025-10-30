@@ -92,8 +92,6 @@ func New() *App {
 	app.saveas = saveas.New()
 
 	app.editor = editor.New(true)
-	app.editor.OnCursor = app.footer.SetCursorStatus
-	app.editor.OnRender = app.debug.SetRenderTime
 	app.editor.OnChanged = func() {
 		app.header.SetFlag(app.editor.HasChanges())
 	}
@@ -252,12 +250,16 @@ outer:
 			}
 		}
 
-		started := time.Now()
+		inputStarted := time.Now()
 
 		if app.editor.HandleKey(key) {
-			app.debug.SetInputTime(time.Since(started))
+			app.debug.SetInputTime(time.Since(inputStarted))
 
+			renderStarted := time.Now()
 			app.editor.Render()
+			app.debug.SetRenderTime(time.Since(renderStarted))
+
+			//app.footer.SetCursorStatus.OnCursor(app.editor.cursor.Ln, app.editor.cursor.Col, app.editor.buffer.LineCount())
 		}
 	}
 }
