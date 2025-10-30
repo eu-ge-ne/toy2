@@ -13,9 +13,5 @@ func (h *Top) Match(k key.Key) bool {
 }
 
 func (h *Top) Run(k key.Key) bool {
-	if !h.editor.multiLine {
-		return false
-	}
-
-	return h.editor.cursor.Top(k.Mods&key.Shift != 0)
+	return h.editor.Top(k.Mods&key.Shift != 0)
 }

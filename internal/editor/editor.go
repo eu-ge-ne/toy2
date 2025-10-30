@@ -320,8 +320,6 @@ func (ed *Editor) Left(sel bool) bool {
 	return ed.cursor.Left(sel)
 }
 
-// TODO
-
 func (ed *Editor) Paste() bool {
 	if len(ed.clipboard) == 0 {
 		return false
@@ -330,22 +328,51 @@ func (ed *Editor) Paste() bool {
 	return ed.Insert(ed.clipboard)
 }
 
-func (ed *Editor) Undo() bool {
-	u := Undo{ed}
+func (ed *Editor) Redo() bool {
+	if !ed.enabled {
+		return false
+	}
 
-	return u.Run(key.Key{})
+	return ed.history.Redo()
 }
 
-func (ed *Editor) Redo() bool {
-	r := Redo{ed}
-
-	return r.Run(key.Key{})
+func (ed *Editor) Right(sel bool) bool {
+	return ed.cursor.Right(sel)
 }
 
 func (ed *Editor) SelectAll() bool {
-	s := SelectAll{ed}
+	if !ed.enabled {
+		return false
+	}
 
-	return s.Run(key.Key{})
+	ed.cursor.Set(0, 0, false)
+	ed.cursor.Set(math.MaxInt, math.MaxInt, true)
+
+	return true
+}
+
+func (ed *Editor) Top(sel bool) bool {
+	if !ed.multiLine {
+		return false
+	}
+
+	return ed.cursor.Top(sel)
+}
+
+func (ed *Editor) Undo() bool {
+	if !ed.enabled {
+		return false
+	}
+
+	return ed.history.Undo()
+}
+
+func (ed *Editor) Up(n int, sel bool) bool {
+	if !ed.multiLine {
+		return false
+	}
+
+	return ed.cursor.Up(n, sel)
 }
 
 func (ed *Editor) deleteSelection() {

@@ -13,9 +13,5 @@ func (h *Redo) Match(k key.Key) bool {
 }
 
 func (h *Redo) Run(key.Key) bool {
-	if !h.editor.enabled {
-		return false
-	}
-
-	return h.editor.history.Redo()
+	return h.editor.Redo()
 }

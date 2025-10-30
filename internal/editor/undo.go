@@ -13,9 +13,5 @@ func (h *Undo) Match(k key.Key) bool {
 }
 
 func (h *Undo) Run(key.Key) bool {
-	if !h.editor.enabled {
-		return false
-	}
-
-	return h.editor.history.Undo()
+	return h.editor.Undo()
 }
