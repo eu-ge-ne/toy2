@@ -250,14 +250,14 @@ outer:
 			}
 		}
 
-		inputStarted := time.Now()
+		ti := time.Now()
 
 		if app.editor.HandleKey(key) {
-			app.debug.SetInputTime(time.Since(inputStarted))
+			app.debug.SetInputTime(time.Since(ti))
 
-			renderStarted := time.Now()
+			tr := time.Now()
 			app.editor.Render()
-			app.debug.SetRenderTime(time.Since(renderStarted))
+			app.debug.SetRenderTime(time.Since(tr))
 
 			//app.footer.SetCursorStatus.OnCursor(app.editor.cursor.Ln, app.editor.cursor.Col, app.editor.buffer.LineCount())
 		}
