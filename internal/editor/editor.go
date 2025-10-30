@@ -139,14 +139,14 @@ func (ed *Editor) HandleKey(key key.Key) bool {
 		return false
 	}
 
-	t0 := time.Now()
+	started := time.Now()
 
 	for _, h := range ed.handlers {
 		if h.Match(key) {
 			r := h.Run(key)
 
 			if ed.OnKeyHandled != nil {
-				ed.OnKeyHandled(time.Since(t0))
+				ed.OnKeyHandled(time.Since(started))
 			}
 
 			return r
