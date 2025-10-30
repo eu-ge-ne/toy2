@@ -250,15 +250,16 @@ outer:
 			}
 		}
 
-		ti := time.Now()
+		ti0 := time.Now()
 
 		if app.editor.HandleKey(key) {
-			app.debug.SetInputTime(time.Since(ti))
+			ti := time.Since(ti0)
 
-			tr := time.Now()
+			tr0 := time.Now()
 			app.editor.Render()
-			app.debug.SetRenderTime(time.Since(tr))
+			tr := time.Since(tr0)
 
+			app.debug.SetTimes(ti, tr)
 			app.footer.SetCursorStatus(app.editor.CursorStatus())
 		}
 	}

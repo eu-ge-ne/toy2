@@ -83,16 +83,9 @@ func (d *Debug) Render() {
 	vt.Sync.Esu()
 }
 
-func (d *Debug) SetInputTime(elapsed time.Duration) {
-	d.inputTime = elapsed
-
-	if d.enabled {
-		d.Render()
-	}
-}
-
-func (d *Debug) SetRenderTime(elapsed time.Duration) {
-	d.renderTime = elapsed
+func (d *Debug) SetTimes(input, render time.Duration) {
+	d.inputTime = input
+	d.renderTime = render
 
 	if d.enabled {
 		d.Render()
