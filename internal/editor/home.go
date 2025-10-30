@@ -19,5 +19,5 @@ func (h *Home) Match(k key.Key) bool {
 }
 
 func (h *Home) Run(k key.Key) bool {
-	return h.editor.cursor.Home(k.Mods&key.Shift != 0)
+	return h.editor.Home(k.Mods&key.Shift != 0)
 }

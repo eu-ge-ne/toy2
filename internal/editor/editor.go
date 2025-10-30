@@ -237,10 +237,6 @@ func (ed *Editor) Bottom(sel bool) bool {
 }
 
 func (ed *Editor) Copy() bool {
-	if !ed.enabled {
-		return false
-	}
-
 	cur := ed.cursor
 
 	if cur.Selecting {
@@ -256,10 +252,6 @@ func (ed *Editor) Copy() bool {
 }
 
 func (ed *Editor) Cut() bool {
-	if !ed.enabled {
-		return false
-	}
-
 	cur := ed.cursor
 
 	if cur.Selecting {
@@ -275,22 +267,67 @@ func (ed *Editor) Cut() bool {
 	return true
 }
 
-func (ed *Editor) Paste() bool {
-	if !ed.enabled {
+func (ed *Editor) Delete() bool {
+	if ed.cursor.Selecting {
+		ed.deleteSelection()
+	} else {
+		ed.deleteChar()
+	}
+
+	return true
+}
+
+func (ed *Editor) Down(n int, sel bool) bool {
+	if !ed.multiLine {
 		return false
 	}
 
-	if len(ed.clipboard) == 0 {
+	return ed.cursor.Down(n, sel)
+}
+
+func (ed *Editor) End(sel bool) bool {
+	return ed.cursor.End(sel)
+}
+
+func (ed *Editor) Enter() bool {
+	if !ed.multiLine {
 		return false
 	}
 
+	return ed.Insert("\n")
+}
+
+func (ed *Editor) Home(sel bool) bool {
+	return ed.cursor.Home(sel)
+}
+
+func (ed *Editor) Insert(text string) bool {
 	if ed.cursor.Selecting {
 		ed.deleteSelection()
 	}
 
-	ed.insertText(ed.clipboard)
+	change := ed.buffer.Insert(ed.cursor.Ln, ed.cursor.Col, text)
+
+	ed.cursor.Set(change.End.Ln, change.End.Col, false)
+	ed.history.Push()
+
+	ed.syntax.Insert(change)
 
 	return true
+}
+
+func (ed *Editor) Left(sel bool) bool {
+	return ed.cursor.Left(sel)
+}
+
+// TODO
+
+func (ed *Editor) Paste() bool {
+	if len(ed.clipboard) == 0 {
+		return false
+	}
+
+	return ed.Insert(ed.clipboard)
 }
 
 func (ed *Editor) Undo() bool {
@@ -309,21 +346,6 @@ func (ed *Editor) SelectAll() bool {
 	s := SelectAll{ed}
 
 	return s.Run(key.Key{})
-}
-
-func (ed *Editor) End() bool {
-	e := End{ed}
-
-	return e.Run(key.Key{})
-}
-
-func (ed *Editor) insertText(text string) {
-	change := ed.buffer.Insert(ed.cursor.Ln, ed.cursor.Col, text)
-
-	ed.cursor.Set(change.End.Ln, change.End.Col, false)
-	ed.history.Push()
-
-	ed.syntax.Insert(change)
 }
 
 func (ed *Editor) deleteSelection() {

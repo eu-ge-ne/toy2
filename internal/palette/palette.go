@@ -54,7 +54,7 @@ func (p *Palette) Open() <-chan *Option {
 		p.editor.SetEnabled(true)
 
 		p.editor.SetText("")
-		p.editor.End()
+		p.editor.End(false)
 
 		p.filter()
 		p.parent.Render()

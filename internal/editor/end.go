@@ -19,5 +19,5 @@ func (h *End) Match(k key.Key) bool {
 }
 
 func (h *End) Run(k key.Key) bool {
-	return h.editor.cursor.End(k.Mods&key.Shift != 0)
+	return h.editor.End(k.Mods&key.Shift != 0)
 }

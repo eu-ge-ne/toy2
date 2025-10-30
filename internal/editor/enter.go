@@ -13,15 +13,5 @@ func (h *Enter) Match(k key.Key) bool {
 }
 
 func (h *Enter) Run(key.Key) bool {
-	if !h.editor.multiLine {
-		return false
-	}
-
-	if h.editor.cursor.Selecting {
-		h.editor.deleteSelection()
-	}
-
-	h.editor.insertText("\n")
-
-	return true
+	return h.editor.Enter()
 }

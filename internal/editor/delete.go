@@ -13,11 +13,5 @@ func (h *Delete) Match(k key.Key) bool {
 }
 
 func (h *Delete) Run(key.Key) bool {
-	if h.editor.cursor.Selecting {
-		h.editor.deleteSelection()
-	} else {
-		h.editor.deleteChar()
-	}
-
-	return true
+	return h.editor.Delete()
 }
