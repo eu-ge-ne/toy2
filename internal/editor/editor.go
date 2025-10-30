@@ -221,9 +221,28 @@ func (ed *Editor) Save(filePath string) error {
 func (ed *Editor) Backspace() bool {
 	if ed.cursor.Selecting {
 		ed.deleteSelection()
-	} else {
-		ed.deletePrevChar()
+		return true
 	}
+
+	if ed.cursor.Ln == 0 && ed.cursor.Col == 0 {
+		return false
+	}
+
+	var change textbuf.Change
+
+	if ed.cursor.Col == 0 {
+		startLn := ed.cursor.Ln - 1
+		startCol := max(0, ed.buffer.ColumnCount(startLn)-1)
+
+		change = ed.buffer.Delete(startLn, startCol, ed.cursor.Ln, ed.cursor.Col)
+	} else {
+		change = ed.buffer.Delete(ed.cursor.Ln, ed.cursor.Col-1, ed.cursor.Ln, ed.cursor.Col)
+	}
+
+	ed.cursor.Set(change.Start.Ln, change.Start.Col, false)
+	ed.history.Push()
+
+	ed.syntax.Delete(change)
 
 	return true
 }
@@ -304,6 +323,7 @@ func (ed *Editor) Home(sel bool) bool {
 func (ed *Editor) Insert(text string) bool {
 	if ed.cursor.Selecting {
 		ed.deleteSelection()
+		return true
 	}
 
 	change := ed.buffer.Insert(ed.cursor.Ln, ed.cursor.Col, text)
@@ -387,28 +407,6 @@ func (ed *Editor) deleteSelection() {
 func (ed *Editor) deleteChar() {
 	change := ed.buffer.Delete(ed.cursor.Ln, ed.cursor.Col, ed.cursor.Ln, ed.cursor.Col+1)
 
-	ed.history.Push()
-
-	ed.syntax.Delete(change)
-}
-
-func (ed *Editor) deletePrevChar() {
-	if ed.cursor.Ln == 0 && ed.cursor.Col == 0 {
-		return
-	}
-
-	var change textbuf.Change
-
-	if ed.cursor.Col == 0 {
-		startLn := ed.cursor.Ln - 1
-		startCol := max(0, ed.buffer.ColumnCount(startLn)-1)
-
-		change = ed.buffer.Delete(startLn, startCol, ed.cursor.Ln, ed.cursor.Col)
-	} else {
-		change = ed.buffer.Delete(ed.cursor.Ln, ed.cursor.Col-1, ed.cursor.Ln, ed.cursor.Col)
-	}
-
-	ed.cursor.Set(change.Start.Ln, change.Start.Col, false)
 	ed.history.Push()
 
 	ed.syntax.Delete(change)
