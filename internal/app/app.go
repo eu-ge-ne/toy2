@@ -10,6 +10,7 @@ import (
 	"slices"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/eu-ge-ne/toy2/internal/alert"
 	"github.com/eu-ge-ne/toy2/internal/ask"
@@ -92,7 +93,6 @@ func New() *App {
 
 	app.editor = editor.New(true)
 	app.editor.OnCursor = app.footer.SetCursorStatus
-	app.editor.OnKeyHandled = app.debug.SetInputTime
 	app.editor.OnRender = app.debug.SetRenderTime
 	app.editor.OnChanged = func() {
 		app.header.SetFlag(app.editor.HasChanges())
@@ -252,7 +252,11 @@ outer:
 			}
 		}
 
+		started := time.Now()
+
 		if app.editor.HandleKey(key) {
+			app.debug.SetInputTime(time.Since(started))
+
 			app.editor.Render()
 		}
 	}

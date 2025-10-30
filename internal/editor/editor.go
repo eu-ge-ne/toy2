@@ -21,10 +21,9 @@ import (
 )
 
 type Editor struct {
-	OnKeyHandled func(time.Duration)
-	OnRender     func(time.Duration)
-	OnCursor     func(int, int, int)
-	OnChanged    func()
+	OnRender  func(time.Duration)
+	OnCursor  func(int, int, int)
+	OnChanged func()
 
 	multiLine bool
 	buffer    *textbuf.TextBuf
@@ -201,17 +200,9 @@ func (ed *Editor) HandleKey(key key.Key) bool {
 		return false
 	}
 
-	started := time.Now()
-
 	for _, h := range ed.handlers {
 		if h.Match(key) {
-			r := h.Run(key)
-
-			if ed.OnKeyHandled != nil {
-				ed.OnKeyHandled(time.Since(started))
-			}
-
-			return r
+			return h.Run(key)
 		}
 	}
 
