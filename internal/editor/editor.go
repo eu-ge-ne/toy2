@@ -44,12 +44,13 @@ func New(multiLine bool) *Editor {
 	}
 
 	ed.cursor = cursor.New(buffer)
-	ed.cursor.OnChanged = func() { ed.OnCursor(ed.cursor.Ln, ed.cursor.Col, ed.buffer.LineCount()) }
-	ed.syntax = syntax.New()
-	ed.frame = frame.New(buffer, ed.cursor, ed.syntax)
+	ed.cursor.OnChanged = ed.onCursorChanged
 
 	ed.history = history.New(buffer, ed.cursor)
 	ed.history.OnChanged = ed.OnChanged
+
+	ed.syntax = syntax.New()
+	ed.frame = frame.New(buffer, ed.cursor, ed.syntax)
 
 	ed.handlers = []Handler{
 		&Insert{ed},
@@ -391,4 +392,8 @@ func (ed *Editor) deleteChar() {
 	ed.history.Push()
 
 	ed.syntax.Delete(change)
+}
+
+func (ed *Editor) onCursorChanged() {
+	ed.OnCursor(ed.cursor.Ln, ed.cursor.Col, ed.buffer.LineCount())
 }
