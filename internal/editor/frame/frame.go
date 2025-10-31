@@ -96,8 +96,6 @@ func (fr *Frame) ToggleWhitespaceEnabled() {
 func (fr *Frame) Render(setCursor bool) {
 	fr.scroll()
 
-	fr.syntax.Highlight(fr.buffer, fr.scrollLn, fr.scrollLn+fr.area.H)
-
 	vt.Sync.Bsu()
 
 	vt.Buf.Write(vt.HideCursor)
@@ -143,6 +141,9 @@ func (fr *Frame) scroll() {
 	grapheme.Graphemes.SetWcharPos(fr.area.Y, fr.area.X+fr.indexWidth)
 
 	fr.scrollV()
+
+	fr.syntax.Highlight(fr.buffer, fr.scrollLn, fr.scrollLn+fr.area.H)
+
 	fr.scrollH()
 }
 
