@@ -394,5 +394,7 @@ func (ed *Editor) deleteChar() {
 }
 
 func (ed *Editor) onCursorChanged() {
-	ed.OnCursor(ed.cursor.Ln, ed.cursor.Col, ed.buffer.LineCount())
+	if ed.OnCursor != nil {
+		ed.OnCursor(ed.cursor.Ln, ed.cursor.Col, ed.buffer.LineCount())
+	}
 }
