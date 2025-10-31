@@ -92,9 +92,8 @@ func New() *App {
 	app.saveas = saveas.New()
 
 	app.editor = editor.New(true)
-	app.editor.OnChanged = func() {
-		app.header.SetFlag(app.editor.HasChanges())
-	}
+	app.editor.OnCursor = app.footer.SetCursorStatus
+	app.editor.OnChanged = func() { app.header.SetFlag(app.editor.HasChanges()) }
 
 	return &app
 }
@@ -260,7 +259,6 @@ outer:
 			tr := time.Since(tr0)
 
 			app.debug.SetTimes(ti, tr)
-			app.footer.SetCursorStatus(app.editor.CursorStatus())
 		}
 	}
 }
