@@ -16,18 +16,17 @@ import (
 )
 
 type Frame struct {
-	Area              ui.Area
-	Enabled           bool
-	IndexEnabled      bool
-	WrapEnabled       bool
-	WhitespaceEnabled bool
+	area              ui.Area
+	indexEnabled      bool
+	wrapEnabled       bool
+	whitespaceEnabled bool
 
 	indexWidth int
 	textWidth  int
 	wrapWidth  int
 
-	ScrollLn  int
-	ScrollCol int
+	scrollLn  int
+	scrollCol int
 	cursorY   int
 	cursorX   int
 
@@ -68,43 +67,49 @@ func (fr *Frame) SetColors(t theme.Theme) {
 	}
 }
 
-func (fr *Frame) Scroll() {
-	if fr.IndexEnabled && fr.buffer.LineCount() > 0 {
-		fr.indexWidth = int(math.Log10(float64(fr.buffer.LineCount()))) + 3
-	} else {
-		fr.indexWidth = 0
-	}
-
-	fr.textWidth = fr.Area.W - fr.indexWidth
-
-	if fr.WrapEnabled {
-		fr.wrapWidth = fr.textWidth
-	} else {
-		fr.wrapWidth = math.MaxInt
-	}
-
-	fr.cursorY = fr.Area.Y
-	fr.cursorX = fr.Area.X + fr.indexWidth
-
-	grapheme.Graphemes.SetWcharPos(fr.Area.Y, fr.Area.X+fr.indexWidth)
-
-	fr.scrollV()
-	fr.scrollH()
+func (fr *Frame) SetArea(a ui.Area) {
+	fr.area = a
 }
 
-func (fr *Frame) Render() {
+func (fr *Frame) SetIndexEnabled(e bool) {
+	fr.indexEnabled = e
+}
+
+func (fr *Frame) SetWrapEnabled(e bool) {
+	fr.wrapEnabled = e
+}
+
+func (fr *Frame) ToggleWrapEnabled() {
+	fr.wrapEnabled = !fr.wrapEnabled
+	fr.cursor.Home(false)
+}
+
+func (fr *Frame) SetWhitespaceEnabled(e bool) {
+	fr.whitespaceEnabled = e
+}
+
+func (fr *Frame) ToggleWhitespaceEnabled() {
+	fr.whitespaceEnabled = !fr.whitespaceEnabled
+	fr.cursor.Home(false)
+}
+
+func (fr *Frame) Render(setCursor bool) {
+	fr.scroll()
+
+	fr.syntax.Highlight(fr.buffer, fr.scrollLn, fr.scrollLn+fr.area.H)
+
 	vt.Sync.Bsu()
 
 	vt.Buf.Write(vt.HideCursor)
 	vt.Buf.Write(vt.SaveCursor)
 	vt.Buf.Write(fr.colorMainBg)
-	vt.ClearArea(vt.Buf, fr.Area)
+	vt.ClearArea(vt.Buf, fr.area)
 
-	if fr.Area.W >= fr.indexWidth {
+	if fr.area.W >= fr.indexWidth {
 		fr.renderLines()
 	}
 
-	if fr.Enabled {
+	if setCursor {
 		vt.SetCursor(vt.Buf, fr.cursorY, fr.cursorX)
 		vt.Buf.Write(vt.ShowCursor)
 	} else {
@@ -117,25 +122,49 @@ func (fr *Frame) Render() {
 	vt.Sync.Esu()
 }
 
+func (fr *Frame) scroll() {
+	if fr.indexEnabled && fr.buffer.LineCount() > 0 {
+		fr.indexWidth = int(math.Log10(float64(fr.buffer.LineCount()))) + 3
+	} else {
+		fr.indexWidth = 0
+	}
+
+	fr.textWidth = fr.area.W - fr.indexWidth
+
+	if fr.wrapEnabled {
+		fr.wrapWidth = fr.textWidth
+	} else {
+		fr.wrapWidth = math.MaxInt
+	}
+
+	fr.cursorY = fr.area.Y
+	fr.cursorX = fr.area.X + fr.indexWidth
+
+	grapheme.Graphemes.SetWcharPos(fr.area.Y, fr.area.X+fr.indexWidth)
+
+	fr.scrollV()
+	fr.scrollH()
+}
+
 func (fr *Frame) scrollV() {
-	deltaLn := fr.cursor.Ln - fr.ScrollLn
+	deltaLn := fr.cursor.Ln - fr.scrollLn
 
 	// Above?
 	if deltaLn <= 0 {
-		fr.ScrollLn = fr.cursor.Ln
+		fr.scrollLn = fr.cursor.Ln
 		return
 	}
 
 	// Below?
 
-	if deltaLn > fr.Area.H {
-		fr.ScrollLn = fr.cursor.Ln - fr.Area.H
+	if deltaLn > fr.area.H {
+		fr.scrollLn = fr.cursor.Ln - fr.area.H
 	}
 
-	xs := make([]int, fr.cursor.Ln+1-fr.ScrollLn)
+	xs := make([]int, fr.cursor.Ln+1-fr.scrollLn)
 	for i := 0; i < len(xs); i += 1 {
 		xs[i] = 1
-		for cell := range grapheme.Wrap(fr.buffer.LineGraphemes(fr.ScrollLn+i), fr.wrapWidth, false) {
+		for cell := range grapheme.Wrap(fr.buffer.LineGraphemes(fr.scrollLn+i), fr.wrapWidth, false) {
 			if cell.Col > 0 && cell.WrapCol == 0 {
 				xs[i] += 1
 			}
@@ -145,9 +174,9 @@ func (fr *Frame) scrollV() {
 	i := 0
 	height := std.Sum(xs)
 
-	for height > fr.Area.H {
+	for height > fr.area.H {
 		height -= xs[i]
-		fr.ScrollLn += 1
+		fr.scrollLn += 1
 		i += 1
 	}
 
@@ -174,12 +203,12 @@ func (fr *Frame) scrollH() {
 		col = cell.WrapCol
 	}
 
-	deltaCol := col - fr.ScrollCol
+	deltaCol := col - fr.scrollCol
 
 	// Before?
 
 	if deltaCol <= 0 {
-		fr.ScrollCol = col
+		fr.scrollCol = col
 		return
 	}
 
@@ -201,7 +230,7 @@ func (fr *Frame) scrollH() {
 			break
 		}
 
-		fr.ScrollCol += 1
+		fr.scrollCol += 1
 		width -= w
 	}
 
@@ -209,19 +238,19 @@ func (fr *Frame) scrollH() {
 }
 
 func (fr *Frame) renderLines() {
-	row := fr.Area.Y
+	row := fr.area.Y
 
-	for ln := fr.ScrollLn; ; ln += 1 {
+	for ln := fr.scrollLn; ; ln += 1 {
 		if ln < fr.buffer.LineCount() {
 			row = fr.renderLine(ln, row)
 		} else {
-			vt.SetCursor(vt.Buf, row, fr.Area.X)
+			vt.SetCursor(vt.Buf, row, fr.area.X)
 			vt.Buf.Write(fr.colorVoidBg)
-			vt.ClearLine(vt.Buf, fr.Area.W)
+			vt.ClearLine(vt.Buf, fr.area.W)
 		}
 
 		row += 1
-		if row >= fr.Area.Y+fr.Area.H {
+		if row >= fr.area.Y+fr.area.H {
 			break
 		}
 	}
@@ -236,12 +265,12 @@ func (fr *Frame) renderLine(ln int, row int) int {
 		if cell.WrapCol == 0 {
 			if cell.Col > 0 {
 				row += 1
-				if row >= fr.Area.Y+fr.Area.H {
+				if row >= fr.area.Y+fr.area.H {
 					return row
 				}
 			}
 
-			vt.SetCursor(vt.Buf, row, fr.Area.X)
+			vt.SetCursor(vt.Buf, row, fr.area.X)
 
 			if fr.indexWidth > 0 {
 				if cell.Col == 0 {
@@ -254,12 +283,12 @@ func (fr *Frame) renderLine(ln int, row int) int {
 				}
 			}
 
-			availableW = fr.Area.W - fr.indexWidth
+			availableW = fr.area.W - fr.indexWidth
 		}
 
 		fg := fr.syntax.Next(len(cell.Gr.Str))
 
-		if (cell.WrapCol < fr.ScrollCol) || (cell.Gr.Width > availableW) {
+		if (cell.WrapCol < fr.scrollCol) || (cell.Gr.Width > availableW) {
 			continue
 		}
 
@@ -276,7 +305,7 @@ func (fr *Frame) renderLine(ln int, row int) int {
 		if len(fg) == 0 {
 			if cell.Gr.IsVisible {
 				fg = "_text"
-			} else if fr.WhitespaceEnabled {
+			} else if fr.whitespaceEnabled {
 				fg = "_ws_enabled"
 			} else {
 				fg = "_ws_disabled"

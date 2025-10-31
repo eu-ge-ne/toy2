@@ -30,6 +30,7 @@ type Editor struct {
 	syntax    *syntax.Syntax
 	frame     *frame.Frame
 
+	area      ui.Area
 	enabled   bool
 	clipboard string
 	handlers  []Handler
@@ -87,46 +88,44 @@ func (ed *Editor) SetColors(t theme.Theme) {
 }
 
 func (ed *Editor) SetArea(a ui.Area) {
-	ed.frame.Area = a
+	ed.area = a
+	ed.frame.SetArea(a)
 }
 
-func (ed *Editor) SetEnabled(enabled bool) {
-	ed.enabled = enabled
-	ed.frame.Enabled = enabled
+func (ed *Editor) SetEnabled(e bool) {
+	ed.enabled = e
 }
 
-func (ed *Editor) SetIndexEnabled(enabled bool) {
-	ed.frame.IndexEnabled = enabled
+func (ed *Editor) SetIndexEnabled(e bool) {
+	ed.frame.SetIndexEnabled(e)
 }
 
-func (ed *Editor) EnableWhitespace(enabled bool) {
-	ed.frame.WhitespaceEnabled = enabled
-}
-
-func (ed *Editor) ToggleWhitespaceEnabled() {
-	ed.frame.WhitespaceEnabled = !ed.frame.WhitespaceEnabled
-	ed.cursor.Home(false)
-}
-
-func (ed *Editor) SetWrapEnabled(enabled bool) {
-	ed.frame.WrapEnabled = enabled
+func (ed *Editor) SetWrapEnabled(e bool) {
+	ed.frame.SetWrapEnabled(e)
 }
 
 func (ed *Editor) ToggleWrapEnabled() {
-	ed.frame.WrapEnabled = !ed.frame.WrapEnabled
-	ed.cursor.Home(false)
+	ed.frame.ToggleWrapEnabled()
+}
+
+func (ed *Editor) SetWhitespaceEnabled(e bool) {
+	ed.frame.SetWhitespaceEnabled(e)
+}
+
+func (ed *Editor) ToggleWhitespaceEnabled() {
+	ed.frame.ToggleWhitespaceEnabled()
 }
 
 func (ed *Editor) HasChanges() bool {
 	return !ed.history.IsEmpty()
 }
 
-func (ed *Editor) SetText(text string) {
-	ed.buffer.Reset(text)
-}
-
 func (ed *Editor) GetText() string {
 	return std.IterToStr(ed.buffer.Slice(0, math.MaxInt))
+}
+
+func (ed *Editor) SetText(text string) {
+	ed.buffer.Reset(text)
 }
 
 func (ed *Editor) Load(filePath string) error {
@@ -179,11 +178,7 @@ func (ed *Editor) Save(filePath string) error {
 }
 
 func (ed *Editor) Render() {
-	ed.frame.Scroll()
-
-	ed.syntax.Highlight(ed.buffer, ed.frame.ScrollLn, ed.frame.ScrollLn+ed.frame.Area.H)
-
-	ed.frame.Render()
+	ed.frame.Render(ed.enabled)
 }
 
 func (ed *Editor) HandleKey(key key.Key) bool {
@@ -295,7 +290,7 @@ func (ed *Editor) Enter() bool {
 		return false
 	}
 
-	return ed.Insert("\n")
+	return ed.insertText("\n")
 }
 
 func (ed *Editor) Home(sel bool) bool {
@@ -303,19 +298,7 @@ func (ed *Editor) Home(sel bool) bool {
 }
 
 func (ed *Editor) Insert(text string) bool {
-	if ed.cursor.Selecting {
-		ed.deleteSelection()
-		return true
-	}
-
-	change := ed.buffer.Insert(ed.cursor.Ln, ed.cursor.Col, text)
-
-	ed.cursor.Set(change.End.Ln, change.End.Col, false)
-	ed.history.Push()
-
-	ed.syntax.Insert(change)
-
-	return true
+	return ed.insertText(text)
 }
 
 func (ed *Editor) Left(sel bool) bool {
@@ -375,6 +358,22 @@ func (ed *Editor) Up(n int, sel bool) bool {
 	}
 
 	return ed.cursor.Up(n, sel)
+}
+
+func (ed *Editor) insertText(text string) bool {
+	if ed.cursor.Selecting {
+		ed.deleteSelection()
+		return true
+	}
+
+	change := ed.buffer.Insert(ed.cursor.Ln, ed.cursor.Col, text)
+
+	ed.cursor.Set(change.End.Ln, change.End.Col, false)
+	ed.history.Push()
+
+	ed.syntax.Insert(change)
+
+	return true
 }
 
 func (ed *Editor) deleteSelection() {

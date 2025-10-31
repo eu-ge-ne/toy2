@@ -124,8 +124,8 @@ func (app *App) Run() {
 	app.setZenEnabled(false)
 
 	app.editor.SetEnabled(true)
-	app.editor.EnableWhitespace(true)
 	app.editor.SetWrapEnabled(true)
+	app.editor.SetWhitespaceEnabled(true)
 	app.editor.SetGrammar(nil)
 
 	app.debug.Enable(true)

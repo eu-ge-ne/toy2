@@ -13,5 +13,5 @@ func (h *PageUp) Match(k key.Key) bool {
 }
 
 func (h *PageUp) Run(k key.Key) bool {
-	return h.editor.Up(h.editor.frame.Area.H, k.Mods&key.Shift != 0)
+	return h.editor.Up(h.editor.area.H, k.Mods&key.Shift != 0)
 }

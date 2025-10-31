@@ -13,5 +13,5 @@ func (h *PageDown) Match(k key.Key) bool {
 }
 
 func (h *PageDown) Run(k key.Key) bool {
-	return h.editor.Down(h.editor.frame.Area.H, k.Mods&key.Shift != 0)
+	return h.editor.Down(h.editor.area.H, k.Mods&key.Shift != 0)
 }
