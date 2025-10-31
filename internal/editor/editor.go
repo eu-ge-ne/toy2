@@ -20,6 +20,7 @@ import (
 )
 
 type Editor struct {
+	OnCursor  func(int, int, int)
 	OnChanged func()
 
 	multiLine bool
@@ -43,6 +44,7 @@ func New(multiLine bool) *Editor {
 	}
 
 	ed.cursor = cursor.New(buffer)
+	ed.cursor.OnChanged = func() { ed.OnCursor(ed.cursor.Ln, ed.cursor.Col, ed.buffer.LineCount()) }
 	ed.syntax = syntax.New()
 	ed.frame = frame.New(buffer, ed.cursor, ed.syntax)
 
@@ -114,10 +116,6 @@ func (ed *Editor) ToggleWrapEnabled() {
 	ed.cursor.Home(false)
 }
 
-func (ed *Editor) CursorStatus() (int, int, int) {
-	return ed.cursor.Ln, ed.cursor.Col, ed.buffer.LineCount()
-}
-
 func (ed *Editor) HasChanges() bool {
 	return !ed.history.IsEmpty()
 }
@@ -181,7 +179,9 @@ func (ed *Editor) Save(filePath string) error {
 
 func (ed *Editor) Render() {
 	ed.frame.Scroll()
+
 	ed.syntax.Highlight(ed.buffer, ed.frame.ScrollLn, ed.frame.ScrollLn+ed.frame.Area.H)
+
 	ed.frame.Render()
 }
 
