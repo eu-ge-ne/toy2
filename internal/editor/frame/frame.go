@@ -148,41 +148,43 @@ func (fr *Frame) scroll() {
 }
 
 func (fr *Frame) scrollV() {
-	deltaLn := fr.cursor.Ln - fr.scrollLn
+	delta := fr.cursor.Ln - fr.scrollLn
 
 	// Above?
-	if deltaLn <= 0 {
+	if delta <= 0 {
 		fr.scrollLn = fr.cursor.Ln
 		return
 	}
 
 	// Below?
 
-	if deltaLn > fr.area.H {
+	if delta > fr.area.H {
 		fr.scrollLn = fr.cursor.Ln - fr.area.H
 	}
 
-	xs := make([]int, fr.cursor.Ln+1-fr.scrollLn)
-	for i := 0; i < len(xs); i += 1 {
-		xs[i] = 1
+	heights := make([]int, fr.cursor.Ln+1-fr.scrollLn)
+
+	for i := 0; i < len(heights); i += 1 {
+		heights[i] = 1
+
 		for cell := range grapheme.Wrap(fr.buffer.LineGraphemes(fr.scrollLn+i), fr.wrapWidth, false) {
 			if cell.Col > 0 && cell.WrapCol == 0 {
-				xs[i] += 1
+				heights[i] += 1
 			}
 		}
 	}
 
 	i := 0
-	height := std.Sum(xs)
+	height := std.Sum(heights)
 
 	for height > fr.area.H {
-		height -= xs[i]
+		height -= heights[i]
 		fr.scrollLn += 1
 		i += 1
 	}
 
-	for i < len(xs)-1 {
-		fr.cursorY += xs[i]
+	for i < len(heights)-1 {
+		fr.cursorY += heights[i]
 		i += 1
 	}
 }
