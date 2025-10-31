@@ -8,6 +8,8 @@ import (
 )
 
 type Cursor struct {
+	OnChanged func()
+
 	Ln  int
 	Col int
 
@@ -27,6 +29,14 @@ func New(buffer *textbuf.TextBuf) *Cursor {
 }
 
 func (cur *Cursor) Set(ln, col int, sel bool) (ok bool) {
+	defer func() {
+		if ok {
+			if cur.OnChanged != nil {
+				cur.OnChanged()
+			}
+		}
+	}()
+
 	oldLn := cur.Ln
 	oldCol := cur.Col
 
