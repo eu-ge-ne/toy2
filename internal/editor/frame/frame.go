@@ -206,21 +206,21 @@ func (fr *Frame) scrollH() {
 		col = cell.WrapCol
 	}
 
-	deltaCol := col - fr.scrollCol
+	delta := col - fr.scrollCol
 
 	// Before?
 
-	if deltaCol <= 0 {
+	if delta <= 0 {
 		fr.scrollCol = col
 		return
 	}
 
 	// After?
 
-	xs := make([]int, deltaCol)
+	xs := make([]int, delta)
 	xsI := 0
 	for c := range grapheme.Wrap(fr.buffer.LineGraphemes(fr.cursor.Ln), fr.wrapWidth, true) {
-		if c.Col >= fr.cursor.Col-deltaCol && c.Col < fr.cursor.Col {
+		if c.Col >= fr.cursor.Col-delta && c.Col < fr.cursor.Col {
 			xs[xsI] = c.Gr.Width
 			xsI += 1
 		}
