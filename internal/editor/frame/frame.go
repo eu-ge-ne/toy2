@@ -103,9 +103,9 @@ func (fr *Frame) Render(setCursor bool) {
 	vt.Buf.Write(fr.colorMainBg)
 	vt.ClearArea(vt.Buf, fr.area)
 
-	if fr.area.W >= fr.indexWidth {
-		fr.renderLines()
-	}
+	//if fr.area.W >= fr.indexWidth {
+	fr.renderLines()
+	//}
 
 	if setCursor {
 		vt.SetCursor(vt.Buf, fr.cursorY, fr.cursorX)
