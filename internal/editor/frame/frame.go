@@ -160,9 +160,10 @@ func (fr *Frame) scrollV() {
 
 	if delta > fr.area.H {
 		fr.scrollLn = fr.cursor.Ln - fr.area.H
+		delta = fr.area.H
 	}
 
-	heights := make([]int, fr.cursor.Ln-fr.scrollLn+1)
+	heights := make([]int, delta+1)
 
 	for i := 0; i < len(heights); i += 1 {
 		heights[i] = 1
