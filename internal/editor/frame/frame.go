@@ -166,10 +166,8 @@ func (fr *Frame) scrollV() {
 	heights := make([]int, delta+1)
 
 	for i := 0; i < len(heights); i += 1 {
-		heights[i] = 1
-
 		for cell := range grapheme.Wrap(fr.buffer.LineGraphemes(fr.scrollLn+i), fr.wrapWidth, false) {
-			if cell.Col > 0 && cell.WrapCol == 0 {
+			if cell.WrapCol == 0 {
 				heights[i] += 1
 			}
 		}
