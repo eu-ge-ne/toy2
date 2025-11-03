@@ -162,28 +162,28 @@ func (fr *Frame) scrollV() {
 		fr.scrollLn = fr.cursor.Ln - delta
 	}
 
-	heights := make([]int, delta+1)
-	height := 0
+	hh := make([]int, delta+1)
+	h := 0
 
-	for i := 0; i < len(heights); i += 1 {
+	for i := 0; i < len(hh); i += 1 {
 		for cell := range grapheme.Wrap(fr.buffer.LineGraphemes(fr.scrollLn+i), fr.wrapWidth, false) {
 			if cell.WrapCol == 0 {
-				heights[i] += 1
-				height += 1
+				hh[i] += 1
+				h += 1
 			}
 		}
 	}
 
 	i := 0
 
-	for height > fr.area.H {
-		height -= heights[i]
+	for h > fr.area.H {
+		h -= hh[i]
 		fr.scrollLn += 1
 		i += 1
 	}
 
-	for i < len(heights)-1 {
-		fr.cursorY += heights[i]
+	for i < len(hh)-1 {
+		fr.cursorY += hh[i]
 		i += 1
 	}
 }
