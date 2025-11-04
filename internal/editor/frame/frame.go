@@ -8,7 +8,6 @@ import (
 	"github.com/eu-ge-ne/toy2/internal/editor/cursor"
 	"github.com/eu-ge-ne/toy2/internal/editor/syntax"
 	"github.com/eu-ge-ne/toy2/internal/grapheme"
-	"github.com/eu-ge-ne/toy2/internal/std"
 	"github.com/eu-ge-ne/toy2/internal/textbuf"
 	"github.com/eu-ge-ne/toy2/internal/theme"
 	"github.com/eu-ge-ne/toy2/internal/ui"
@@ -168,7 +167,7 @@ func (fr *Frame) scrollV() {
 	for i := 0; i < len(hh); i += 1 {
 		h := grapheme.WrapHeight(fr.buffer.LineGraphemes(fr.scrollLn+i), fr.wrapWidth)
 		hSum += h
-		hh[i] += h
+		hh[i] = h
 	}
 
 	for hSum > fr.area.H {
@@ -197,27 +196,27 @@ func (fr *Frame) scrollH() {
 
 	// After?
 
-	xs := make([]int, delta)
+	wSum := 0
+	ww := make([]int, delta)
 	xsI := 0
 	for c := range grapheme.Wrap(fr.buffer.LineGraphemes(fr.cursor.Ln), fr.wrapWidth, true) {
 		if c.Col >= fr.cursor.Col-delta && c.Col < fr.cursor.Col {
-			xs[xsI] = c.Gr.Width
+			wSum += c.Gr.Width
+			ww[xsI] = c.Gr.Width
 			xsI += 1
 		}
 	}
 
-	width := std.Sum(xs)
-
-	for _, w := range xs {
-		if width < fr.textWidth {
+	for _, w := range ww {
+		if wSum < fr.textWidth {
 			break
 		}
 
 		fr.scrollCol += 1
-		width -= w
+		wSum -= w
 	}
 
-	fr.cursorX += width
+	fr.cursorX += wSum
 }
 
 func (fr *Frame) renderLines() {
