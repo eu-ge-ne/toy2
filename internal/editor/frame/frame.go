@@ -184,28 +184,23 @@ func (fr *Frame) scrollV() {
 }
 
 func (fr *Frame) scrollH() {
-	var cell *grapheme.Cell = nil
-	for c := range grapheme.Wrap(fr.buffer.LineGraphemes(fr.cursor.Ln), fr.wrapWidth, true) {
-		if c.Col >= fr.cursor.Col {
-			cell = &c
-			break
+	wrapCol := 0
+
+	if fr.cursor.Col != 0 {
+		for c := range grapheme.Wrap(fr.buffer.LineGraphemes(fr.cursor.Ln), fr.wrapWidth, true) {
+			if c.Col == fr.cursor.Col {
+				fr.cursorY += c.WrapLn
+				wrapCol = c.WrapCol
+				break
+			}
 		}
 	}
-	if cell != nil {
-		fr.cursorY += cell.WrapLn
-	}
 
-	col := 0
-	if cell != nil {
-		col = cell.WrapCol
-	}
-
-	delta := col - fr.scrollCol
+	delta := wrapCol - fr.scrollCol
 
 	// Before?
-
 	if delta <= 0 {
-		fr.scrollCol = col
+		fr.scrollCol = wrapCol
 		return
 	}
 
