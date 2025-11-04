@@ -1,17 +1,19 @@
-package grapheme
+package frame
 
 import (
 	"iter"
+
+	"github.com/eu-ge-ne/toy2/internal/grapheme"
 )
 
 type Cell struct {
-	Gr      *Grapheme
+	Gr      *grapheme.Grapheme
 	Col     int
 	WrapLn  int
 	WrapCol int
 }
 
-func Wrap(line iter.Seq[*Grapheme], width int, extra bool) iter.Seq[Cell] {
+func Wrap(line iter.Seq[*grapheme.Grapheme], width int, extra bool) iter.Seq[Cell] {
 	return func(yield func(Cell) bool) {
 		cell := Cell{}
 		w := 0
@@ -49,7 +51,7 @@ func Wrap(line iter.Seq[*Grapheme], width int, extra bool) iter.Seq[Cell] {
 	}
 }
 
-func FindWrapCol(line iter.Seq[*Grapheme], width int, col int) (int, int) {
+func FindWrapCol(line iter.Seq[*grapheme.Grapheme], width int, col int) (int, int) {
 	i, wrapLn, wrapCol := 0, 0, 0
 
 	w := 0
@@ -84,7 +86,7 @@ func FindWrapCol(line iter.Seq[*Grapheme], width int, col int) (int, int) {
 	return 0, 0
 }
 
-func WrapHeight(line iter.Seq[*Grapheme], width int) int {
+func WrapHeight(line iter.Seq[*grapheme.Grapheme], width int) int {
 	h := 1
 	w := 0
 
