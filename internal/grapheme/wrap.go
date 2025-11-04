@@ -49,6 +49,16 @@ func Wrap(line iter.Seq[*Grapheme], width int, extra bool) iter.Seq[Cell] {
 	}
 }
 
+func FindWrapCol(line iter.Seq[*Grapheme], width int, col int) (int, int) {
+	for c := range Wrap(line, width, true) {
+		if c.Col == col {
+			return c.WrapLn, c.WrapCol
+		}
+	}
+
+	return 0, 0
+}
+
 func WrapHeight(line iter.Seq[*Grapheme], width int) int {
 	h := 1
 	w := 0

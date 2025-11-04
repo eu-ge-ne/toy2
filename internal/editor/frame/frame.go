@@ -184,17 +184,8 @@ func (fr *Frame) scrollV() {
 }
 
 func (fr *Frame) scrollH() {
-	wrapCol := 0
-
-	if fr.cursor.Col != 0 {
-		for c := range grapheme.Wrap(fr.buffer.LineGraphemes(fr.cursor.Ln), fr.wrapWidth, true) {
-			if c.Col == fr.cursor.Col {
-				fr.cursorY += c.WrapLn
-				wrapCol = c.WrapCol
-				break
-			}
-		}
-	}
+	wrapLn, wrapCol := grapheme.FindWrapCol(fr.buffer.LineGraphemes(fr.cursor.Ln), fr.wrapWidth, fr.cursor.Col)
+	fr.cursorY += wrapLn
 
 	delta := wrapCol - fr.scrollCol
 
