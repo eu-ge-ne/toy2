@@ -163,7 +163,6 @@ func (fr *Frame) scrollV() {
 
 	hSum := 0
 	hh := make([]int, delta+1)
-
 	for i := 0; i < len(hh); i += 1 {
 		h := grapheme.WrapHeight(fr.buffer.LineGraphemes(fr.scrollLn+i), fr.wrapWidth)
 		hSum += h
