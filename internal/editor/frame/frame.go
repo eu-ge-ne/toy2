@@ -195,12 +195,12 @@ func (fr *Frame) scrollH() {
 	// After?
 	wSum := 0
 	ww := make([]int, delta)
-	wi := 0
+	i := 0
 	for c := range grapheme.Wrap(fr.buffer.LineGraphemes(fr.cursor.Ln), fr.wrapWidth, true) {
 		if c.Col >= fr.cursor.Col-delta && c.Col < fr.cursor.Col {
 			wSum += c.Gr.Width
-			ww[wi] = c.Gr.Width
-			wi += 1
+			ww[i] = c.Gr.Width
+			i += 1
 		}
 	}
 
