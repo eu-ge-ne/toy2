@@ -50,3 +50,19 @@ func Wrap(line iter.Seq[*Grapheme], width int, extra bool) iter.Seq[Cell] {
 		}
 	}
 }
+
+func Height(line iter.Seq[*Grapheme], width int) int {
+	h := 1
+	w := 0
+
+	for gr := range line {
+		w += gr.Width
+
+		if w > width {
+			w = gr.Width
+			h += 1
+		}
+	}
+
+	return h
+}
