@@ -172,7 +172,6 @@ func (fr *Frame) scrollV() {
 	for hSum > fr.area.H {
 		hSum -= hh[0]
 		hh = hh[1:]
-
 		fr.scrollLn += 1
 	}
 
