@@ -204,13 +204,10 @@ func (fr *Frame) scrollH() {
 		}
 	}
 
-	for _, w := range ww {
-		if wSum < fr.textWidth {
-			break
-		}
-
+	for wSum >= fr.textWidth {
+		wSum -= ww[0]
+		ww = ww[1:]
 		fr.scrollCol += 1
-		wSum -= w
 	}
 
 	fr.cursorX += wSum
