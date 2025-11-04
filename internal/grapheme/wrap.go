@@ -35,23 +35,21 @@ func Wrap(line iter.Seq[*Grapheme], width int, extra bool) iter.Seq[Cell] {
 		}
 
 		if extra {
-			cell.Gr = Graphemes.Get(" ")
+			cell.Gr = nil
 
-			w += cell.Gr.Width
+			w += 1
 			if w > width {
-				w = cell.Gr.Width
+				w = 1
 				cell.WrapLn += 1
 				cell.WrapCol = 0
 			}
 
-			if !yield(cell) {
-				return
-			}
+			yield(cell)
 		}
 	}
 }
 
-func Height(line iter.Seq[*Grapheme], width int) int {
+func WrapHeight(line iter.Seq[*Grapheme], width int) int {
 	h := 1
 	w := 0
 
