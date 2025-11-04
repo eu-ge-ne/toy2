@@ -195,7 +195,6 @@ func (fr *Frame) scrollH() {
 	}
 
 	// After?
-
 	wSum := 0
 	ww := make([]int, delta)
 	wi := 0
