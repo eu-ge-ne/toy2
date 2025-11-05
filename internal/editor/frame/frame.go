@@ -167,13 +167,15 @@ func (fr *Frame) scrollV() {
 		hh[i] = h
 	}
 
+	i := 0
+
 	for hSum > fr.area.H {
-		hSum -= hh[0]
-		hh = hh[1:]
+		hSum -= hh[i]
+		i += 1
 		fr.scrollLn += 1
 	}
 
-	for _, y := range hh[:len(hh)-1] {
+	for _, y := range hh[i : len(hh)-1] {
 		fr.cursorY += y
 	}
 }
