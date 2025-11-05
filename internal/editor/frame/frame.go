@@ -235,7 +235,7 @@ func (fr *Frame) renderLine(ln int, row int) int {
 	currentBg := false
 	availableW := 0
 
-	for cell := range wrap(fr.buffer.LineGraphemes(ln), fr.wrapWidth, false) {
+	for cell := range wrap(fr.buffer.LineGraphemes(ln), fr.wrapWidth) {
 		if cell.WrapCol == 0 {
 			if cell.Col > 0 {
 				row += 1

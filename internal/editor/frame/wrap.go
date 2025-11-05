@@ -13,7 +13,7 @@ type cell struct {
 	WrapCol int
 }
 
-func wrap(line iter.Seq[*grapheme.Grapheme], width int, extra bool) iter.Seq[cell] {
+func wrap(line iter.Seq[*grapheme.Grapheme], width int) iter.Seq[cell] {
 	return func(yield func(cell) bool) {
 		cell := cell{}
 		w := 0
@@ -34,19 +34,6 @@ func wrap(line iter.Seq[*grapheme.Grapheme], width int, extra bool) iter.Seq[cel
 
 			cell.Col += 1
 			cell.WrapCol += 1
-		}
-
-		if extra {
-			cell.Gr = nil
-
-			w += 1
-			if w > width {
-				w = 1
-				cell.WrapLn += 1
-				cell.WrapCol = 0
-			}
-
-			yield(cell)
 		}
 	}
 }
