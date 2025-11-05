@@ -88,27 +88,18 @@ func wrapCount(line iter.Seq[*grapheme.Grapheme], wrapWidth int) int {
 	return h
 }
 
-type cell2 struct {
-	Gr  *grapheme.Grapheme
-	Col int
-}
-
-func width(line iter.Seq[*grapheme.Grapheme]) iter.Seq[cell2] {
-	return func(yield func(cell2) bool) {
-		cell := cell2{}
+func width(line iter.Seq[*grapheme.Grapheme], start, end int) iter.Seq[*grapheme.Grapheme] {
+	return func(yield func(*grapheme.Grapheme) bool) {
+		col := 0
 
 		for gr := range line {
-			cell.Gr = gr
-
-			if !yield(cell) {
-				return
+			if col >= start && col < end {
+				if !yield(gr) {
+					return
+				}
 			}
 
-			cell.Col += 1
+			col += 1
 		}
-
-		cell.Gr = nil
-
-		yield(cell)
 	}
 }
