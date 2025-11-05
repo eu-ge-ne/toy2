@@ -7,13 +7,13 @@ import (
 )
 
 type cell struct {
-	Gr      *grapheme.Grapheme
-	Col     int
-	WrapLn  int
+	Gr  *grapheme.Grapheme
+	Col int
+	//WrapLn  int
 	WrapCol int
 }
 
-func wrap(line iter.Seq[*grapheme.Grapheme], width int) iter.Seq[cell] {
+func wrap(line iter.Seq[*grapheme.Grapheme], wrapAt int) iter.Seq[cell] {
 	return func(yield func(cell) bool) {
 		cell := cell{}
 		w := 0
@@ -22,9 +22,9 @@ func wrap(line iter.Seq[*grapheme.Grapheme], width int) iter.Seq[cell] {
 			cell.Gr = gr
 
 			w += cell.Gr.Width
-			if w > width {
+			if w > wrapAt {
 				w = cell.Gr.Width
-				cell.WrapLn += 1
+				//cell.WrapLn += 1
 				cell.WrapCol = 0
 			}
 
@@ -38,14 +38,14 @@ func wrap(line iter.Seq[*grapheme.Grapheme], width int) iter.Seq[cell] {
 	}
 }
 
-func findWrapCol(line iter.Seq[*grapheme.Grapheme], width int, col int) (int, int) {
+func findWrapCol(line iter.Seq[*grapheme.Grapheme], wrapAt int, col int) (int, int) {
 	i, wrapLn, wrapCol := 0, 0, 0
 
 	w := 0
 
 	for gr := range line {
 		w += gr.Width
-		if w > width {
+		if w > wrapAt {
 			w = gr.Width
 			wrapLn += 1
 			wrapCol = 0
@@ -60,7 +60,7 @@ func findWrapCol(line iter.Seq[*grapheme.Grapheme], width int, col int) (int, in
 	}
 
 	w += 1
-	if w > width {
+	if w > wrapAt {
 		w = 1
 		wrapLn += 1
 		wrapCol = 0
@@ -73,13 +73,13 @@ func findWrapCol(line iter.Seq[*grapheme.Grapheme], width int, col int) (int, in
 	return 0, 0
 }
 
-func wrapCount(line iter.Seq[*grapheme.Grapheme], wrapWidth int) int {
+func wrapCount(line iter.Seq[*grapheme.Grapheme], wrapAt int) int {
 	h := 1
 	w := 0
 
 	for gr := range line {
 		w += gr.Width
-		if w > wrapWidth {
+		if w > wrapAt {
 			w = gr.Width
 			h += 1
 		}
@@ -88,7 +88,7 @@ func wrapCount(line iter.Seq[*grapheme.Grapheme], wrapWidth int) int {
 	return h
 }
 
-func width(line iter.Seq[*grapheme.Grapheme], start, end int) (int, []int) {
+func sliceWidth(line iter.Seq[*grapheme.Grapheme], start, end int) (int, []int) {
 	sum := 0
 	ww := make([]int, end-start)
 	i := 0
