@@ -193,7 +193,7 @@ func (fr *Frame) scrollH() {
 	}
 
 	// After?
-	wSum, ww := width(fr.buffer.LineGraphemes(fr.cursor.Ln), fr.cursor.Col-delta, fr.cursor.Col)
+	wSum, ww := sliceWidth(fr.buffer.LineGraphemes(fr.cursor.Ln), fr.cursor.Col-delta, fr.cursor.Col)
 
 	i := 0
 
