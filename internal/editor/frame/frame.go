@@ -132,9 +132,6 @@ func (fr *Frame) scroll() {
 		fr.wrapWidth = math.MaxInt
 	}
 
-	fr.cursorY = fr.area.Y
-	fr.cursorX = fr.area.X + fr.indexWidth
-
 	grapheme.Graphemes.SetWcharPos(fr.area.Y, fr.area.X+fr.indexWidth)
 
 	fr.scrollV()
@@ -145,6 +142,8 @@ func (fr *Frame) scroll() {
 }
 
 func (fr *Frame) scrollV() {
+	fr.cursorY = fr.area.Y
+
 	delta := fr.cursor.Ln - fr.scrollLn
 
 	// Above?
@@ -161,6 +160,7 @@ func (fr *Frame) scrollV() {
 
 	hSum := 0
 	hh := make([]int, delta+1)
+
 	for i := 0; i < len(hh); i += 1 {
 		h := wrapCount(fr.buffer.LineGraphemes(fr.scrollLn+i), fr.wrapWidth)
 		hSum += h
@@ -175,12 +175,12 @@ func (fr *Frame) scrollV() {
 		fr.scrollLn += 1
 	}
 
-	for _, y := range hh[i : len(hh)-1] {
-		fr.cursorY += y
-	}
+	fr.cursorY += hSum - hh[len(hh)-1]
 }
 
 func (fr *Frame) scrollH() {
+	fr.cursorX = fr.area.X + fr.indexWidth
+
 	wrapLn, wrapCol := findWrapCol(fr.buffer.LineGraphemes(fr.cursor.Ln), fr.wrapWidth, fr.cursor.Col)
 	fr.cursorY += wrapLn
 
