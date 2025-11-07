@@ -1,4 +1,4 @@
-package color
+package colors
 
 type color = [3]byte
 
