@@ -61,8 +61,8 @@ func (fr *Frame) SetColors(t theme.Theme) {
 		"_ws_enabled":  t.Dark0Fg(),
 		"_ws_disabled": t.MainFg(),
 		"keyword":      vt.CharFg(color.Fuchsia300),
+		"function":     vt.CharFg(color.Yellow200),
 		"comment":      vt.CharFg([3]byte{0x6A, 0x99, 0x55}),
-		"function":     vt.CharFg([3]byte{0xDC, 0xDC, 0xAA}),
 	}
 }
 
