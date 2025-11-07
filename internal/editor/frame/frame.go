@@ -64,6 +64,9 @@ func (fr *Frame) SetColors(t theme.Theme) {
 		"function":            vt.CharFg(colors.Yellow100),
 		"punctuation.bracket": vt.CharFg(colors.Yellow300),
 		"comment":             vt.CharFg(colors.Lime600),
+		"variable":            vt.CharFg(colors.Sky200),
+		"constructor":         vt.CharFg(colors.Sky200),
+		"type":                vt.CharFg(colors.Sky200),
 	}
 }
 
