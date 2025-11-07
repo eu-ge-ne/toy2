@@ -281,7 +281,7 @@ func (fr *Frame) renderLine(ln int, row int) int {
 			} else if fr.whitespaceEnabled {
 				fg = "toy.wspace.on"
 			} else {
-				fg = "toy.wspace.of"
+				fg = "toy.wspace.off"
 			}
 		}
 		if fg != currentFg {
