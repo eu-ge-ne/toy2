@@ -57,12 +57,13 @@ func (fr *Frame) SetColors(t theme.Theme) {
 	fr.colorIndex = append(t.Light0Bg(), t.Dark0Fg()...)
 
 	fr.colorCharFg = map[string][]byte{
-		"_text":        fr.colorMainFg,
-		"_ws_enabled":  t.Dark0Fg(),
-		"_ws_disabled": t.MainFg(),
-		"keyword":      vt.CharFg(colors.Fuchsia300),
-		"function":     vt.CharFg(colors.Yellow200),
-		"comment":      vt.CharFg([3]byte{0x6A, 0x99, 0x55}),
+		"toy.text":            fr.colorMainFg,
+		"toy.wspace.on":       t.Dark0Fg(),
+		"toy.wspace.off":      t.MainFg(),
+		"keyword":             vt.CharFg(colors.Fuchsia300),
+		"function":            vt.CharFg(colors.Yellow100),
+		"punctuation.bracket": vt.CharFg(colors.Yellow300),
+		"comment":             vt.CharFg(colors.Lime100),
 	}
 }
 
@@ -273,11 +274,11 @@ func (fr *Frame) renderLine(ln int, row int) int {
 
 		if len(fg) == 0 {
 			if cell.Gr.IsVisible {
-				fg = "_text"
+				fg = "toy.text"
 			} else if fr.whitespaceEnabled {
-				fg = "_ws_enabled"
+				fg = "toy.wspace.on"
 			} else {
-				fg = "_ws_disabled"
+				fg = "toy.wspace.of"
 			}
 		}
 		if fg != currentFg {

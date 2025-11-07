@@ -160,7 +160,7 @@ func (s *Syntax) Highlight(buf *textbuf.TextBuf, startLn, endLn int) {
 			startIdx := int(capt.Node.StartByte())
 			endIdx := int(capt.Node.EndByte())
 
-			//fmt.Fprintf(s.log, "highlight: %v:%v %s (%s)\n", capt.Node.StartPosition(), capt.Node.EndPosition(), capt.Node.Utf8Text(s.text), name /*match.PatternIndex,*/ /*capt.Index,*/)
+			log.Printf("%v:%v %s (%s)\n", capt.Node.StartPosition(), capt.Node.EndPosition(), capt.Node.Utf8Text(s.text), name /*match.PatternIndex,*/ /*capt.Index,*/)
 
 			if spn.startIdx != startIdx || spn.endIdx != endIdx {
 				s.spans <- spn
