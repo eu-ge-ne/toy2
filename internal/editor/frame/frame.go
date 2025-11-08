@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/eu-ge-ne/toy2/internal/color"
+	"github.com/eu-ge-ne/toy2/internal/colors"
 	"github.com/eu-ge-ne/toy2/internal/editor/cursor"
 	"github.com/eu-ge-ne/toy2/internal/editor/syntax"
 	"github.com/eu-ge-ne/toy2/internal/grapheme"
@@ -57,12 +57,16 @@ func (fr *Frame) SetColors(t theme.Theme) {
 	fr.colorIndex = append(t.Light0Bg(), t.Dark0Fg()...)
 
 	fr.colorCharFg = map[string][]byte{
-		"_text":        fr.colorMainFg,
-		"_ws_enabled":  t.Dark0Fg(),
-		"_ws_disabled": t.MainFg(),
-		"keyword":      vt.CharFg(color.Fuchsia300),
-		"comment":      vt.CharFg([3]byte{0x6A, 0x99, 0x55}),
-		"function":     vt.CharFg([3]byte{0xDC, 0xDC, 0xAA}),
+		"toy.text":            fr.colorMainFg,
+		"toy.wspace.on":       t.Dark0Fg(),
+		"toy.wspace.off":      t.MainFg(),
+		"keyword":             vt.CharFg(colors.Fuchsia300),
+		"function":            vt.CharFg(colors.Yellow100),
+		"punctuation.bracket": vt.CharFg(colors.Yellow300),
+		"comment":             vt.CharFg(colors.Lime600),
+		"variable":            vt.CharFg(colors.Sky200),
+		"constructor":         vt.CharFg(colors.Sky200),
+		"type":                vt.CharFg(colors.Sky200),
 	}
 }
 
@@ -273,11 +277,11 @@ func (fr *Frame) renderLine(ln int, row int) int {
 
 		if len(fg) == 0 {
 			if cell.Gr.IsVisible {
-				fg = "_text"
+				fg = "toy.text"
 			} else if fr.whitespaceEnabled {
-				fg = "_ws_enabled"
+				fg = "toy.wspace.on"
 			} else {
-				fg = "_ws_disabled"
+				fg = "toy.wspace.off"
 			}
 		}
 		if fg != currentFg {
