@@ -197,23 +197,29 @@ func (ed *Editor) HandleKey(key key.Key) bool {
 
 func (ed *Editor) Backspace() bool {
 	if ed.cursor.Selecting {
-		ed.deleteSelection()
-		return true
+		return ed.deleteSelection()
 	}
 
 	if ed.cursor.Ln == 0 && ed.cursor.Col == 0 {
 		return false
 	}
 
-	var change textbuf.Change
+	var (
+		change textbuf.Change
+		ok     bool
+	)
 
 	if ed.cursor.Col == 0 {
 		startLn := ed.cursor.Ln - 1
 		startCol := max(0, ed.buffer.ColumnCount(startLn)-1)
 
-		change = ed.buffer.Delete(startLn, startCol, ed.cursor.Ln, ed.cursor.Col)
+		change, ok = ed.buffer.Delete(startLn, startCol, ed.cursor.Ln, ed.cursor.Col)
 	} else {
-		change = ed.buffer.Delete(ed.cursor.Ln, ed.cursor.Col-1, ed.cursor.Ln, ed.cursor.Col)
+		change, ok = ed.buffer.Delete(ed.cursor.Ln, ed.cursor.Col-1, ed.cursor.Ln, ed.cursor.Col)
+	}
+
+	if !ok {
+		return false
 	}
 
 	ed.cursor.Set(change.Start.Ln, change.Start.Col, false)
@@ -250,27 +256,25 @@ func (ed *Editor) Copy() bool {
 func (ed *Editor) Cut() bool {
 	cur := ed.cursor
 
+	defer func() {
+		vt.CopyToClipboard(vt.Sync, ed.clipboard)
+	}()
+
 	if cur.Selecting {
 		ed.clipboard = std.IterToStr(ed.buffer.Read(cur.StartLn, cur.StartCol, cur.EndLn, cur.EndCol))
-		ed.deleteSelection()
+		return ed.deleteSelection()
 	} else {
 		ed.clipboard = std.IterToStr(ed.buffer.Read(cur.Ln, cur.Col, cur.Ln, cur.Col+1))
-		ed.deleteChar()
+		return ed.deleteChar()
 	}
-
-	vt.CopyToClipboard(vt.Sync, ed.clipboard)
-
-	return true
 }
 
 func (ed *Editor) Delete() bool {
 	if ed.cursor.Selecting {
-		ed.deleteSelection()
+		return ed.deleteSelection()
 	} else {
-		ed.deleteChar()
+		return ed.deleteChar()
 	}
-
-	return true
 }
 
 func (ed *Editor) Down(n int, sel bool) bool {
@@ -362,8 +366,7 @@ func (ed *Editor) Up(n int, sel bool) bool {
 
 func (ed *Editor) insertText(text string) bool {
 	if ed.cursor.Selecting {
-		ed.deleteSelection()
-		return true
+		return ed.deleteSelection()
 	}
 
 	change := ed.buffer.Insert(ed.cursor.Ln, ed.cursor.Col, text)
@@ -376,21 +379,33 @@ func (ed *Editor) insertText(text string) bool {
 	return true
 }
 
-func (ed *Editor) deleteSelection() {
-	change := ed.buffer.Delete(ed.cursor.StartLn, ed.cursor.StartCol, ed.cursor.EndLn, ed.cursor.EndCol)
+func (ed *Editor) deleteSelection() bool {
+	change, ok := ed.buffer.Delete(ed.cursor.StartLn, ed.cursor.StartCol, ed.cursor.EndLn, ed.cursor.EndCol)
+
+	if !ok {
+		return false
+	}
 
 	ed.cursor.Set(change.Start.Ln, change.Start.Col, false)
 	ed.history.Push()
 
 	ed.syntax.Delete(change)
+
+	return true
 }
 
-func (ed *Editor) deleteChar() {
-	change := ed.buffer.Delete(ed.cursor.Ln, ed.cursor.Col, ed.cursor.Ln, ed.cursor.Col+1)
+func (ed *Editor) deleteChar() bool {
+	change, ok := ed.buffer.Delete(ed.cursor.Ln, ed.cursor.Col, ed.cursor.Ln, ed.cursor.Col+1)
+
+	if !ok {
+		return false
+	}
 
 	ed.history.Push()
 
 	ed.syntax.Delete(change)
+
+	return true
 }
 
 func (ed *Editor) onCursorChanged() {
