@@ -13,22 +13,28 @@ func NewPalette(app *App) *Palette {
 	return &Palette{app}
 }
 
-func (c *Palette) Option() *palette.Option {
+func (p *Palette) Option() *palette.Option {
 	return nil
 }
 
-func (c *Palette) Match(k key.Key) bool {
+func (p *Palette) Match(k key.Key) bool {
 	return k.Name == "F1"
 }
 
-func (c *Palette) Run() bool {
-	c.app.editor.SetEnabled(false)
+func (p *Palette) Run() bool {
+	p.app.editor.SetEnabled(false)
 
-	option := <-c.app.palette.Open()
+	defer func() {
+		p.app.editor.SetEnabled(true)
+	}()
 
-	c.app.editor.SetEnabled(true)
+	option := <-p.app.palette.Open()
 
-	for _, c := range c.app.commands {
+	if option == nil {
+		return false
+	}
+
+	for _, c := range p.app.commands {
 		o := c.Option()
 		if o != nil && o.Id == option.Id {
 			c.Run()
