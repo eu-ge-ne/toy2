@@ -8,5 +8,5 @@ import (
 type Command interface {
 	Option() *palette.Option
 	Match(key.Key) bool
-	Run() bool
+	Run()
 }

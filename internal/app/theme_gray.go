@@ -18,16 +18,14 @@ func NewThemeGray(app *App) *ThemeGray {
 	}
 }
 
-func (c *ThemeGray) Option() *palette.Option {
-	return &c.option
+func (t *ThemeGray) Option() *palette.Option {
+	return &t.option
 }
 
-func (c *ThemeGray) Match(key.Key) bool {
+func (t *ThemeGray) Match(key.Key) bool {
 	return false
 }
 
-func (c *ThemeGray) Run() bool {
-	c.app.setColors(theme.Gray{})
-
-	return true
+func (t *ThemeGray) Run() {
+	t.app.setColors(theme.Gray{})
 }

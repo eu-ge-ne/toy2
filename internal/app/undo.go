@@ -21,14 +21,14 @@ func NewUndo(app *App) *Undo {
 	}
 }
 
-func (c *Undo) Option() *palette.Option {
-	return &c.option
+func (u *Undo) Option() *palette.Option {
+	return &u.option
 }
 
-func (c *Undo) Match(key.Key) bool {
+func (u *Undo) Match(key.Key) bool {
 	return false
 }
 
-func (c *Undo) Run() bool {
-	return c.app.editor.Undo()
+func (u *Undo) Run() {
+	u.app.editor.Undo()
 }

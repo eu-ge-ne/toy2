@@ -18,16 +18,14 @@ func NewSyntaxJavaScript(app *App) *SyntaxJavaScript {
 	}
 }
 
-func (c *SyntaxJavaScript) Option() *palette.Option {
-	return &c.option
+func (s *SyntaxJavaScript) Option() *palette.Option {
+	return &s.option
 }
 
-func (c *SyntaxJavaScript) Match(key.Key) bool {
+func (s *SyntaxJavaScript) Match(key.Key) bool {
 	return false
 }
 
-func (c *SyntaxJavaScript) Run() bool {
-	c.app.editor.SetGrammar(javascript.Grammar)
-
-	return true
+func (s *SyntaxJavaScript) Run() {
+	s.app.editor.SetGrammar(javascript.Grammar)
 }

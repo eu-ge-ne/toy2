@@ -21,14 +21,14 @@ func NewPaste(app *App) *Paste {
 	}
 }
 
-func (c *Paste) Option() *palette.Option {
-	return &c.option
+func (p *Paste) Option() *palette.Option {
+	return &p.option
 }
 
-func (c *Paste) Match(key.Key) bool {
+func (p *Paste) Match(key.Key) bool {
 	return false
 }
 
-func (c *Paste) Run() bool {
-	return c.app.editor.Paste()
+func (p *Paste) Run() {
+	p.app.editor.Paste()
 }

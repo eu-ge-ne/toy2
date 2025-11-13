@@ -18,16 +18,14 @@ func NewThemeBase16(app *App) *ThemeBase16 {
 	}
 }
 
-func (c *ThemeBase16) Option() *palette.Option {
-	return &c.option
+func (t *ThemeBase16) Option() *palette.Option {
+	return &t.option
 }
 
-func (c *ThemeBase16) Match(key.Key) bool {
+func (t *ThemeBase16) Match(key.Key) bool {
 	return false
 }
 
-func (c *ThemeBase16) Run() bool {
-	c.app.setColors(theme.Base16{})
-
-	return true
+func (t *ThemeBase16) Run() {
+	t.app.setColors(theme.Base16{})
 }

@@ -18,16 +18,14 @@ func NewThemeNeutral(app *App) *ThemeNeutral {
 	}
 }
 
-func (c *ThemeNeutral) Option() *palette.Option {
-	return &c.option
+func (t *ThemeNeutral) Option() *palette.Option {
+	return &t.option
 }
 
-func (c *ThemeNeutral) Match(key.Key) bool {
+func (t *ThemeNeutral) Match(key.Key) bool {
 	return false
 }
 
-func (c *ThemeNeutral) Run() bool {
-	c.app.setColors(theme.Neutral{})
-
-	return true
+func (t *ThemeNeutral) Run() {
+	t.app.setColors(theme.Neutral{})
 }

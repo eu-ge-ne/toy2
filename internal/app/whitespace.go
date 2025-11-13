@@ -17,16 +17,14 @@ func NewWhitespace(app *App) *Whitespace {
 	}
 }
 
-func (c *Whitespace) Option() *palette.Option {
-	return &c.option
+func (w *Whitespace) Option() *palette.Option {
+	return &w.option
 }
 
-func (c *Whitespace) Match(k key.Key) bool {
+func (w *Whitespace) Match(k key.Key) bool {
 	return k.Name == "F5"
 }
 
-func (c *Whitespace) Run() bool {
-	c.app.editor.ToggleWhitespaceEnabled()
-
-	return true
+func (w *Whitespace) Run() {
+	w.app.editor.ToggleWhitespaceEnabled()
 }

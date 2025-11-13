@@ -29,6 +29,6 @@ func (c *Cut) Match(key.Key) bool {
 	return false
 }
 
-func (c *Cut) Run() bool {
-	return c.app.editor.Cut()
+func (c *Cut) Run() {
+	c.app.editor.Cut()
 }

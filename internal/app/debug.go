@@ -17,16 +17,14 @@ func NewDebug(app *App) *Debug {
 	}
 }
 
-func (c *Debug) Option() *palette.Option {
-	return &c.option
+func (d *Debug) Option() *palette.Option {
+	return &d.option
 }
 
-func (c *Debug) Match(key.Key) bool {
+func (d *Debug) Match(key.Key) bool {
 	return false
 }
 
-func (c *Debug) Run() bool {
-	c.app.debug.ToggleEnabled()
-
-	return true
+func (d *Debug) Run() {
+	d.app.debug.ToggleEnabled()
 }

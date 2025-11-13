@@ -21,14 +21,14 @@ func NewSelectAll(app *App) *SelectAll {
 	}
 }
 
-func (c *SelectAll) Option() *palette.Option {
-	return &c.option
+func (sa *SelectAll) Option() *palette.Option {
+	return &sa.option
 }
 
-func (c *SelectAll) Match(key.Key) bool {
+func (sa *SelectAll) Match(key.Key) bool {
 	return false
 }
 
-func (c *SelectAll) Run() bool {
-	return c.app.editor.SelectAll()
+func (sa *SelectAll) Run() {
+	sa.app.editor.SelectAll()
 }
