@@ -17,22 +17,20 @@ func NewSave(app *App) *Save {
 	}
 }
 
-func (c *Save) Option() *palette.Option {
-	return &c.option
+func (s *Save) Option() *palette.Option {
+	return &s.option
 }
 
-func (c *Save) Match(k key.Key) bool {
+func (s *Save) Match(k key.Key) bool {
 	return k.Name == "F2"
 }
 
-func (c *Save) Run() bool {
-	c.app.editor.SetEnabled(false)
+func (s *Save) Run() {
+	s.app.editor.SetEnabled(false)
 
-	if c.app.save() {
+	if s.app.save() {
 		//app.editor.Data.TopHome(false)
 	}
 
-	c.app.editor.SetEnabled(true)
-
-	return true
+	s.app.editor.SetEnabled(true)
 }

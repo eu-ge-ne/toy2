@@ -18,16 +18,14 @@ func NewThemeZinc(app *App) *ThemeZinc {
 	}
 }
 
-func (c *ThemeZinc) Option() *palette.Option {
-	return &c.option
+func (t *ThemeZinc) Option() *palette.Option {
+	return &t.option
 }
 
-func (c *ThemeZinc) Match(key.Key) bool {
+func (t *ThemeZinc) Match(key.Key) bool {
 	return false
 }
 
-func (c *ThemeZinc) Run() bool {
-	c.app.setColors(theme.Zinc{})
-
-	return true
+func (t *ThemeZinc) Run() {
+	t.app.setColors(theme.Zinc{})
 }

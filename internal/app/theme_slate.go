@@ -18,16 +18,14 @@ func NewThemeSlate(app *App) *ThemeSlate {
 	}
 }
 
-func (c *ThemeSlate) Option() *palette.Option {
-	return &c.option
+func (t *ThemeSlate) Option() *palette.Option {
+	return &t.option
 }
 
-func (c *ThemeSlate) Match(key.Key) bool {
+func (t *ThemeSlate) Match(key.Key) bool {
 	return false
 }
 
-func (c *ThemeSlate) Run() bool {
-	c.app.setColors(theme.Slate{})
-
-	return true
+func (t *ThemeSlate) Run() {
+	t.app.setColors(theme.Slate{})
 }

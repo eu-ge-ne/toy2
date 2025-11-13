@@ -17,16 +17,14 @@ func NewSyntaxOff(app *App) *SyntaxOff {
 	}
 }
 
-func (c *SyntaxOff) Option() *palette.Option {
-	return &c.option
+func (s *SyntaxOff) Option() *palette.Option {
+	return &s.option
 }
 
-func (c *SyntaxOff) Match(key.Key) bool {
+func (s *SyntaxOff) Match(key.Key) bool {
 	return false
 }
 
-func (c *SyntaxOff) Run() bool {
-	c.app.editor.SetGrammar(nil)
-
-	return true
+func (s *SyntaxOff) Run() {
+	s.app.editor.SetGrammar(nil)
 }

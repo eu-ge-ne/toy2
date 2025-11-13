@@ -18,16 +18,14 @@ func NewThemeStone(app *App) *ThemeStone {
 	}
 }
 
-func (c *ThemeStone) Option() *palette.Option {
-	return &c.option
+func (t *ThemeStone) Option() *palette.Option {
+	return &t.option
 }
 
-func (c *ThemeStone) Match(key.Key) bool {
+func (t *ThemeStone) Match(key.Key) bool {
 	return false
 }
 
-func (c *ThemeStone) Run() bool {
-	c.app.setColors(theme.Stone{})
-
-	return true
+func (t *ThemeStone) Run() {
+	t.app.setColors(theme.Stone{})
 }

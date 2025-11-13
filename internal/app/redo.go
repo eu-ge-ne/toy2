@@ -21,14 +21,14 @@ func NewRedo(app *App) *Redo {
 	}
 }
 
-func (c *Redo) Option() *palette.Option {
-	return &c.option
+func (r *Redo) Option() *palette.Option {
+	return &r.option
 }
 
-func (c *Redo) Match(key.Key) bool {
+func (r *Redo) Match(key.Key) bool {
 	return false
 }
 
-func (c *Redo) Run() bool {
-	return c.app.editor.Redo()
+func (r *Redo) Run() {
+	r.app.editor.Redo()
 }

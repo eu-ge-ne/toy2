@@ -18,16 +18,14 @@ func NewSyntaxTypeScript(app *App) *SyntaxTypeScript {
 	}
 }
 
-func (c *SyntaxTypeScript) Option() *palette.Option {
-	return &c.option
+func (s *SyntaxTypeScript) Option() *palette.Option {
+	return &s.option
 }
 
-func (c *SyntaxTypeScript) Match(key.Key) bool {
+func (s *SyntaxTypeScript) Match(key.Key) bool {
 	return false
 }
 
-func (c *SyntaxTypeScript) Run() bool {
-	c.app.editor.SetGrammar(typescript.Grammar)
-
-	return true
+func (s *SyntaxTypeScript) Run() {
+	s.app.editor.SetGrammar(typescript.Grammar)
 }

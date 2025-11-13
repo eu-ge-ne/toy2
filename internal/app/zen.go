@@ -17,16 +17,14 @@ func NewZen(app *App) *Zen {
 	}
 }
 
-func (c *Zen) Option() *palette.Option {
-	return &c.option
+func (z *Zen) Option() *palette.Option {
+	return &z.option
 }
 
-func (c *Zen) Match(k key.Key) bool {
+func (z *Zen) Match(k key.Key) bool {
 	return k.Name == "F11"
 }
 
-func (c *Zen) Run() bool {
-	c.app.setZenEnabled(!c.app.zenEnabled)
-
-	return true
+func (z *Zen) Run() {
+	z.app.setZenEnabled(!z.app.zenEnabled)
 }

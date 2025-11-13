@@ -17,24 +17,22 @@ func NewExit(app *App) *Exit {
 	}
 }
 
-func (c *Exit) Option() *palette.Option {
-	return &c.option
+func (e *Exit) Option() *palette.Option {
+	return &e.option
 }
 
-func (c *Exit) Match(k key.Key) bool {
+func (e *Exit) Match(k key.Key) bool {
 	return k.Name == "F10"
 }
 
-func (c *Exit) Run() bool {
-	c.app.editor.SetEnabled(false)
+func (e *Exit) Run() {
+	e.app.editor.SetEnabled(false)
 
-	if c.app.editor.HasChanges() {
-		if <-c.app.ask.Open("Save changes?") {
-			c.app.save()
+	if e.app.editor.HasChanges() {
+		if <-e.app.ask.Open("Save changes?") {
+			e.app.save()
 		}
 	}
 
-	c.app.exit()
-
-	return true
+	e.app.exit()
 }

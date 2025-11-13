@@ -242,9 +242,8 @@ outer:
 
 		for _, c := range app.commands {
 			if c.Match(key) {
-				if c.Run() {
-					app.Render()
-				}
+				c.Run()
+				app.Render()
 				continue outer
 			}
 		}

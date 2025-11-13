@@ -17,16 +17,14 @@ func NewWrap(app *App) *Wrap {
 	}
 }
 
-func (c *Wrap) Option() *palette.Option {
-	return &c.option
+func (w *Wrap) Option() *palette.Option {
+	return &w.option
 }
 
-func (c *Wrap) Match(k key.Key) bool {
+func (w *Wrap) Match(k key.Key) bool {
 	return k.Name == "F6"
 }
 
-func (c *Wrap) Run() bool {
-	c.app.editor.ToggleWrapEnabled()
-
-	return true
+func (w *Wrap) Run() {
+	w.app.editor.ToggleWrapEnabled()
 }

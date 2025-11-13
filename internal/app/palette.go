@@ -21,7 +21,7 @@ func (p *Palette) Match(k key.Key) bool {
 	return k.Name == "F1"
 }
 
-func (p *Palette) Run() bool {
+func (p *Palette) Run() {
 	p.app.editor.SetEnabled(false)
 
 	defer func() {
@@ -30,17 +30,13 @@ func (p *Palette) Run() bool {
 
 	option := <-p.app.palette.Open()
 
-	if option == nil {
-		return false
-	}
-
-	for _, c := range p.app.commands {
-		o := c.Option()
-		if o != nil && o.Id == option.Id {
-			c.Run()
-			return true
+	if option != nil {
+		for _, c := range p.app.commands {
+			o := c.Option()
+			if o != nil && o.Id == option.Id {
+				c.Run()
+				return
+			}
 		}
 	}
-
-	return true
 }
