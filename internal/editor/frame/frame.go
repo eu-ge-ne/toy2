@@ -148,33 +148,33 @@ func (fr *Frame) scroll() {
 func (fr *Frame) scrollV() {
 	fr.cursorY = fr.area.Y
 
-	delta := fr.cursor.Ln - fr.scrollLn
+	lnDelta := fr.cursor.Ln - fr.scrollLn
 
 	// Above?
-	if delta <= 0 {
+	if lnDelta <= 0 {
 		fr.scrollLn = fr.cursor.Ln
 		return
 	}
 
 	// Below?
-	if delta > fr.area.H {
-		delta = fr.area.H
-		fr.scrollLn = fr.cursor.Ln - delta
+	if lnDelta > fr.area.H {
+		lnDelta = fr.area.H
+		fr.scrollLn = fr.cursor.Ln - lnDelta
 	}
 
-	height := 0
+	yDelta := 0
 
-	for i := fr.scrollLn + delta; i >= fr.scrollLn; i -= 1 {
+	for i := fr.scrollLn + lnDelta; i >= fr.scrollLn; i -= 1 {
 		h := wrapCount(fr.buffer.LineGraphemes(i), fr.wrapWidth)
 
-		if i == fr.scrollLn+delta {
+		if i == fr.scrollLn+lnDelta {
 			fr.cursorY -= h
 		}
 
-		if height+h > fr.area.H {
+		if yDelta+h > fr.area.H {
 			fr.scrollLn += 1
 		} else {
-			height += h
+			yDelta += h
 			fr.cursorY += h
 		}
 	}
