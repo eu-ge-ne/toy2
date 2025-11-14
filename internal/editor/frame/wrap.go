@@ -29,6 +29,7 @@ func getWrapCol(line iter.Seq[*grapheme.Grapheme], wrapAt int, col int) (int, in
 
 	for gr := range line {
 		w += gr.Width
+
 		if w > wrapAt {
 			w = gr.Width
 			wrapLn += 1
@@ -44,6 +45,7 @@ func getWrapCol(line iter.Seq[*grapheme.Grapheme], wrapAt int, col int) (int, in
 	}
 
 	w += 1
+
 	if w > wrapAt {
 		w = 1
 		wrapLn += 1
@@ -55,6 +57,25 @@ func getWrapCol(line iter.Seq[*grapheme.Grapheme], wrapAt int, col int) (int, in
 	}
 
 	return 0, 0
+}
+
+func sliceWidth(line iter.Seq[*grapheme.Grapheme], start, end int) (int, []int) {
+	sum := 0
+	ww := make([]int, end-start)
+	i := 0
+	col := 0
+
+	for gr := range line {
+		if col >= start && col < end {
+			sum += gr.Width
+			ww[i] = gr.Width
+			i += 1
+		}
+
+		col += 1
+	}
+
+	return sum, ww
 }
 
 type cell struct {
@@ -87,23 +108,4 @@ func wrap(line iter.Seq[*grapheme.Grapheme], wrapAt int) iter.Seq[cell] {
 			cell.WrapCol += 1
 		}
 	}
-}
-
-func sliceWidth(line iter.Seq[*grapheme.Grapheme], start, end int) (int, []int) {
-	sum := 0
-	ww := make([]int, end-start)
-	i := 0
-	col := 0
-
-	for gr := range line {
-		if col >= start && col < end {
-			sum += gr.Width
-			ww[i] = gr.Width
-			i += 1
-		}
-
-		col += 1
-	}
-
-	return sum, ww
 }
