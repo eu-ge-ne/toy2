@@ -200,11 +200,16 @@ func (f *Frame) scrollH() {
 	i := 0
 	col := 0
 	for gr := range f.buffer.LineGraphemes(f.cursor.Ln) {
-		if col >= f.cursor.Col-lnDelta && col < f.cursor.Col {
-			wSum += gr.Width
-			ww[i] = gr.Width
-			i += 1
+		if col < f.cursor.Col-lnDelta {
+			col += 1
+			continue
 		}
+		if col == f.cursor.Col {
+			break
+		}
+		wSum += gr.Width
+		ww[i] = gr.Width
+		i += 1
 		col += 1
 	}
 
