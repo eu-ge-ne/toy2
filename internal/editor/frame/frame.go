@@ -195,14 +195,24 @@ func (f *Frame) scrollH() {
 	}
 
 	// After?
-	wSum, ww := sliceWidth(f.buffer.LineGraphemes(f.cursor.Ln), f.cursor.Col-lnDelta, f.cursor.Col)
-
+	wSum := 0
+	ww := make([]int, lnDelta)
 	i := 0
+	col := 0
+	for gr := range f.buffer.LineGraphemes(f.cursor.Ln) {
+		if col >= f.cursor.Col-lnDelta && col < f.cursor.Col {
+			wSum += gr.Width
+			ww[i] = gr.Width
+			i += 1
+		}
+		col += 1
+	}
 
+	i = 0
 	for wSum >= f.textWidth {
 		wSum -= ww[i]
-		i += 1
 		f.scrollCol += 1
+		i += 1
 	}
 
 	f.cursorX += wSum
