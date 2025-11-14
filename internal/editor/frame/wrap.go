@@ -6,6 +6,22 @@ import (
 	"github.com/eu-ge-ne/toy2/internal/grapheme"
 )
 
+func wrapCount(line iter.Seq[*grapheme.Grapheme], wrapAt int) int {
+	h := 1
+	w := 0
+
+	for gr := range line {
+		w += gr.Width
+
+		if w > wrapAt {
+			w = gr.Width
+			h += 1
+		}
+	}
+
+	return h
+}
+
 type cell struct {
 	Gr  *grapheme.Grapheme
 	Col int
@@ -71,21 +87,6 @@ func findWrapCol(line iter.Seq[*grapheme.Grapheme], wrapAt int, col int) (int, i
 	}
 
 	return 0, 0
-}
-
-func wrapCount(line iter.Seq[*grapheme.Grapheme], wrapAt int) int {
-	h := 1
-	w := 0
-
-	for gr := range line {
-		w += gr.Width
-		if w > wrapAt {
-			w = gr.Width
-			h += 1
-		}
-	}
-
-	return h
 }
 
 func sliceWidth(line iter.Seq[*grapheme.Grapheme], start, end int) (int, []int) {

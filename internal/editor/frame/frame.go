@@ -181,21 +181,21 @@ func (f *Frame) scrollV() {
 }
 
 func (f *Frame) scrollH() {
+	wrapLn, wrapCol := findWrapCol(f.buffer.LineGraphemes(f.cursor.Ln), f.wrapWidth, f.cursor.Col)
+
+	f.cursorY += wrapLn
 	f.cursorX = f.area.X + f.indexWidth
 
-	wrapLn, wrapCol := findWrapCol(f.buffer.LineGraphemes(f.cursor.Ln), f.wrapWidth, f.cursor.Col)
-	f.cursorY += wrapLn
-
-	delta := wrapCol - f.scrollCol
+	lnDelta := wrapCol - f.scrollCol
 
 	// Before?
-	if delta <= 0 {
+	if lnDelta <= 0 {
 		f.scrollCol = wrapCol
 		return
 	}
 
 	// After?
-	wSum, ww := sliceWidth(f.buffer.LineGraphemes(f.cursor.Ln), f.cursor.Col-delta, f.cursor.Col)
+	wSum, ww := sliceWidth(f.buffer.LineGraphemes(f.cursor.Ln), f.cursor.Col-lnDelta, f.cursor.Col)
 
 	i := 0
 
