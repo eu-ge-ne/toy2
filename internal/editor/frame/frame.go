@@ -175,9 +175,10 @@ func (f *Frame) scrollV() {
 			f.scrollLn += 1
 		} else {
 			yDelta += h
-			f.cursorY += h
 		}
 	}
+
+	f.cursorY += yDelta
 }
 
 func (f *Frame) scrollH() {
