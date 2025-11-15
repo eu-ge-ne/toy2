@@ -103,7 +103,6 @@ func (f *Frame) Render(setCursor bool) {
 	f.scrollH()
 
 	vt.Sync.Bsu()
-
 	vt.Buf.Write(vt.HideCursor)
 	vt.Buf.Write(vt.SaveCursor)
 	vt.Buf.Write(f.colorMainBg)
@@ -120,7 +119,6 @@ func (f *Frame) Render(setCursor bool) {
 	}
 
 	vt.Buf.Flush()
-
 	vt.Sync.Esu()
 }
 
