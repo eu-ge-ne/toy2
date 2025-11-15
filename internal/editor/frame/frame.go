@@ -97,7 +97,10 @@ func (f *Frame) ToggleWhitespaceEnabled() {
 }
 
 func (f *Frame) Render(setCursor bool) {
-	f.scroll()
+	f.layout()
+	f.scrollV()
+	f.syntax.Highlight(f.buffer, f.scrollLn, f.scrollLn+f.area.H)
+	f.scrollH()
 
 	vt.Sync.Bsu()
 
@@ -121,7 +124,7 @@ func (f *Frame) Render(setCursor bool) {
 	vt.Sync.Esu()
 }
 
-func (f *Frame) scroll() {
+func (f *Frame) layout() {
 	if f.indexEnabled && f.buffer.LineCount() > 0 {
 		f.indexWidth = int(math.Log10(float64(f.buffer.LineCount()))) + 3
 	} else {
@@ -137,12 +140,6 @@ func (f *Frame) scroll() {
 	}
 
 	grapheme.Graphemes.SetWcharPos(f.area.Y, f.area.X+f.indexWidth)
-
-	f.scrollV()
-
-	f.syntax.Highlight(f.buffer, f.scrollLn, f.scrollLn+f.area.H)
-
-	f.scrollH()
 }
 
 func (f *Frame) scrollV() {
