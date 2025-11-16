@@ -156,8 +156,8 @@ func (f *Frame) scrollV() {
 		return
 	}
 
-	if lnDelta > f.area.H {
-		lnDelta = f.area.H
+	if lnDelta >= f.area.H {
+		lnDelta = f.area.H - 1
 		f.scrollLn = f.cursor.Ln - lnDelta
 	}
 
