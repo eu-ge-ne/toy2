@@ -40,8 +40,8 @@ type Frame struct {
 	cursor *cursor.Cursor
 	syntax *syntax.Syntax
 
-	scrollHs []int
-	scrollWs []int
+	hs []int
+	ws []int
 }
 
 func New(buffer *textbuf.TextBuf, cursor *cursor.Cursor, syntax *syntax.Syntax) *Frame {
@@ -75,8 +75,8 @@ func (f *Frame) SetColors(t theme.Theme) {
 
 func (f *Frame) SetArea(a ui.Area) {
 	f.area = a
-	f.scrollHs = make([]int, a.H)
-	f.scrollWs = make([]int, a.W)
+	f.hs = make([]int, a.H)
+	f.ws = make([]int, a.W)
 }
 
 func (f *Frame) SetIndexEnabled(e bool) {
@@ -173,15 +173,15 @@ func (f *Frame) scrollV() {
 
 	for i := 0; i < lnCount; i += 1 {
 		h := wrapCount(f.buffer.LineGraphemes(f.scrollLn+i), f.wrapWidth)
-		f.scrollHs[i] = h
+		f.hs[i] = h
 		addY += h
 	}
 
 	for i := 0; addY > f.area.H; i += 1 {
 		addLn += 1
-		addY -= f.scrollHs[i]
+		addY -= f.hs[i]
 	}
-	addY -= f.scrollHs[lnCount-1]
+	addY -= f.hs[lnCount-1]
 
 	f.scrollLn += addLn
 	f.cursorY += addY
@@ -207,7 +207,7 @@ func (f *Frame) scrollH() {
 	col := 0
 	for gr := range f.buffer.LineGraphemes(f.cursor.Ln) {
 		if col >= f.cursor.Col-colDelta && col < f.cursor.Col {
-			f.scrollWs[i] = gr.Width
+			f.ws[i] = gr.Width
 			addX += gr.Width
 			i += 1
 		}
@@ -216,7 +216,7 @@ func (f *Frame) scrollH() {
 
 	for i := 0; addX >= f.textWidth; i += 1 {
 		addCol += 1
-		addX -= f.scrollWs[i]
+		addX -= f.ws[i]
 	}
 
 	f.scrollCol += addCol
