@@ -41,6 +41,7 @@ type Frame struct {
 	syntax *syntax.Syntax
 
 	scrollHs []int
+	scrollWs []int
 }
 
 func New(buffer *textbuf.TextBuf, cursor *cursor.Cursor, syntax *syntax.Syntax) *Frame {
@@ -75,6 +76,7 @@ func (f *Frame) SetColors(t theme.Theme) {
 func (f *Frame) SetArea(a ui.Area) {
 	f.area = a
 	f.scrollHs = make([]int, a.H)
+	f.scrollWs = make([]int, a.W)
 }
 
 func (f *Frame) SetIndexEnabled(e bool) {
@@ -198,12 +200,9 @@ func (f *Frame) scrollH() {
 		return
 	}
 
-	// After?
 	wSum, ww := sliceWidth(f.buffer.LineGraphemes(f.cursor.Ln), f.cursor.Col-colDelta, f.cursor.Col)
 
-	i := 0
-
-	for wSum >= f.textWidth {
+	for i := 0; wSum >= f.textWidth; {
 		wSum -= ww[i]
 		i += 1
 		f.scrollCol += 1
