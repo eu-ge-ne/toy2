@@ -168,11 +168,13 @@ func (f *Frame) scrollV() {
 	addY := 0
 
 	lnCount := lnDelta + 1
+
 	for i := 0; i < lnCount; i += 1 {
 		h := wrapCount(f.buffer.LineGraphemes(f.scrollLn+i), f.wrapWidth)
 		f.scrollHs[i] = h
 		addY += h
 	}
+
 	for i := 0; addY > f.area.H; i += 1 {
 		addLn += 1
 		addY -= f.scrollHs[i]
