@@ -12,6 +12,7 @@ func wrapCount(line iter.Seq[*grapheme.Grapheme], wrapAt int) int {
 
 	for gr := range line {
 		w += gr.Width
+
 		if w > wrapAt {
 			w = gr.Width
 			h += 1

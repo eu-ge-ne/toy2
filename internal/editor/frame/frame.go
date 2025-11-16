@@ -181,6 +181,7 @@ func (f *Frame) scrollV() {
 		addLn += 1
 		addY -= f.hs[i]
 	}
+
 	addY -= f.hs[lnCount-1]
 
 	f.scrollLn += addLn
