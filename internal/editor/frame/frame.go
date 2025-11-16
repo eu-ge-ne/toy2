@@ -163,20 +163,20 @@ func (f *Frame) scrollV() {
 
 	lnCount := lnDelta + 1
 
-	h := make([]int, lnCount)
-	sum := 0
+	hs := make([]int, lnCount)
+	h := 0
 
 	for i := 0; i < lnCount; i += 1 {
-		h[i] = wrapCount(f.buffer.LineGraphemes(f.scrollLn+i), f.wrapWidth)
-		sum += h[i]
+		hs[i] = wrapCount(f.buffer.LineGraphemes(f.scrollLn+i), f.wrapWidth)
+		h += hs[i]
 	}
 
-	for i := 0; sum > f.area.H; i += 1 {
-		sum -= h[i]
+	for i := 0; h > f.area.H; i += 1 {
+		h -= hs[i]
 		f.scrollLn += 1
 	}
 
-	f.cursorY += sum - h[lnCount-1]
+	f.cursorY += h - hs[lnCount-1]
 }
 
 func (f *Frame) scrollH() {
