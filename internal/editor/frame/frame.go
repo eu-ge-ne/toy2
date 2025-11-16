@@ -180,10 +180,10 @@ func (f *Frame) scrollV() {
 }
 
 func (f *Frame) scrollH() {
-	f.cursorX = f.area.X + f.indexWidth
-
 	wrapLn, wrapCol := findWrapCol(f.buffer.LineGraphemes(f.cursor.Ln), f.wrapWidth, f.cursor.Col)
+
 	f.cursorY += wrapLn
+	f.cursorX = f.area.X + f.indexWidth
 
 	delta := wrapCol - f.scrollCol
 
