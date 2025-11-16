@@ -170,6 +170,7 @@ func (f *Frame) scrollV() {
 		hs[i] = wrapCount(f.buffer.LineGraphemes(f.scrollLn+i), f.wrapWidth)
 		addY += hs[i]
 	}
+
 	for i := 0; addY > f.area.H; i += 1 {
 		addLn += 1
 		addY -= hs[i]
