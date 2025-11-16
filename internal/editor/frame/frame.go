@@ -39,6 +39,8 @@ type Frame struct {
 	buffer *textbuf.TextBuf
 	cursor *cursor.Cursor
 	syntax *syntax.Syntax
+
+	scrollHs []int
 }
 
 func New(buffer *textbuf.TextBuf, cursor *cursor.Cursor, syntax *syntax.Syntax) *Frame {
@@ -72,6 +74,7 @@ func (f *Frame) SetColors(t theme.Theme) {
 
 func (f *Frame) SetArea(a ui.Area) {
 	f.area = a
+	f.scrollHs = make([]int, a.H)
 }
 
 func (f *Frame) SetIndexEnabled(e bool) {
@@ -165,17 +168,16 @@ func (f *Frame) scrollV() {
 	addY := 0
 
 	lnCount := lnDelta + 1
-	hs := make([]int, lnCount)
 	for i := 0; i < lnCount; i += 1 {
-		hs[i] = wrapCount(f.buffer.LineGraphemes(f.scrollLn+i), f.wrapWidth)
-		addY += hs[i]
+		h := wrapCount(f.buffer.LineGraphemes(f.scrollLn+i), f.wrapWidth)
+		f.scrollHs[i] = h
+		addY += h
 	}
-
 	for i := 0; addY > f.area.H; i += 1 {
 		addLn += 1
-		addY -= hs[i]
+		addY -= f.scrollHs[i]
 	}
-	addY -= hs[lnCount-1]
+	addY -= f.scrollHs[lnCount-1]
 
 	f.scrollLn += addLn
 	f.cursorY += addY
