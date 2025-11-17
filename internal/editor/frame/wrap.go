@@ -6,36 +6,20 @@ import (
 	"github.com/eu-ge-ne/toy2/internal/grapheme"
 )
 
-type cell struct {
-	Gr  *grapheme.Grapheme
-	Col int
-	//WrapLn  int
-	WrapCol int
-}
+func wrapCount(line iter.Seq[*grapheme.Grapheme], wrapAt int) int {
+	h := 1
+	w := 0
 
-func wrap(line iter.Seq[*grapheme.Grapheme], wrapAt int) iter.Seq[cell] {
-	return func(yield func(cell) bool) {
-		cell := cell{}
-		w := 0
+	for gr := range line {
+		w += gr.Width
 
-		for gr := range line {
-			cell.Gr = gr
-
-			w += cell.Gr.Width
-			if w > wrapAt {
-				w = cell.Gr.Width
-				//cell.WrapLn += 1
-				cell.WrapCol = 0
-			}
-
-			if !yield(cell) {
-				return
-			}
-
-			cell.Col += 1
-			cell.WrapCol += 1
+		if w > wrapAt {
+			w = gr.Width
+			h += 1
 		}
 	}
+
+	return h
 }
 
 func findWrapCol(line iter.Seq[*grapheme.Grapheme], wrapAt int, col int) (int, int) {
@@ -73,36 +57,34 @@ func findWrapCol(line iter.Seq[*grapheme.Grapheme], wrapAt int, col int) (int, i
 	return 0, 0
 }
 
-func wrapCount(line iter.Seq[*grapheme.Grapheme], wrapAt int) int {
-	h := 1
-	w := 0
-
-	for gr := range line {
-		w += gr.Width
-		if w > wrapAt {
-			w = gr.Width
-			h += 1
-		}
-	}
-
-	return h
+type cell struct {
+	Gr  *grapheme.Grapheme
+	Col int
+	//WrapLn  int
+	WrapCol int
 }
 
-func sliceWidth(line iter.Seq[*grapheme.Grapheme], start, end int) (int, []int) {
-	sum := 0
-	ww := make([]int, end-start)
-	i := 0
-	col := 0
+func wrap(line iter.Seq[*grapheme.Grapheme], wrapAt int) iter.Seq[cell] {
+	return func(yield func(cell) bool) {
+		cell := cell{}
+		w := 0
 
-	for gr := range line {
-		if col >= start && col < end {
-			sum += gr.Width
-			ww[i] = gr.Width
-			i += 1
+		for gr := range line {
+			cell.Gr = gr
+
+			w += cell.Gr.Width
+			if w > wrapAt {
+				w = cell.Gr.Width
+				//cell.WrapLn += 1
+				cell.WrapCol = 0
+			}
+
+			if !yield(cell) {
+				return
+			}
+
+			cell.Col += 1
+			cell.WrapCol += 1
 		}
-
-		col += 1
 	}
-
-	return sum, ww
 }

@@ -39,6 +39,9 @@ type Frame struct {
 	buffer *textbuf.TextBuf
 	cursor *cursor.Cursor
 	syntax *syntax.Syntax
+
+	hs []int
+	ws []int
 }
 
 func New(buffer *textbuf.TextBuf, cursor *cursor.Cursor, syntax *syntax.Syntax) *Frame {
@@ -49,15 +52,15 @@ func New(buffer *textbuf.TextBuf, cursor *cursor.Cursor, syntax *syntax.Syntax) 
 	}
 }
 
-func (fr *Frame) SetColors(t theme.Theme) {
-	fr.colorMainBg = t.MainBg()
-	fr.colorMainFg = t.Light1Fg()
-	fr.colorSelectedBg = t.Light2Bg()
-	fr.colorVoidBg = t.Dark0Bg()
-	fr.colorIndex = append(t.Light0Bg(), t.Dark0Fg()...)
+func (f *Frame) SetColors(t theme.Theme) {
+	f.colorMainBg = t.MainBg()
+	f.colorMainFg = t.Light1Fg()
+	f.colorSelectedBg = t.Light2Bg()
+	f.colorVoidBg = t.Dark0Bg()
+	f.colorIndex = append(t.Light0Bg(), t.Dark0Fg()...)
 
-	fr.colorCharFg = map[string][]byte{
-		"toy.text":            fr.colorMainFg,
+	f.colorCharFg = map[string][]byte{
+		"toy.text":            f.colorMainFg,
 		"toy.wspace.on":       t.Dark0Fg(),
 		"toy.wspace.off":      t.MainFg(),
 		"keyword":             vt.CharFg(colors.Fuchsia300),
@@ -70,46 +73,48 @@ func (fr *Frame) SetColors(t theme.Theme) {
 	}
 }
 
-func (fr *Frame) SetArea(a ui.Area) {
-	fr.area = a
+func (f *Frame) SetArea(a ui.Area) {
+	f.area = a
+	f.hs = make([]int, a.H)
+	f.ws = make([]int, a.W)
 }
 
-func (fr *Frame) SetIndexEnabled(e bool) {
-	fr.indexEnabled = e
+func (f *Frame) SetIndexEnabled(e bool) {
+	f.indexEnabled = e
 }
 
-func (fr *Frame) SetWrapEnabled(e bool) {
-	fr.wrapEnabled = e
+func (f *Frame) SetWrapEnabled(e bool) {
+	f.wrapEnabled = e
 }
 
-func (fr *Frame) ToggleWrapEnabled() {
-	fr.wrapEnabled = !fr.wrapEnabled
-	fr.cursor.Home(false)
+func (f *Frame) ToggleWrapEnabled() {
+	f.wrapEnabled = !f.wrapEnabled
+	f.cursor.Home(false)
 }
 
-func (fr *Frame) SetWhitespaceEnabled(e bool) {
-	fr.whitespaceEnabled = e
+func (f *Frame) SetWhitespaceEnabled(e bool) {
+	f.whitespaceEnabled = e
 }
 
-func (fr *Frame) ToggleWhitespaceEnabled() {
-	fr.whitespaceEnabled = !fr.whitespaceEnabled
-	fr.cursor.Home(false)
+func (f *Frame) ToggleWhitespaceEnabled() {
+	f.whitespaceEnabled = !f.whitespaceEnabled
+	f.cursor.Home(false)
 }
 
-func (fr *Frame) Render(setCursor bool) {
-	fr.scroll()
+func (f *Frame) Render(setCursor bool) {
+	f.scroll()
 
 	vt.Sync.Bsu()
 
 	vt.Buf.Write(vt.HideCursor)
 	vt.Buf.Write(vt.SaveCursor)
-	vt.Buf.Write(fr.colorMainBg)
-	vt.ClearArea(vt.Buf, fr.area)
+	vt.Buf.Write(f.colorMainBg)
+	vt.ClearArea(vt.Buf, f.area)
 
-	fr.renderLines()
+	f.renderLines()
 
 	if setCursor {
-		vt.SetCursor(vt.Buf, fr.cursorY, fr.cursorX)
+		vt.SetCursor(vt.Buf, f.cursorY, f.cursorX)
 		vt.Buf.Write(vt.ShowCursor)
 	} else {
 		vt.Buf.Write(vt.RestoreCursor)
@@ -121,164 +126,173 @@ func (fr *Frame) Render(setCursor bool) {
 	vt.Sync.Esu()
 }
 
-func (fr *Frame) scroll() {
-	if fr.indexEnabled && fr.buffer.LineCount() > 0 {
-		fr.indexWidth = int(math.Log10(float64(fr.buffer.LineCount()))) + 3
-	} else {
-		fr.indexWidth = 0
-	}
-
-	fr.textWidth = fr.area.W - fr.indexWidth
-
-	if fr.wrapEnabled {
-		fr.wrapWidth = fr.textWidth
-	} else {
-		fr.wrapWidth = math.MaxInt
-	}
-
-	grapheme.Graphemes.SetWcharPos(fr.area.Y, fr.area.X+fr.indexWidth)
-
-	fr.scrollV()
-
-	fr.syntax.Highlight(fr.buffer, fr.scrollLn, fr.scrollLn+fr.area.H)
-
-	fr.scrollH()
+func (f *Frame) scroll() {
+	f.layout()
+	f.scrollV()
+	f.syntax.Highlight(f.buffer, f.scrollLn, f.scrollLn+f.area.H)
+	f.scrollH()
 }
 
-func (fr *Frame) scrollV() {
-	fr.cursorY = fr.area.Y
+func (f *Frame) layout() {
+	if f.indexEnabled && f.buffer.LineCount() > 0 {
+		f.indexWidth = int(math.Log10(float64(f.buffer.LineCount()))) + 3
+	} else {
+		f.indexWidth = 0
+	}
 
-	delta := fr.cursor.Ln - fr.scrollLn
+	f.textWidth = f.area.W - f.indexWidth
 
-	// Above?
-	if delta <= 0 {
-		fr.scrollLn = fr.cursor.Ln
+	if f.wrapEnabled {
+		f.wrapWidth = f.textWidth
+	} else {
+		f.wrapWidth = math.MaxInt
+	}
+
+	grapheme.Graphemes.SetWcharPos(f.area.Y, f.area.X+f.indexWidth)
+}
+
+func (f *Frame) scrollV() {
+	f.cursorY = f.area.Y
+
+	lnDelta := f.cursor.Ln - f.scrollLn
+
+	if lnDelta <= 0 {
+		f.scrollLn = f.cursor.Ln
 		return
 	}
 
-	// Below?
-	if delta > fr.area.H {
-		delta = fr.area.H
-		fr.scrollLn = fr.cursor.Ln - delta
+	if lnDelta >= f.area.H {
+		lnDelta = f.area.H - 1
+		f.scrollLn = f.cursor.Ln - lnDelta
 	}
 
-	hSum := 0
-	hh := make([]int, delta+1)
+	addLn := 0
+	addY := 0
 
-	for i := 0; i < len(hh); i += 1 {
-		h := wrapCount(fr.buffer.LineGraphemes(fr.scrollLn+i), fr.wrapWidth)
-		hSum += h
-		hh[i] = h
+	lnCount := lnDelta + 1
+
+	for i := 0; i < lnCount; i += 1 {
+		h := wrapCount(f.buffer.LineGraphemes(f.scrollLn+i), f.wrapWidth)
+		f.hs[i] = h
+		addY += h
 	}
 
-	i := 0
-
-	for hSum > fr.area.H {
-		hSum -= hh[i]
-		i += 1
-		fr.scrollLn += 1
+	for i := 0; addY > f.area.H; i += 1 {
+		addLn += 1
+		addY -= f.hs[i]
 	}
 
-	fr.cursorY += hSum - hh[len(hh)-1]
+	addY -= f.hs[lnCount-1]
+
+	f.scrollLn += addLn
+	f.cursorY += addY
 }
 
-func (fr *Frame) scrollH() {
-	fr.cursorX = fr.area.X + fr.indexWidth
+func (f *Frame) scrollH() {
+	wrapLn, wrapCol := findWrapCol(f.buffer.LineGraphemes(f.cursor.Ln), f.wrapWidth, f.cursor.Col)
 
-	wrapLn, wrapCol := findWrapCol(fr.buffer.LineGraphemes(fr.cursor.Ln), fr.wrapWidth, fr.cursor.Col)
-	fr.cursorY += wrapLn
+	f.cursorY += wrapLn
+	f.cursorX = f.area.X + f.indexWidth
 
-	delta := wrapCol - fr.scrollCol
+	colDelta := wrapCol - f.scrollCol
 
-	// Before?
-	if delta <= 0 {
-		fr.scrollCol = wrapCol
+	if colDelta <= 0 {
+		f.scrollCol = wrapCol
 		return
 	}
 
-	// After?
-	wSum, ww := sliceWidth(fr.buffer.LineGraphemes(fr.cursor.Ln), fr.cursor.Col-delta, fr.cursor.Col)
+	addCol := 0
+	addX := 0
 
 	i := 0
-
-	for wSum >= fr.textWidth {
-		wSum -= ww[i]
-		i += 1
-		fr.scrollCol += 1
+	col := 0
+	for gr := range f.buffer.LineGraphemes(f.cursor.Ln) {
+		if col >= f.cursor.Col-colDelta && col < f.cursor.Col {
+			f.ws[i] = gr.Width
+			addX += gr.Width
+			i += 1
+		}
+		col += 1
 	}
 
-	fr.cursorX += wSum
+	for i := 0; addX >= f.textWidth; i += 1 {
+		addCol += 1
+		addX -= f.ws[i]
+	}
+
+	f.scrollCol += addCol
+	f.cursorX += addX
 }
 
-func (fr *Frame) renderLines() {
-	row := fr.area.Y
+func (f *Frame) renderLines() {
+	row := f.area.Y
 
-	for ln := fr.scrollLn; ; ln += 1 {
-		if ln < fr.buffer.LineCount() {
-			row = fr.renderLine(ln, row)
+	for ln := f.scrollLn; ; ln += 1 {
+		if ln < f.buffer.LineCount() {
+			row = f.renderLine(ln, row)
 		} else {
-			vt.SetCursor(vt.Buf, row, fr.area.X)
-			vt.Buf.Write(fr.colorVoidBg)
-			vt.ClearLine(vt.Buf, fr.area.W)
+			vt.SetCursor(vt.Buf, row, f.area.X)
+			vt.Buf.Write(f.colorVoidBg)
+			vt.ClearLine(vt.Buf, f.area.W)
 		}
 
 		row += 1
-		if row >= fr.area.Y+fr.area.H {
+		if row >= f.area.Y+f.area.H {
 			break
 		}
 	}
 }
 
-func (fr *Frame) renderLine(ln int, row int) int {
+func (f *Frame) renderLine(ln int, row int) int {
 	currentFg := ""
 	currentBg := false
 	availableW := 0
 
-	for cell := range wrap(fr.buffer.LineGraphemes(ln), fr.wrapWidth) {
+	for cell := range wrap(f.buffer.LineGraphemes(ln), f.wrapWidth) {
 		if cell.WrapCol == 0 {
 			if cell.Col > 0 {
 				row += 1
-				if row >= fr.area.Y+fr.area.H {
+				if row >= f.area.Y+f.area.H {
 					return row
 				}
 			}
 
-			vt.SetCursor(vt.Buf, row, fr.area.X)
+			vt.SetCursor(vt.Buf, row, f.area.X)
 
-			if fr.indexWidth > 0 {
+			if f.indexWidth > 0 {
 				if cell.Col == 0 {
-					vt.Buf.Write(fr.colorIndex)
-					fmt.Fprintf(vt.Buf, "%*d ", fr.indexWidth-1, ln+1)
-					vt.Buf.Write(fr.colorMainBg)
+					vt.Buf.Write(f.colorIndex)
+					fmt.Fprintf(vt.Buf, "%*d ", f.indexWidth-1, ln+1)
+					vt.Buf.Write(f.colorMainBg)
 				} else {
-					vt.Buf.Write(fr.colorMainBg)
-					vt.WriteSpaces(vt.Buf, fr.indexWidth)
+					vt.Buf.Write(f.colorMainBg)
+					vt.WriteSpaces(vt.Buf, f.indexWidth)
 				}
 			}
 
-			availableW = fr.area.W - fr.indexWidth
+			availableW = f.area.W - f.indexWidth
 		}
 
-		fg := fr.syntax.Next(len(cell.Gr.Str))
+		fg := f.syntax.Next(len(cell.Gr.Str))
 
-		if (cell.WrapCol < fr.scrollCol) || (cell.Gr.Width > availableW) {
+		if (cell.WrapCol < f.scrollCol) || (cell.Gr.Width > availableW) {
 			continue
 		}
 
-		bg := fr.cursor.IsSelected(ln, cell.Col)
+		bg := f.cursor.IsSelected(ln, cell.Col)
 		if bg != currentBg {
 			currentBg = bg
 			if currentBg {
-				vt.Buf.Write(fr.colorSelectedBg)
+				vt.Buf.Write(f.colorSelectedBg)
 			} else {
-				vt.Buf.Write(fr.colorMainBg)
+				vt.Buf.Write(f.colorMainBg)
 			}
 		}
 
 		if len(fg) == 0 {
 			if cell.Gr.IsVisible {
 				fg = "toy.text"
-			} else if fr.whitespaceEnabled {
+			} else if f.whitespaceEnabled {
 				fg = "toy.wspace.on"
 			} else {
 				fg = "toy.wspace.off"
@@ -286,9 +300,9 @@ func (fr *Frame) renderLine(ln int, row int) int {
 		}
 		if fg != currentFg {
 			currentFg = fg
-			b, ok := fr.colorCharFg[fg]
+			b, ok := f.colorCharFg[fg]
 			if !ok {
-				b = fr.colorMainFg
+				b = f.colorMainFg
 			}
 			vt.Buf.Write(b)
 		}
