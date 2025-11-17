@@ -114,19 +114,11 @@ func (f *Frame) Render(setCursor bool) {
 	ln := f.scrollLn
 	row := f.area.Y
 
-	for {
-		if ln < f.buffer.LineCount() {
-			row = f.renderLine(ln, row)
-		} else {
-			f.clearLine(row)
-		}
+	for row < f.area.Y+f.area.H {
+		row = f.renderLine(ln, row)
 
 		ln += 1
 		row += 1
-
-		if row >= f.area.Y+f.area.H {
-			break
-		}
 	}
 
 	if setCursor {
@@ -241,6 +233,14 @@ func (f *Frame) scrollH() {
 }
 
 func (f *Frame) renderLine(ln int, row int) int {
+	if ln >= f.buffer.LineCount() {
+		vt.SetCursor(vt.Buf, row, f.area.X)
+		vt.Buf.Write(f.colorVoidBg)
+		vt.ClearLine(vt.Buf, f.area.W)
+
+		return row
+	}
+
 	currentFg := ""
 	currentBg := false
 	availableW := 0
@@ -310,10 +310,4 @@ func (f *Frame) renderLine(ln int, row int) int {
 	}
 
 	return row
-}
-
-func (f *Frame) clearLine(row int) {
-	vt.SetCursor(vt.Buf, row, f.area.X)
-	vt.Buf.Write(f.colorVoidBg)
-	vt.ClearLine(vt.Buf, f.area.W)
 }
