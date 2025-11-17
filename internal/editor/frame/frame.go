@@ -116,7 +116,6 @@ func (f *Frame) Render(setCursor bool) {
 
 	for row < f.area.Y+f.area.H {
 		row = f.renderLine(ln, row)
-
 		ln += 1
 		row += 1
 	}
