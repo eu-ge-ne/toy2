@@ -111,7 +111,23 @@ func (f *Frame) Render(setCursor bool) {
 	vt.Buf.Write(f.colorMainBg)
 	vt.ClearArea(vt.Buf, f.area)
 
-	f.renderLines()
+	ln := f.scrollLn
+	row := f.area.Y
+
+	for {
+		if ln < f.buffer.LineCount() {
+			row = f.renderLine(ln, row)
+		} else {
+			f.clearLine(row)
+		}
+
+		ln += 1
+		row += 1
+
+		if row >= f.area.Y+f.area.H {
+			break
+		}
+	}
 
 	if setCursor {
 		vt.SetCursor(vt.Buf, f.cursorY, f.cursorX)
@@ -224,25 +240,6 @@ func (f *Frame) scrollH() {
 	f.cursorX += addX
 }
 
-func (f *Frame) renderLines() {
-	row := f.area.Y
-
-	for ln := f.scrollLn; ; ln += 1 {
-		if ln < f.buffer.LineCount() {
-			row = f.renderLine(ln, row)
-		} else {
-			vt.SetCursor(vt.Buf, row, f.area.X)
-			vt.Buf.Write(f.colorVoidBg)
-			vt.ClearLine(vt.Buf, f.area.W)
-		}
-
-		row += 1
-		if row >= f.area.Y+f.area.H {
-			break
-		}
-	}
-}
-
 func (f *Frame) renderLine(ln int, row int) int {
 	currentFg := ""
 	currentBg := false
@@ -313,4 +310,10 @@ func (f *Frame) renderLine(ln int, row int) int {
 	}
 
 	return row
+}
+
+func (f *Frame) clearLine(row int) {
+	vt.SetCursor(vt.Buf, row, f.area.X)
+	vt.Buf.Write(f.colorVoidBg)
+	vt.ClearLine(vt.Buf, f.area.W)
 }
