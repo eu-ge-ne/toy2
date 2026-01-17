@@ -9,8 +9,6 @@ import (
 	"github.com/eu-ge-ne/toy2/internal/editor/cursor"
 	"github.com/eu-ge-ne/toy2/internal/editor/frame"
 	"github.com/eu-ge-ne/toy2/internal/editor/history"
-	"github.com/eu-ge-ne/toy2/internal/editor/syntax"
-	"github.com/eu-ge-ne/toy2/internal/grammar"
 	"github.com/eu-ge-ne/toy2/internal/key"
 	"github.com/eu-ge-ne/toy2/internal/std"
 	"github.com/eu-ge-ne/toy2/internal/textbuf"
@@ -27,7 +25,6 @@ type Editor struct {
 	buffer    *textbuf.TextBuf
 	cursor    *cursor.Cursor
 	history   *history.History
-	syntax    *syntax.Syntax
 	frame     *frame.Frame
 
 	area      ui.Area
@@ -50,7 +47,6 @@ func New(multiLine bool) *Editor {
 	ed.history = history.New(buffer, ed.cursor)
 	ed.history.OnChanged = ed.OnChanged
 
-	ed.syntax = syntax.New()
 	ed.frame = frame.New(buffer, ed.cursor)
 
 	ed.handlers = []Handler{
@@ -77,10 +73,6 @@ func New(multiLine bool) *Editor {
 	}
 
 	return ed
-}
-
-func (ed *Editor) SetGrammar(grm grammar.Grammar) {
-	ed.syntax.SetGrammar(grm)
 }
 
 func (ed *Editor) SetColors(t theme.Theme) {
@@ -224,8 +216,6 @@ func (ed *Editor) Backspace() bool {
 
 	ed.cursor.Set(change.Start.Ln, change.Start.Col, false)
 	ed.history.Push()
-
-	ed.syntax.Delete(change)
 
 	return true
 }
@@ -374,8 +364,6 @@ func (ed *Editor) insertText(text string) bool {
 	ed.cursor.Set(change.End.Ln, change.End.Col, false)
 	ed.history.Push()
 
-	ed.syntax.Insert(change)
-
 	return true
 }
 
@@ -389,21 +377,17 @@ func (ed *Editor) deleteSelection() bool {
 	ed.cursor.Set(change.Start.Ln, change.Start.Col, false)
 	ed.history.Push()
 
-	ed.syntax.Delete(change)
-
 	return true
 }
 
 func (ed *Editor) deleteChar() bool {
-	change, ok := ed.buffer.Delete(ed.cursor.Ln, ed.cursor.Col, ed.cursor.Ln, ed.cursor.Col+1)
+	_, ok := ed.buffer.Delete(ed.cursor.Ln, ed.cursor.Col, ed.cursor.Ln, ed.cursor.Col+1)
 
 	if !ok {
 		return false
 	}
 
 	ed.history.Push()
-
-	ed.syntax.Delete(change)
 
 	return true
 }

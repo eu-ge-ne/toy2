@@ -123,7 +123,6 @@ func (app *App) Run() {
 	app.editor.SetEnabled(true)
 	app.editor.SetWrapEnabled(true)
 	app.editor.SetWhitespaceEnabled(true)
-	app.editor.SetGrammar(nil)
 
 	app.debug.Enable(true)
 
