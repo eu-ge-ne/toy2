@@ -6,7 +6,6 @@ import (
 
 	"github.com/eu-ge-ne/toy2/internal/colors"
 	"github.com/eu-ge-ne/toy2/internal/editor/cursor"
-	"github.com/eu-ge-ne/toy2/internal/editor/syntax"
 	"github.com/eu-ge-ne/toy2/internal/grapheme"
 	"github.com/eu-ge-ne/toy2/internal/textbuf"
 	"github.com/eu-ge-ne/toy2/internal/theme"
@@ -38,17 +37,15 @@ type Frame struct {
 
 	buffer *textbuf.TextBuf
 	cursor *cursor.Cursor
-	syntax *syntax.Syntax
 
 	hs []int
 	ws []int
 }
 
-func New(buffer *textbuf.TextBuf, cursor *cursor.Cursor, syntax *syntax.Syntax) *Frame {
+func New(buffer *textbuf.TextBuf, cursor *cursor.Cursor) *Frame {
 	return &Frame{
 		buffer: buffer,
 		cursor: cursor,
-		syntax: syntax,
 	}
 }
 
@@ -129,7 +126,6 @@ func (f *Frame) Render(setCursor bool) {
 func (f *Frame) scroll() {
 	f.layout()
 	f.scrollV()
-	f.syntax.Highlight(f.buffer, f.scrollLn, f.scrollLn+f.area.H)
 	f.scrollH()
 }
 
@@ -273,8 +269,6 @@ func (f *Frame) renderLine(ln int, row int) int {
 			availableW = f.area.W - f.indexWidth
 		}
 
-		fg := f.syntax.Next(len(cell.Gr.Str))
-
 		if (cell.WrapCol < f.scrollCol) || (cell.Gr.Width > availableW) {
 			continue
 		}
@@ -289,14 +283,13 @@ func (f *Frame) renderLine(ln int, row int) int {
 			}
 		}
 
-		if len(fg) == 0 {
-			if cell.Gr.IsVisible {
-				fg = "toy.text"
-			} else if f.whitespaceEnabled {
-				fg = "toy.wspace.on"
-			} else {
-				fg = "toy.wspace.off"
-			}
+		var fg string
+		if cell.Gr.IsVisible {
+			fg = "toy.text"
+		} else if f.whitespaceEnabled {
+			fg = "toy.wspace.on"
+		} else {
+			fg = "toy.wspace.off"
 		}
 		if fg != currentFg {
 			currentFg = fg
