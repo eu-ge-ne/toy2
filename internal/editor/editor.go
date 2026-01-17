@@ -51,7 +51,7 @@ func New(multiLine bool) *Editor {
 	ed.history.OnChanged = ed.OnChanged
 
 	ed.syntax = syntax.New()
-	ed.frame = frame.New(buffer, ed.cursor, ed.syntax)
+	ed.frame = frame.New(buffer, ed.cursor)
 
 	ed.handlers = []Handler{
 		&Insert{ed},
